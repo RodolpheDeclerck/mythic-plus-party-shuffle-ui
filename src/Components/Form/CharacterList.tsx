@@ -31,7 +31,6 @@ const CharacterList: React.FC = () => {
     useEffect(() => {
         // Appel initial pour charger les personnages et les groupes dès le premier rendu
         fetchCharacters();
-        fetchParties();
 
         // Connecter au serveur WebSocket
         const socketIo = io('https://mythic-plus-party-shuffle-api.onrender.com'); // URL de ton backend WebSocket
@@ -43,9 +42,8 @@ const CharacterList: React.FC = () => {
         });
 
         // Lorsque l'événement 'parties-shuffled' est émis, rafraîchir les données
-        socketIo.on('parties-shuffled', (parties) => {
-            console.log('Parties shuffled: ', parties);
-            setParties(parties);
+        socketIo.on('parties-shuffled', () => {
+            fetchParties();
         });
 
         // Nettoyage du socket à la fermeture du composant
