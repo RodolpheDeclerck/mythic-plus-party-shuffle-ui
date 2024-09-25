@@ -44,6 +44,7 @@ const CharacterList: React.FC = () => {
 
         // Lorsque l'événement 'parties-shuffled' est émis, rafraîchir les données
         socketIo.on('parties-shuffled', (parties) => {
+            console.log('Parties shuffled: ', parties);
             setParties(parties);
         });
 
