@@ -76,14 +76,26 @@ const CharacterList: React.FC = () => {
     // Fonction pour supprimer un personnage
     const handleDelete = async (id: number) => {
         try {
-            await axios.delete(`https://mythic-plus-party-suffle-api.onrender.com/api/characters/${id}`);
-            // Actualiser la liste des personnages après suppression (WebSocket va aussi déclencher un rafraîchissement)
-            fetchCharacters();
-        } catch (error) {
-            console.error(`Error deleting character with ID ${id}:`, error);
+          await axios.delete(`https://mythic-plus-party-suffle-api.onrender.com/api/characters/${id}`);
+          fetchCharacters(); // Refresh the character list
+        } catch (error: any) {
+          if (error.response) {
+            // Server responded with a status code other than 2xx
+            console.error('Server response error:', error.response.data);
+            console.error('Status code:', error.response.status);
+            console.error('Headers:', error.response.headers);
+            setError(`Failed to delete character: ${error.response.data.message}`);
+          } else if (error.request) {
+            // No response was received from the server
+            console.error('No response received:', error.request);
+            setError('No response from the server');
+          } else {
+            // Error occurred in setting up the request
+            console.error('Request setup error:', error.message);
             setError('Failed to delete character');
+          }
         }
-    };
+      };
 
     // Fonction pour mélanger les groupes (shuffle)
     const handleShuffle = async () => {
