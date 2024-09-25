@@ -40,10 +40,6 @@ const CharacterList: React.FC = () => {
         // Lorsque l'événement 'character-updated' est émis, rafraîchir les données
         socketIo.on('character-updated', () => {
             fetchCharacters();
-        });
-
-        // Lorsque l'événement 'parties-shuffled' est émis, rafraîchir les données
-        socketIo.on('parties-shuffled', () => {
             fetchParties();
         });
 
@@ -93,14 +89,12 @@ const CharacterList: React.FC = () => {
     const handleShuffle = async () => {
         try {
             const response = await axios.get<Party[]>('https://mythic-plus-party-suffle-api.onrender.com/api/parties/shuffle');
-            console.log('Shuffle response:', response.data); // Ajoutez ce log pour voir la réponse
             setParties(response.data); // Mettre à jour l'état avec les nouveaux groupes
         } catch (error) {
             console.error('Error shuffling parties:', error);
             setError('Failed to shuffle parties');
         }
     };
-    
 
     // Calculer le nombre total de membres dans tous les groupes
     const totalMembers = parties.reduce((acc, party) => acc + party.members.length, 0);
