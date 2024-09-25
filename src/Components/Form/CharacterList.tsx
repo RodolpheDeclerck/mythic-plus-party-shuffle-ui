@@ -34,7 +34,7 @@ const CharacterList: React.FC = () => {
         fetchParties();
 
         // Connecter au serveur WebSocket
-        const socketIo = io('https://mythic-plus-party-suffle-api.onrender.com'); // URL de ton backend WebSocket
+        const socketIo = io('https://mythic-plus-party-shuffle-api.onrender.com'); // URL de ton backend WebSocket
         setSocket(socketIo);
 
         // Lorsque l'événement 'character-updated' est émis, rafraîchir les données
@@ -55,7 +55,7 @@ const CharacterList: React.FC = () => {
 
     const fetchCharacters = async () => {
         try {
-            const response = await axios.get<Character[]>('https://mythic-plus-party-suffle-api.onrender.com/api/characters');
+            const response = await axios.get<Character[]>('https://mythic-plus-party-shuffle-api.onrender.com/api/characters');
             setCharacters(response.data);
             setLoading(false);
         } catch (error) {
@@ -67,7 +67,7 @@ const CharacterList: React.FC = () => {
 
     const fetchParties = async () => {
         try {
-            const response = await axios.get<Party[]>('https://mythic-plus-party-suffle-api.onrender.com/api/parties');
+            const response = await axios.get<Party[]>('https://mythic-plus-party-shuffle-api.onrender.com/api/parties');
             setParties(response.data);
             setLoading(false);
         } catch (error) {
@@ -80,7 +80,7 @@ const CharacterList: React.FC = () => {
     // Fonction pour supprimer un personnage
     const handleDelete = async (id: number) => {
         try {
-            await axios.delete(`https://mythic-plus-party-suffle-api.onrender.com/api/characters/${id}`);
+            await axios.delete(`https://mythic-plus-party-shuffle-api.onrender.com/api/characters/${id}`);
             // Actualiser la liste des personnages après suppression (WebSocket va aussi déclencher un rafraîchissement)
             fetchCharacters();
         } catch (error) {
@@ -92,7 +92,7 @@ const CharacterList: React.FC = () => {
     // Fonction pour mélanger les groupes (shuffle)
     const handleShuffle = async () => {
         try {
-            const response = await axios.get<Party[]>('https://mythic-plus-party-suffle-api.onrender.com/api/parties/shuffle');
+            const response = await axios.get<Party[]>('https://mythic-plus-party-shuffle-api.onrender.com/api/parties/shuffle');
             console.log('Shuffle response:', response.data); // Ajoutez ce log pour voir la réponse
             setParties(response.data); // Mettre à jour l'état avec les nouveaux groupes
         } catch (error) {
