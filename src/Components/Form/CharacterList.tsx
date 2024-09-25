@@ -43,8 +43,8 @@ const CharacterList: React.FC = () => {
         });
 
         // Lorsque l'événement 'parties-shuffled' est émis, rafraîchir les données
-        socketIo.on('parties-shuffled', () => {
-            fetchParties();
+        socketIo.on('parties-shuffled', (parties) => {
+            setParties(parties);
         });
 
         // Nettoyage du socket à la fermeture du composant
