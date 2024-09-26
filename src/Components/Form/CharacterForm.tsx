@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom'; // Utilisez useNavigate au lieu de useHistory
+import apiUrl from '../../config/config';
 
 interface SpecializationDetails {
   role: string;
@@ -22,7 +23,7 @@ const CharacterForm: React.FC = () => {
   useEffect(() => {
     const fetchClasses = async () => {
       try {
-        const response = await axios.get<string[]>('https://mythic-plus-party-shuffle-api.onrender.com/api/classes');
+        const response = await axios.get<string[]>(`${apiUrl}/api/classes`);
         setClasses(response.data);
       } catch (error) {
         console.error('Error fetching classes:', error);
@@ -39,7 +40,7 @@ const CharacterForm: React.FC = () => {
 
     if (selectedClass) {
       try {
-        const response = await axios.get<string[]>(`https://mythic-plus-party-shuffle-api.onrender.com/api/specializations/${selectedClass}`);
+        const response = await axios.get<string[]>(`${apiUrl}/api/specializations/${selectedClass}`);
         setSpecializations(response.data);
         setSelectSpecialization('');
         setSpecializationDetails(null);
@@ -59,7 +60,7 @@ const CharacterForm: React.FC = () => {
 
     if (selectedSpecialization) {
       try {
-        const response = await axios.get<SpecializationDetails>(`https://mythic-plus-party-shuffle-api.onrender.com/api/specializationDetails/${selectedSpecialization}`);
+        const response = await axios.get<SpecializationDetails>(`${apiUrl}/api/specializationDetails/${selectedSpecialization}`);
         setSpecializationDetails(response.data);
       } catch (error) {
         console.error('Error fetching specialization details:', error);
@@ -79,7 +80,7 @@ const CharacterForm: React.FC = () => {
       };
 
       // Envoyer les données au backend
-      await axios.post('https://mythic-plus-party-shuffle-api.onrender.com/api/characters', characterData);
+      await axios.post(`${apiUrl}/api/characters`, characterData);
 
       // Rediriger l'utilisateur vers /list après l'enregistrement
       navigate('/list');
