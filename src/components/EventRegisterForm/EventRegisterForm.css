@@ -1,0 +1,43 @@
+/* Importer les styles généraux pour garder la cohérence */
+@import '../EventView/EventView.css';
+
+/* Conteneur principal du formulaire */
+.form-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 20px;
+}
+
+/* Contenu du formulaire */
+.form-content {
+    background-color: #f9f9f9;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 600px;
+}
+
+/* Bouton de sauvegarde stylisé */
+.save-button {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 1em;
+    margin-top: 20px;
+    width: 100%;
+}
+
+.save-button:hover {
+    background-color: #45a049;
+}
+
+/* Centrer les titres */
+.title {
+    text-align: center;
+    margin-bottom: 20px;
+}

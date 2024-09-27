@@ -1,5 +1,5 @@
 import React from 'react';
-import { Party } from '../types/Party';
+import { Party } from '../../types/Party';
 
 interface PartyTableProps {
     parties: Party[];
@@ -7,10 +7,10 @@ interface PartyTableProps {
 
 const PartyTable: React.FC<PartyTableProps> = ({ parties }) => {
     return (
-        <div>
+        <div className="party-table-container">
             {parties.map((party, index) => (
-                <div key={index}>
-                    <h3>Group {index + 1}</h3>
+                <div key={index} className="table-wrapper">
+                    <h2>Party {index + 1}</h2>
                     <table>
                         <thead>
                             <tr>

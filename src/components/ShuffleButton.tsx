@@ -7,7 +7,7 @@ interface ShuffleButtonProps {
 const ShuffleButton: React.FC<ShuffleButtonProps> = ({ onShuffle }) => {
     return (
         <button onClick={onShuffle} style={{ marginTop: '20px' }}>
-            Shuffle Groups
+            Launch Event
         </button>
     );
 };

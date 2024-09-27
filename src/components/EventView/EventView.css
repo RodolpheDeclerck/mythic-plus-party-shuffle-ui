@@ -1,0 +1,104 @@
+/* Conteneur flex pour les tableaux et les groupes */
+.table-container, .party-table-container {
+    display: flex;
+    flex-wrap: wrap; /* Permet aux éléments de se déplacer à la ligne suivante si nécessaire */
+    justify-content: center; /* Centre les éléments horizontalement */
+    gap: 20px; /* Espace entre les éléments */
+    margin-top: 20px;
+}
+
+/* Style pour chaque tableau et chaque groupe */
+.table-wrapper {
+    flex: 1 1 30%; /* Flex-grow: 1, Flex-shrink: 1, Flex-basis: 30% */
+    min-width: 250px;
+    max-width: 33%;
+    background-color: #f9f9f9;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+/* Style pour les tables */
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+    font-size: 0.9em;
+    word-wrap: break-word;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+th {
+    background-color: #4CAF50;
+    color: white;
+}
+
+tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+tr:hover {
+    background-color: #ddd;
+}
+
+/* Styles pour centrer les titres */
+.title, .subtitle, .table-wrapper h2 {
+    text-align: center;
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+
+/* Bouton stylisé */
+button {
+    background-color: #4CAF50;
+    color: white;
+    padding: 8px 16px;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+button:hover {
+    background-color: #45a049;
+}
+
+/* Ajuste les styles des listes dans PartyTable */
+.party-card ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.party-card li {
+    text-align: center;
+    padding: 5px 0;
+    border-bottom: 1px solid #ddd;
+}
+
+.party-card li:last-child {
+    border-bottom: none;
+}
+
+/* Media query pour les petits écrans */
+@media (max-width: 768px) {
+    .table-container, .party-table-container {
+        flex-direction: column; /* Les éléments seront empilés verticalement sur les petits écrans */
+        align-items: center; /* Centre les éléments lorsqu'ils sont empilés verticalement */
+    }
+    
+    .table-wrapper {
+        flex: 1 1 100%; /* Prend toute la largeur sur les petits écrans */
+    }
+
+    th, td {
+        font-size: 0.8em; /* Réduit la taille de la police pour les petits écrans */
+        padding: 6px; /* Réduit l'espacement pour les petits écrans */
+    }
+}
