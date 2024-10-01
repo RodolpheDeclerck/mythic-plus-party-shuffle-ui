@@ -7,7 +7,7 @@ const useWebSocket = (onCharacterUpdated: () => void, onPartiesShuffled: () => v
         const socket = io(apiUrl);
 
         socket.on('character-updated', onCharacterUpdated);
-        socket.on('parties-shuffled', onPartiesShuffled);
+        socket.on('parties-updated', onPartiesShuffled);
 
         return () => {
             socket.disconnect();

@@ -1,33 +1,46 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import CharacterTable from './CharacterTable';
-import PartyTable from './PartyTable';
-import ShuffleButton from '../ShuffleButton';
+import CharacterTable from './CharacterTable/CharacterTable';
+import PartyTable from './PartyTable/PartyTable';
+import ShuffleButton from './ShuffleButton/ShuffleButton';
 import Loading from '../Loading';
 import PasswordPopup from '../PasswordPopup/PasswordPopup';
 import useFetchCharacters from '../../hooks/useFetchCharacters';
 import useWebSocket from '../../hooks/useWebSocket';
-import { fetchCharacters as fetchCharactersApi, deleteCharacter, shuffleParties, fetchParties as fetchPartiesApi } from '../../services/api';
+import { deleteParties, fetchCharacters as fetchCharactersApi, deleteCharacter, shuffleParties, fetchParties as fetchPartiesApi, deleteCharacters } from '../../services/api';
 import { Party } from '../../types/Party';
+import CreatedCharacter from './CreatedCharacter/CreatedCharacter';
 import './EventView.css';
+import { useTranslation } from 'react-i18next';
+import ClearButton from './ClearButton/ClearButton';
 
 const EventView: React.FC = () => {
     const { characters, loading, error, setCharacters } = useFetchCharacters();
     const [parties, setParties] = useState<Party[]>([]);
     const [errorState, setErrorState] = useState<string | null>(null);
     const [showPasswordPopup, setShowPasswordPopup] = useState(false);
+    const [createdCharacter, setCreatedCharacter] = useState<any | null>(null);
 
     const location = useLocation();
     const navigate = useNavigate();
     const isAdminPage = location.pathname === '/event/admin';
+    const { t } = useTranslation();
 
     useEffect(() => {
-        // Redirection si l'utilisateur essaie d'accéder à /event/admin sans être authentifié
+        // Récupérer les informations du personnage créé depuis le localStorage
+        const characterData = localStorage.getItem('createdCharacter');
+        if (characterData) {
+            setCreatedCharacter(JSON.parse(characterData));
+        }
+    }, []);
+
+    useEffect(() => {
         if (isAdminPage && localStorage.getItem('isAdmin') !== 'true') {
             navigate('/event');
         }
     }, [isAdminPage, navigate]);
 
+    // Regrouper les appels API dans des fonctions distinctes
     const fetchCharacters = async () => {
         try {
             const updatedCharacters = await fetchCharactersApi();
@@ -50,6 +63,7 @@ const EventView: React.FC = () => {
 
     useWebSocket(fetchCharacters, fetchParties);
 
+    // Gestion des événements
     const handleDelete = async (id: number) => {
         try {
             await deleteCharacter(id);
@@ -70,25 +84,34 @@ const EventView: React.FC = () => {
         }
     };
 
-    const handleAdminClick = () => {
-        setShowPasswordPopup(true);
-    };
-
-    const handlePasswordConfirm = (password: string) => {
-        if (password === 'W1ck3dWabb1t') { // Remplacez par votre mot de passe
-            localStorage.setItem('isAdmin', 'true'); // Stocke l'authentification dans localStorage
-            setShowPasswordPopup(false);
-            navigate('/event/admin');
-        } else {
-            alert('Incorrect password');
+    const handleClear = async () => {
+        try {
+            const ids = characters.map(character => character.id);
+            await deleteCharacters(ids);
+            fetchCharacters();
+        } catch (error) {
+            console.error('Error deleting character:', error);
+            setErrorState('Failed to delete character');
         }
     };
 
-    const handlePasswordCancel = () => {
-        setShowPasswordPopup(false);
+    const handleClearEvent = async () => {
+        try {
+            deleteParties();
+        } catch (error) {
+            console.error('Error deleting parties:', error);
+            setErrorState('Failed to delete parties');
+        }
     };
 
-    const totalMembers = parties.reduce((acc, party) => acc + party.members.length, 0);
+    const handleSaveCharacter = (updatedCharacter: any) => {
+        setCreatedCharacter(updatedCharacter);
+        localStorage.setItem('createdCharacter', JSON.stringify(updatedCharacter));
+    };
+
+    const handleCharacterDeletion = (deletedId: number) => {
+        setCharacters((prevCharacters) => prevCharacters.filter(character => character.id !== deletedId));
+    };
 
     useEffect(() => {
         fetchParties();
@@ -104,45 +127,66 @@ const EventView: React.FC = () => {
     return (
         <div>
             <div style={{ position: 'absolute', top: '10px', right: '10px' }}>
-                {!isAdminPage && (
-                    <button onClick={handleAdminClick}>Admin</button>
-                )}
+                {!isAdminPage && <button onClick={() => setShowPasswordPopup(true)}>Admin</button>}
             </div>
 
-            <h1 className="title">Waiting Room ({characters.length} participants)</h1>
+            {/* Utiliser le composant CreatedCharacter */}
+            {createdCharacter && (
+                <CreatedCharacter
+                    character={createdCharacter}
+                    onSave={handleSaveCharacter}
+                    onDelete={handleCharacterDeletion} // Pass the onDelete prop here
+                />
+            )}
+
+            <div className="title-container">
+                <h1 className="title">Waiting Room ({characters.length} participants)</h1>
+                {isAdminPage && <ClearButton onClear={handleClear} />}
+            </div>
 
             {/* Conteneur flex pour les tableaux */}
             <div className="table-container">
                 {/* Tableau des Tanks */}
                 <div className="table-wrapper">
-                    <h2>Tanks</h2>
+                    <h2>Tanks ({tanks.length})</h2>
                     <CharacterTable characters={tanks} onDelete={isAdminPage ? handleDelete : undefined} />
                 </div>
 
                 {/* Tableau des Heals */}
                 <div className="table-wrapper">
-                    <h2>Heals</h2>
+                    <h2>Heals ({heals.length})</h2>
                     <CharacterTable characters={heals} onDelete={isAdminPage ? handleDelete : undefined} />
                 </div>
 
                 {/* Tableau des DPS */}
                 <div className="table-wrapper">
-                    <h2>DPS</h2>
+                    <h2>DPS ({dps.length})</h2>
                     <CharacterTable characters={dps} onDelete={isAdminPage ? handleDelete : undefined} />
                 </div>
             </div>
-
             {isAdminPage && <ShuffleButton onShuffle={handleShuffle} />}
-            {parties.length === 0 && !isAdminPage && <p><b>Waiting for the event to launch...</b></p>}
+            <div className="title-container">
+                {parties.length === 0 && !isAdminPage && <p><b>Waiting for the event to launch...</b></p>}
+            </div>
             {parties.length > 0 && (
                 <div>
-                    <h2 className="subtitle">Event running... ({totalMembers} participants)</h2>
+                    <div className="title-container">
+                        <h2 className="subtitle">Event running... ({parties.reduce((acc, party) => acc + party.members.length, 0)} participants)</h2>
+                        {isAdminPage && <ClearButton onClear={handleClearEvent} />}
+                    </div>
                     <PartyTable parties={parties} />
                 </div>
             )}
 
             {showPasswordPopup && (
-                <PasswordPopup onConfirm={handlePasswordConfirm} onCancel={handlePasswordCancel} />
+                <PasswordPopup
+                    onConfirm={() => {
+                        localStorage.setItem('isAdmin', 'true');
+                        setShowPasswordPopup(false);
+                        navigate('/event/admin');
+                    }}
+                    onCancel={() => setShowPasswordPopup(false)}
+                />
             )}
         </div>
     );

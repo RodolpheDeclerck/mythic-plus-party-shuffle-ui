@@ -1,6 +1,7 @@
 import React from 'react';
-import { Character } from '../../types/Character';
+import { Character } from '../../../types/Character';
 import { useTranslation } from 'react-i18next';
+import './CharacterTable.css';
 
 interface CharacterTableProps {
     characters: Character[];
@@ -34,7 +35,7 @@ const CharacterTable: React.FC<CharacterTableProps> = ({ characters, onDelete })
                         <td>{character.battleRez ? 'Yes' : 'No'}</td>
                         <td>
                             {onDelete && (
-                                <button onClick={() => onDelete(character.id)}>Delete</button>
+                                <button className="delete-button" onClick={() => onDelete(character.id)}>Delete</button>
                             )}                        </td>
                     </tr>
                 ))}

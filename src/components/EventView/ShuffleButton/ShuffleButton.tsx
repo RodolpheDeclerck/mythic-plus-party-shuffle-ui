@@ -1,4 +1,5 @@
 import React from 'react';
+import './ShuffleButton.css'; // Import your CSS file
 
 interface ShuffleButtonProps {
     onShuffle: () => void;
@@ -6,9 +7,11 @@ interface ShuffleButtonProps {
 
 const ShuffleButton: React.FC<ShuffleButtonProps> = ({ onShuffle }) => {
     return (
-        <button onClick={onShuffle} style={{ marginTop: '20px' }}>
-            Launch Event
-        </button>
+        <div className="shuffle-button-container">
+            <button onClick={onShuffle}>
+                Shuffle
+            </button>
+        </div>
     );
 };
 

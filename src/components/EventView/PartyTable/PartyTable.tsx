@@ -1,11 +1,14 @@
 import React from 'react';
-import { Party } from '../../types/Party';
+import { Party } from '../../../types/Party';
+import { useTranslation } from 'react-i18next';
 
 interface PartyTableProps {
     parties: Party[];
 }
 
 const PartyTable: React.FC<PartyTableProps> = ({ parties }) => {
+    const { t } = useTranslation();
+
     return (
         <div className="party-table-container">
             {parties.map((party, index) => (
@@ -29,7 +32,7 @@ const PartyTable: React.FC<PartyTableProps> = ({ parties }) => {
                                     <td>{member.id}</td>
                                     <td>{member.name}</td>
                                     <td>{member.characterClass}</td>
-                                    <td>{member.specialization}</td>
+                                    <td>{t(`specializations.${member.specialization}`)}</td>
                                     <td>{member.role}</td>
                                     <td>{member.bloodLust ? 'Yes' : 'No'}</td>
                                     <td>{member.battleRez ? 'Yes' : 'No'}</td>

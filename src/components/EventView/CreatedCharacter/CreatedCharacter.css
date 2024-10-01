@@ -1,0 +1,25 @@
+.created-character-info {
+    display: flex; /* Utiliser flexbox pour aligner les éléments sur une seule ligne */
+    align-items: center; /* Centrer verticalement les éléments */
+    gap: 20px; /* Espacement entre les éléments */
+    flex-wrap: wrap; /* Permettre l'affichage en plusieurs lignes si l'espace est limité */
+}
+
+.character-field {
+    display: flex;
+    align-items: center;
+    gap: 5px; /* Espacement entre le label et l'élément de contenu */
+}
+
+.cancel-button {
+    background-color: #d9534f; /* Red background */
+    color: white;
+    padding: 8px 16px;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.cancel-button:hover {
+    background-color: #c9302c; /* Darker red for hover */
+}

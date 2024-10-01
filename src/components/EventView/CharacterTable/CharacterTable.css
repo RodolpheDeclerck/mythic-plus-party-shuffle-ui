@@ -1,0 +1,13 @@
+/* Style for the Clear button */
+.delete-button {
+    background-color: #d9534f; /* Red background */
+    color: white;
+    padding: 8px 16px;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.delete-button:hover {
+    background-color: #c9302c; /* Darker red for hover */
+}

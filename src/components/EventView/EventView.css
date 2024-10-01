@@ -1,15 +1,20 @@
 /* Conteneur flex pour les tableaux et les groupes */
-.table-container, .party-table-container {
+.table-container,
+.party-table-container {
     display: flex;
-    flex-wrap: wrap; /* Permet aux éléments de se déplacer à la ligne suivante si nécessaire */
-    justify-content: center; /* Centre les éléments horizontalement */
-    gap: 20px; /* Espace entre les éléments */
+    flex-wrap: wrap;
+    /* Permet aux éléments de se déplacer à la ligne suivante si nécessaire */
+    justify-content: center;
+    /* Centre les éléments horizontalement */
+    gap: 20px;
+    /* Espace entre les éléments */
     margin-top: 20px;
 }
 
 /* Style pour chaque tableau et chaque groupe */
 .table-wrapper {
-    flex: 1 1 30%; /* Flex-grow: 1, Flex-shrink: 1, Flex-basis: 30% */
+    flex: 1 1 30%;
+    /* Flex-grow: 1, Flex-shrink: 1, Flex-basis: 30% */
     min-width: 250px;
     max-width: 33%;
     background-color: #f9f9f9;
@@ -25,7 +30,8 @@ table {
     border-collapse: collapse;
 }
 
-th, td {
+th,
+td {
     border: 1px solid #ddd;
     padding: 8px;
     text-align: center;
@@ -37,7 +43,7 @@ th, td {
 }
 
 th {
-    background-color: #4CAF50;
+    background-color: #564caf;
     color: white;
 }
 
@@ -50,7 +56,9 @@ tr:hover {
 }
 
 /* Styles pour centrer les titres */
-.title, .subtitle, .table-wrapper h2 {
+.title,
+.subtitle,
+.table-wrapper h2 {
     text-align: center;
     margin-top: 20px;
     margin-bottom: 10px;
@@ -88,17 +96,43 @@ button:hover {
 
 /* Media query pour les petits écrans */
 @media (max-width: 768px) {
-    .table-container, .party-table-container {
-        flex-direction: column; /* Les éléments seront empilés verticalement sur les petits écrans */
-        align-items: center; /* Centre les éléments lorsqu'ils sont empilés verticalement */
-    }
-    
-    .table-wrapper {
-        flex: 1 1 100%; /* Prend toute la largeur sur les petits écrans */
+
+    .table-container,
+    .party-table-container {
+        flex-direction: column;
+        /* Les éléments seront empilés verticalement sur les petits écrans */
+        align-items: center;
+        /* Centre les éléments lorsqu'ils sont empilés verticalement */
     }
 
-    th, td {
-        font-size: 0.8em; /* Réduit la taille de la police pour les petits écrans */
-        padding: 6px; /* Réduit l'espacement pour les petits écrans */
+    .table-wrapper {
+        flex: 1 1 100%;
+        /* Prend toute la largeur sur les petits écrans */
     }
+
+    th,
+    td {
+        font-size: 0.8em;
+        /* Réduit la taille de la police pour les petits écrans */
+        padding: 6px;
+        /* Réduit l'espacement pour les petits écrans */
+    }
+}
+
+.created-character-info {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 10px;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    margin-bottom: 20px;
+}
+
+.title-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
 }

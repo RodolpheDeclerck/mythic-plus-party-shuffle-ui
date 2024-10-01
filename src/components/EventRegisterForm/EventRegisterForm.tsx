@@ -1,11 +1,12 @@
+// EventRegisterForm.tsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import InputField from '../InputFieldProps';
 import SelectField from '../SelectField';
 import PasswordPopup from '../PasswordPopup/PasswordPopup';
 import { useTranslation } from 'react-i18next';
-import useFetchClasses from '../../hooks/useFetchClasses';
-import useFetchSpecializations from '../../hooks/useFetchSpecializations';
+import { useClasses } from '../../context/ClassesContext'; // Importer le hook personnalisé pour les classes
+import { useSpecializations } from '../../context/SpecializationsContext'; // Importer le hook personnalisé pour les spécialisations
 import axios from 'axios';
 import apiUrl from '../../config/apiConfig';
 import './EventRegisterForm.css';
@@ -18,8 +19,8 @@ const EventRegisterForm: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
 
-  const classes = useFetchClasses();
-  const { specializations, fetchSpecializations, specializationDetails } = useFetchSpecializations();
+  const { classes } = useClasses(); // Utiliser le contexte pour les classes
+  const { specializations, fetchSpecializations } = useSpecializations(); // Utiliser le contexte pour les spécialisations
 
   const handleClassChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedClass = event.target.value;
@@ -40,7 +41,14 @@ const EventRegisterForm: React.FC = () => {
         characterClass: selectCharacterClass,
         specialization: selectSpecialization,
       };
-      await axios.post(`${apiUrl}/api/characters`, characterData);
+
+      // Envoyer le personnage au backend
+      const response = await axios.post(`${apiUrl}/api/characters`, characterData);
+
+      // Stocker les informations du personnage dans le localStorage
+      localStorage.setItem('createdCharacter', JSON.stringify(response.data));
+
+      // Naviguer vers la page /event
       navigate('/event');
     } catch (error) {
       console.error('Error saving character:', error);
@@ -88,10 +96,11 @@ const EventRegisterForm: React.FC = () => {
             label="Class"
             options={classes.map(cls => ({
               value: cls,
-              label: cls, // Vous pouvez traduire `cls` si nécessaire
+              label: cls,
             }))}
             value={selectCharacterClass}
             onChange={handleClassChange}
+            placeholder="Please select a class"
           />
         )}
 
@@ -105,6 +114,7 @@ const EventRegisterForm: React.FC = () => {
             }))}
             value={selectSpecialization}
             onChange={handleSpecializationChange}
+            placeholder="Please select a specialization"
           />
         )}
 
