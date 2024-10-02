@@ -93,6 +93,10 @@ const EventView: React.FC = () => {
             }
 
             setParties([...shuffledParties]);
+
+            // Debugging logs
+            console.log('Updated shuffled parties:', shuffledParties);
+            console.log('Updated createdCharacter:', updatedCharacter);
         } catch (error) {
             console.error('Error shuffling parties:', error);
             setErrorState('Failed to shuffle parties');
