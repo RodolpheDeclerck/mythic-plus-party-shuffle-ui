@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import SelectField from '../../SelectField';
 import { useSpecializations } from '../../../context/SpecializationsContext';
 import { useClasses } from '../../../context/ClassesContext';
-import './CreatedCharacter.css';
+import './CreatedCharacterView.css';
 import { deleteCharacter, upsertCharacter } from '../../../services/api';
 import { useNavigate } from 'react-router-dom';
 
@@ -13,7 +13,7 @@ interface CreatedCharacterProps {
     onDelete: (id: number) => void; // Ensure this is defined in the component's props
 }
 
-const CreatedCharacter: React.FC<CreatedCharacterProps> = ({ character, onSave, onDelete }) => {
+const CreatedCharacterView: React.FC<CreatedCharacterProps> = ({ character, onSave, onDelete }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [editedName, setEditedName] = useState(character.name);
     const { t } = useTranslation();
@@ -72,6 +72,7 @@ const CreatedCharacter: React.FC<CreatedCharacterProps> = ({ character, onSave, 
     const handleLeave = async () => {
         try {
             await deleteCharacter(character.id);
+            localStorage.setItem('createdCharacter', JSON.stringify(null));
             navigate('/');
             onDelete(character.id); // Notify parent component of deletion
         } catch (error) {
@@ -145,4 +146,4 @@ const CreatedCharacter: React.FC<CreatedCharacterProps> = ({ character, onSave, 
     );
 };
 
-export default CreatedCharacter;
+export default CreatedCharacterView;

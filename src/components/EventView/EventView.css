@@ -136,3 +136,20 @@ button:hover {
     justify-content: center;
     gap: 20px;
 }
+
+.icon-text-container {
+    display: flex;
+    align-items: center; /* Vertically center the icon and text */
+}
+
+.table-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Centers items horizontally */
+}
+
+.icon-text-container {
+    display: flex;
+    align-items: center; /* Vertically centers the icon and text */
+    justify-content: center; /* Horizontally centers the content */
+}

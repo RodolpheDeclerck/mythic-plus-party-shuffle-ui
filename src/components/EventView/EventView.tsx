@@ -9,10 +9,12 @@ import useFetchCharacters from '../../hooks/useFetchCharacters';
 import useWebSocket from '../../hooks/useWebSocket';
 import { deleteParties, fetchCharacters as fetchCharactersApi, deleteCharacter, shuffleParties, fetchParties as fetchPartiesApi, deleteCharacters } from '../../services/api';
 import { Party } from '../../types/Party';
-import CreatedCharacter from './CreatedCharacter/CreatedCharacter';
+import CreatedCharacter from './CreatedCharacter/CreatedCharacterView';
 import './EventView.css';
 import { useTranslation } from 'react-i18next';
 import ClearButton from './ClearButton/ClearButton';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCheck, faTimes, faShield, faHeart, faCrosshairs } from '@fortawesome/free-solid-svg-icons';
 
 const EventView: React.FC = () => {
     const { characters, loading, error, setCharacters } = useFetchCharacters();
@@ -77,7 +79,28 @@ const EventView: React.FC = () => {
     const handleShuffle = async () => {
         try {
             const shuffledParties = await shuffleParties();
-            setParties(shuffledParties);
+
+            // Flatten the shuffled parties to find the updated reference of createdCharacter
+            let updatedCharacter = null;
+            if (createdCharacter) {
+                updatedCharacter = shuffledParties
+                    .flatMap(party => party.members)
+                    .find(member => member.id === createdCharacter.id);
+            }
+
+            // Ensure we update the state with the new reference for createdCharacter
+            if (updatedCharacter) {
+                setCreatedCharacter(updatedCharacter);
+                localStorage.setItem('createdCharacter', JSON.stringify(updatedCharacter));
+            } else {
+                // If the character is not found, clear the createdCharacter state
+                setCreatedCharacter(null);
+                localStorage.removeItem('createdCharacter');
+            }
+
+            // Finally, update the parties state
+            setParties([...shuffledParties]); // Use spread to trigger a re-render
+
         } catch (error) {
             console.error('Error shuffling parties:', error);
             setErrorState('Failed to shuffle parties');
@@ -148,22 +171,31 @@ const EventView: React.FC = () => {
             <div className="table-container">
                 {/* Tableau des Tanks */}
                 <div className="table-wrapper">
-                    <h2>Tanks ({tanks.length})</h2>
-                    <CharacterTable characters={tanks} onDelete={isAdminPage ? handleDelete : undefined} />
+                    <div className="icon-text-container">
+                        <FontAwesomeIcon icon={faShield} style={{ color: 'blue', marginRight: '8px' }} />
+                        <h2>Tanks ({tanks.length})</h2>
+                    </div>
+                    <CharacterTable characters={tanks} onDelete={isAdminPage ? handleDelete : undefined} highlightedId={createdCharacter?.id} />
+                </div>
+                <div className="table-wrapper">
+                    <div className="icon-text-container">
+                        <FontAwesomeIcon icon={faHeart} style={{ color: 'green', marginRight: '8px' }} />
+                        <h2>Heals ({heals.length})</h2>
+                    </div>
+                    <CharacterTable characters={heals} onDelete={isAdminPage ? handleDelete : undefined} highlightedId={createdCharacter?.id}
+                    />
                 </div>
 
-                {/* Tableau des Heals */}
                 <div className="table-wrapper">
-                    <h2>Heals ({heals.length})</h2>
-                    <CharacterTable characters={heals} onDelete={isAdminPage ? handleDelete : undefined} />
-                </div>
-
-                {/* Tableau des DPS */}
-                <div className="table-wrapper">
-                    <h2>DPS ({dps.length})</h2>
-                    <CharacterTable characters={dps} onDelete={isAdminPage ? handleDelete : undefined} />
+                    <div className="icon-text-container">
+                        <FontAwesomeIcon icon={faCrosshairs} style={{ color: 'red', marginRight: '8px' }} />
+                        <h2>DPS ({dps.length})</h2>
+                    </div>
+                    <CharacterTable characters={dps} onDelete={isAdminPage ? handleDelete : undefined} highlightedId={createdCharacter?.id}
+                    />
                 </div>
             </div>
+
             {isAdminPage && <ShuffleButton onShuffle={handleShuffle} />}
             <div className="title-container">
                 {parties.length === 0 && !isAdminPage && <p><b>Waiting for the event to launch...</b></p>}
@@ -174,7 +206,7 @@ const EventView: React.FC = () => {
                         <h2 className="subtitle">Event running... ({parties.reduce((acc, party) => acc + party.members.length, 0)} participants)</h2>
                         {isAdminPage && <ClearButton onClear={handleClearEvent} />}
                     </div>
-                    <PartyTable parties={parties} />
+                    <PartyTable parties={parties} highlightedId={createdCharacter?.id} />
                 </div>
             )}
 

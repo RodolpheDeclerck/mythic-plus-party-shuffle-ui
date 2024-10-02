@@ -9,19 +9,21 @@ import { SpecializationsProvider } from './context/SpecializationsContext'; // I
 
 type AppProps = {};
 
-function App({}: AppProps): JSX.Element {
+function App({ }: AppProps): JSX.Element {
   return (
-    <ClassesProvider> {/* Envelopper avec ClassesProvider */}
-      <SpecializationsProvider> {/* Envelopper avec SpecializationsProvider */}
-        <Router>
-          <Routes>
-            <Route path="/" element={<EventRegisterForm />} />
-            <Route path="/event" element={<EventView />} />
-            <Route path="/event/admin" element={<EventView />} />
-          </Routes>
-        </Router>
-      </SpecializationsProvider>
-    </ClassesProvider>
+    <div className="App">
+      <ClassesProvider> {/* Envelopper avec ClassesProvider */}
+        <SpecializationsProvider> {/* Envelopper avec SpecializationsProvider */}
+          <Router>
+            <Routes>
+              <Route path="/" element={<EventRegisterForm />} />
+              <Route path="/event" element={<EventView />} />
+              <Route path="/event/admin" element={<EventView />} />
+            </Routes>
+          </Router>
+        </SpecializationsProvider>
+      </ClassesProvider>
+    </div>
   );
 }
 

@@ -84,7 +84,7 @@ const EventRegisterForm: React.FC = () => {
 
       <div className="form-content">
         <InputField
-          label="Name"
+          label="Name: "
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Enter character name"
@@ -93,7 +93,7 @@ const EventRegisterForm: React.FC = () => {
         {/* Champ de sélection pour les classes */}
         {name.length > 0 && (
           <SelectField
-            label="Class"
+            label="Class: "
             options={classes.map(cls => ({
               value: cls,
               label: cls,
@@ -107,7 +107,7 @@ const EventRegisterForm: React.FC = () => {
         {/* Champ de sélection pour les spécialisations */}
         {specializations.length > 0 && (
           <SelectField
-            label="Specialization"
+            label="Specialization: "
             options={specializations.map(spec => ({
               value: spec,
               label: t(`specializations.${spec}`),
