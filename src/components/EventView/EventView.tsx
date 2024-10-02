@@ -14,7 +14,7 @@ import './EventView.css';
 import { useTranslation } from 'react-i18next';
 import ClearButton from './ClearButton/ClearButton';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCheck, faTimes, faShield, faHeart, faCrosshairs } from '@fortawesome/free-solid-svg-icons';
+import { faShield, faHeart, faCrosshairs } from '@fortawesome/free-solid-svg-icons';
 
 const EventView: React.FC = () => {
     const { characters, loading, error, setCharacters } = useFetchCharacters();
@@ -29,7 +29,6 @@ const EventView: React.FC = () => {
     const { t } = useTranslation();
 
     useEffect(() => {
-        // Récupérer les informations du personnage créé depuis le localStorage
         const characterData = localStorage.getItem('createdCharacter');
         if (characterData) {
             setCreatedCharacter(JSON.parse(characterData));
@@ -42,7 +41,6 @@ const EventView: React.FC = () => {
         }
     }, [isAdminPage, navigate]);
 
-    // Regrouper les appels API dans des fonctions distinctes
     const fetchCharacters = async () => {
         try {
             const updatedCharacters = await fetchCharactersApi();
@@ -56,7 +54,7 @@ const EventView: React.FC = () => {
     const fetchParties = async () => {
         try {
             const updatedParties = await fetchPartiesApi();
-            setParties(updatedParties);
+            setParties([...updatedParties]); // Spread to force re-render
         } catch (error) {
             console.error('Error fetching parties:', error);
             setErrorState('Failed to fetch parties');
@@ -65,7 +63,6 @@ const EventView: React.FC = () => {
 
     useWebSocket(fetchCharacters, fetchParties);
 
-    // Gestion des événements
     const handleDelete = async (id: number) => {
         try {
             await deleteCharacter(id);
@@ -79,28 +76,23 @@ const EventView: React.FC = () => {
     const handleShuffle = async () => {
         try {
             const shuffledParties = await shuffleParties();
-
-            // Flatten the shuffled parties to find the updated reference of createdCharacter
             let updatedCharacter = null;
+
             if (createdCharacter) {
                 updatedCharacter = shuffledParties
                     .flatMap(party => party.members)
                     .find(member => member.id === createdCharacter.id);
             }
 
-            // Ensure we update the state with the new reference for createdCharacter
             if (updatedCharacter) {
-                setCreatedCharacter(updatedCharacter);
+                setCreatedCharacter({ ...updatedCharacter });
                 localStorage.setItem('createdCharacter', JSON.stringify(updatedCharacter));
             } else {
-                // If the character is not found, clear the createdCharacter state
                 setCreatedCharacter(null);
                 localStorage.removeItem('createdCharacter');
             }
 
-            // Finally, update the parties state
-            setParties([...shuffledParties]); // Use spread to trigger a re-render
-
+            setParties([...shuffledParties]);
         } catch (error) {
             console.error('Error shuffling parties:', error);
             setErrorState('Failed to shuffle parties');
@@ -113,14 +105,15 @@ const EventView: React.FC = () => {
             await deleteCharacters(ids);
             fetchCharacters();
         } catch (error) {
-            console.error('Error deleting character:', error);
-            setErrorState('Failed to delete character');
+            console.error('Error deleting characters:', error);
+            setErrorState('Failed to delete characters');
         }
     };
 
     const handleClearEvent = async () => {
         try {
-            deleteParties();
+            await deleteParties();
+            setParties([]); // Clear the parties state
         } catch (error) {
             console.error('Error deleting parties:', error);
             setErrorState('Failed to delete parties');
@@ -128,7 +121,7 @@ const EventView: React.FC = () => {
     };
 
     const handleSaveCharacter = (updatedCharacter: any) => {
-        setCreatedCharacter(updatedCharacter);
+        setCreatedCharacter({ ...updatedCharacter });
         localStorage.setItem('createdCharacter', JSON.stringify(updatedCharacter));
     };
 
@@ -153,12 +146,11 @@ const EventView: React.FC = () => {
                 {!isAdminPage && <button onClick={() => setShowPasswordPopup(true)}>Admin</button>}
             </div>
 
-            {/* Utiliser le composant CreatedCharacter */}
             {createdCharacter && (
                 <CreatedCharacter
                     character={createdCharacter}
                     onSave={handleSaveCharacter}
-                    onDelete={handleCharacterDeletion} // Pass the onDelete prop here
+                    onDelete={handleCharacterDeletion}
                 />
             )}
 
@@ -167,9 +159,7 @@ const EventView: React.FC = () => {
                 {isAdminPage && <ClearButton onClear={handleClear} />}
             </div>
 
-            {/* Conteneur flex pour les tableaux */}
             <div className="table-container">
-                {/* Tableau des Tanks */}
                 <div className="table-wrapper">
                     <div className="icon-text-container">
                         <FontAwesomeIcon icon={faShield} style={{ color: 'blue', marginRight: '8px' }} />
@@ -182,8 +172,7 @@ const EventView: React.FC = () => {
                         <FontAwesomeIcon icon={faHeart} style={{ color: 'green', marginRight: '8px' }} />
                         <h2>Heals ({heals.length})</h2>
                     </div>
-                    <CharacterTable characters={heals} onDelete={isAdminPage ? handleDelete : undefined} highlightedId={createdCharacter?.id}
-                    />
+                    <CharacterTable characters={heals} onDelete={isAdminPage ? handleDelete : undefined} highlightedId={createdCharacter?.id} />
                 </div>
 
                 <div className="table-wrapper">
@@ -191,8 +180,7 @@ const EventView: React.FC = () => {
                         <FontAwesomeIcon icon={faCrosshairs} style={{ color: 'red', marginRight: '8px' }} />
                         <h2>DPS ({dps.length})</h2>
                     </div>
-                    <CharacterTable characters={dps} onDelete={isAdminPage ? handleDelete : undefined} highlightedId={createdCharacter?.id}
-                    />
+                    <CharacterTable characters={dps} onDelete={isAdminPage ? handleDelete : undefined} highlightedId={createdCharacter?.id} />
                 </div>
             </div>
 
