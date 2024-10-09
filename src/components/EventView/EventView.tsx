@@ -22,6 +22,7 @@ import { useTranslation } from 'react-i18next';
 import ClearButton from './ClearButton/ClearButton';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faShield, faHeart, faCrosshairs } from '@fortawesome/free-solid-svg-icons';
+import apiUrl from '../../config/apiConfig';
 
 const EventView: React.FC = () => {
     const { characters, loading, error, setCharacters } = useFetchCharacters();
@@ -153,10 +154,13 @@ const EventView: React.FC = () => {
     
             console.log("Swap completed. Updated parties:", JSON.stringify(updatedParties));
     
+            // Envoyer les parties mises à jour au backend après l'échange
+            updatePartiesInBackend(updatedParties);
+    
             return updatedParties; // Retourne les parties mises à jour
         });
     };
-    
+
     const moveCharacter = (fromPartyIndex: number, toPartyIndex: number, fromIndex: number, toIndex: number) => {
         setParties((prevParties) => {
             const updatedParties = [...prevParties];
@@ -179,11 +183,34 @@ const EventView: React.FC = () => {
                 sourceParty.members.splice(fromIndex, 0, movedCharacter);
             }
     
-            console.log("Move completed. Updated parties:", JSON.stringify(updatedParties));
+            // Envoyer les parties mises à jour au backend après la modification
+            updatePartiesInBackend(updatedParties);
     
             return updatedParties;
         });
     };
+    
+    const updatePartiesInBackend = async (updatedParties: Party[]) => {
+        try {
+            // Envoyer la mise à jour au backend
+            const response = await fetch(`${apiUrl}/api/parties`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(updatedParties),  // Envoyer les parties mises à jour
+            });
+    
+            if (!response.ok) {
+                throw new Error('Failed to update parties');
+            }
+    
+            console.log('Parties updated in Redis');
+        } catch (error) {
+            console.error('Error updating parties in Redis:', error);
+        }
+    };
+    
 
     useEffect(() => {
         fetchParties();
