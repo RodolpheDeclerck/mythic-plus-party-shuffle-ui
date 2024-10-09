@@ -72,9 +72,15 @@ const CreatedCharacterView: React.FC<CreatedCharacterProps> = ({ character, onSa
     const handleLeave = async () => {
         try {
             await deleteCharacter(character.id);
-            localStorage.setItem('createdCharacter', JSON.stringify(null));
+
+            // Supprimer complètement le personnage du localStorage
+            localStorage.removeItem('createdCharacter');
+
+            // Rediriger vers la page d'accueil
             navigate('/');
-            onDelete(character.id); // Notify parent component of deletion
+
+            // Notifier le parent de la suppression
+            onDelete(character.id);
         } catch (error) {
             console.error('Failed to delete character:', error);
         }
