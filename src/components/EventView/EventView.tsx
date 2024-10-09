@@ -1,13 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import CharacterTable from './CharacterTable/CharacterTable';
 import PartyTable from './PartyTable/PartyTable';
+import CharacterTable from './CharacterTable/CharacterTable';
 import ShuffleButton from './ShuffleButton/ShuffleButton';
 import Loading from '../Loading';
 import PasswordPopup from '../PasswordPopup/PasswordPopup';
 import useFetchCharacters from '../../hooks/useFetchCharacters';
 import useWebSocket from '../../hooks/useWebSocket';
-import { deleteParties, fetchCharacters as fetchCharactersApi, deleteCharacter, shuffleParties, fetchParties as fetchPartiesApi, deleteCharacters } from '../../services/api';
+import {
+    deleteParties,
+    fetchCharacters as fetchCharactersApi,
+    deleteCharacter,
+    shuffleParties,
+    fetchParties as fetchPartiesApi,
+    deleteCharacters,
+} from '../../services/api';
 import { Party } from '../../types/Party';
 import CreatedCharacter from './CreatedCharacter/CreatedCharacterView';
 import './EventView.css';
@@ -15,6 +22,7 @@ import { useTranslation } from 'react-i18next';
 import ClearButton from './ClearButton/ClearButton';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faShield, faHeart, faCrosshairs } from '@fortawesome/free-solid-svg-icons';
+import apiUrl from '../../config/apiConfig';
 
 const EventView: React.FC = () => {
     const { characters, loading, error, setCharacters } = useFetchCharacters();
@@ -80,8 +88,8 @@ const EventView: React.FC = () => {
 
             if (createdCharacter) {
                 updatedCharacter = shuffledParties
-                    .flatMap(party => party.members)
-                    .find(member => member.id === createdCharacter.id);
+                    .flatMap((party) => party.members)
+                    .find((member) => member.id === createdCharacter.id);
             }
 
             if (updatedCharacter) {
@@ -93,10 +101,6 @@ const EventView: React.FC = () => {
             }
 
             setParties([...shuffledParties]);
-
-            // Debugging logs
-            console.log('Updated shuffled parties:', shuffledParties);
-            console.log('Updated createdCharacter:', updatedCharacter);
         } catch (error) {
             console.error('Error shuffling parties:', error);
             setErrorState('Failed to shuffle parties');
@@ -105,7 +109,7 @@ const EventView: React.FC = () => {
 
     const handleClear = async () => {
         try {
-            const ids = characters.map(character => character.id);
+            const ids = characters.map((character) => character.id);
             await deleteCharacters(ids);
             fetchCharacters();
         } catch (error) {
@@ -130,16 +134,91 @@ const EventView: React.FC = () => {
     };
 
     const handleCharacterDeletion = (deletedId: number) => {
-        setCharacters((prevCharacters) => prevCharacters.filter(character => character.id !== deletedId));
+        setCharacters((prevCharacters) => prevCharacters.filter((character) => character.id !== deletedId));
     };
+
+    // Swap characters between parties
+    const swapCharacters = (fromPartyIndex: number, toPartyIndex: number, fromIndex: number, toIndex: number) => {
+        setParties((prevParties) => {
+            const updatedParties = prevParties.map((party) => ({
+                ...party,
+                members: [...party.members],
+            }));
+    
+            const sourceParty = updatedParties[fromPartyIndex];
+            const targetParty = updatedParties[toPartyIndex];
+    
+            // Echange des personnages
+            [sourceParty.members[fromIndex], targetParty.members[toIndex]] =
+                [targetParty.members[toIndex], sourceParty.members[fromIndex]];
+    
+            console.log("Swap completed. Updated parties:", JSON.stringify(updatedParties));
+    
+            // Envoyer les parties mises à jour au backend après l'échange
+            updatePartiesInBackend(updatedParties);
+    
+            return updatedParties; // Retourne les parties mises à jour
+        });
+    };
+
+    const moveCharacter = (fromPartyIndex: number, toPartyIndex: number, fromIndex: number, toIndex: number) => {
+        setParties((prevParties) => {
+            const updatedParties = [...prevParties];
+    
+            const sourceParty = updatedParties[fromPartyIndex];
+            const targetParty = updatedParties[toPartyIndex];
+    
+            if (!sourceParty || !targetParty || !sourceParty.members[fromIndex]) {
+                console.error("Invalid indices or no character to move");
+                return updatedParties;
+            }
+    
+            const [movedCharacter] = sourceParty.members.splice(fromIndex, 1);
+    
+            if (targetParty.members.length < 5) {
+                targetParty.members.splice(toIndex, 0, movedCharacter);
+            } else {
+                console.error("Target party is full. Move not allowed.");
+                // Remettre le personnage à sa place initiale
+                sourceParty.members.splice(fromIndex, 0, movedCharacter);
+            }
+    
+            // Envoyer les parties mises à jour au backend après la modification
+            updatePartiesInBackend(updatedParties);
+    
+            return updatedParties;
+        });
+    };
+    
+    const updatePartiesInBackend = async (updatedParties: Party[]) => {
+        try {
+            // Envoyer la mise à jour au backend
+            const response = await fetch(`${apiUrl}/api/parties`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(updatedParties),  // Envoyer les parties mises à jour
+            });
+    
+            if (!response.ok) {
+                throw new Error('Failed to update parties');
+            }
+    
+            console.log('Parties updated in Redis');
+        } catch (error) {
+            console.error('Error updating parties in Redis:', error);
+        }
+    };
+    
 
     useEffect(() => {
         fetchParties();
     }, []);
 
-    const tanks = characters.filter(character => character.role === 'TANK');
-    const heals = characters.filter(character => character.role === 'HEAL');
-    const dps = characters.filter(character => character.role === 'DIST' || character.role === 'CAC');
+    const tanks = characters.filter((character) => character.role === 'TANK');
+    const heals = characters.filter((character) => character.role === 'HEAL');
+    const dps = characters.filter((character) => character.role === 'DIST' || character.role === 'CAC');
 
     if (loading) return <Loading />;
     if (error || errorState) return <div>{error || errorState}</div>;
@@ -169,14 +248,22 @@ const EventView: React.FC = () => {
                         <FontAwesomeIcon icon={faShield} style={{ color: 'blue', marginRight: '8px' }} />
                         <h2>Tanks ({tanks.length})</h2>
                     </div>
-                    <CharacterTable characters={tanks} onDelete={isAdminPage ? handleDelete : undefined} highlightedId={createdCharacter?.id} />
+                    <CharacterTable
+                        characters={tanks}
+                        onDelete={isAdminPage ? handleDelete : undefined}
+                        highlightedId={createdCharacter?.id}
+                    />
                 </div>
                 <div className="table-wrapper">
                     <div className="icon-text-container">
                         <FontAwesomeIcon icon={faHeart} style={{ color: 'green', marginRight: '8px' }} />
                         <h2>Heals ({heals.length})</h2>
                     </div>
-                    <CharacterTable characters={heals} onDelete={isAdminPage ? handleDelete : undefined} highlightedId={createdCharacter?.id} />
+                    <CharacterTable
+                        characters={heals}
+                        onDelete={isAdminPage ? handleDelete : undefined}
+                        highlightedId={createdCharacter?.id}
+                    />
                 </div>
 
                 <div className="table-wrapper">
@@ -184,7 +271,11 @@ const EventView: React.FC = () => {
                         <FontAwesomeIcon icon={faCrosshairs} style={{ color: 'red', marginRight: '8px' }} />
                         <h2>DPS ({dps.length})</h2>
                     </div>
-                    <CharacterTable characters={dps} onDelete={isAdminPage ? handleDelete : undefined} highlightedId={createdCharacter?.id} />
+                    <CharacterTable
+                        characters={dps}
+                        onDelete={isAdminPage ? handleDelete : undefined}
+                        highlightedId={createdCharacter?.id}
+                    />
                 </div>
             </div>
 
@@ -195,10 +286,17 @@ const EventView: React.FC = () => {
             {parties.length > 0 && (
                 <div>
                     <div className="title-container">
-                        <h2 className="subtitle">Event running... ({parties.reduce((acc, party) => acc + party.members.length, 0)} participants)</h2>
+                        <h2 className="subtitle">
+                            Event running... ({parties.reduce((acc, party) => acc + party.members.length, 0)} participants)
+                        </h2>
                         {isAdminPage && <ClearButton onClear={handleClearEvent} />}
                     </div>
-                    <PartyTable parties={parties} highlightedId={createdCharacter?.id} />
+                    <PartyTable
+                        parties={parties}
+                        moveCharacter={moveCharacter}
+                        swapCharacters={swapCharacters}
+                        isAdmin={isAdminPage}
+                    />
                 </div>
             )}
 
