@@ -1,5 +1,4 @@
-// EventRegisterForm.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import InputField from '../InputFieldProps';
 import SelectField from '../SelectField';
@@ -21,6 +20,14 @@ const EventRegisterForm: React.FC = () => {
 
   const { classes } = useClasses(); // Utiliser le contexte pour les classes
   const { specializations, fetchSpecializations } = useSpecializations(); // Utiliser le contexte pour les spécialisations
+
+  // Vérifier si un personnage existe déjà dans le localStorage
+  useEffect(() => {
+    const storedCharacter = localStorage.getItem('createdCharacter');
+    if (storedCharacter) {
+      navigate('/event'); // Rediriger vers /event si un personnage existe
+    }
+  }, [navigate]);
 
   const handleClassChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedClass = event.target.value;
@@ -108,14 +115,14 @@ const EventRegisterForm: React.FC = () => {
         {specializations.length > 0 && (
           <SelectField
             label="Specialization: "
-            options={specializations.map(spec => ({
-              value: spec,
-              label: t(`specializations.${spec}`),
-            }))}
-            value={selectSpecialization}
-            onChange={handleSpecializationChange}
-            placeholder="Please select a specialization"
-          />
+          options={specializations.map(spec => ({
+            value: spec,
+            label: t(`specializations.${spec}`),
+          }))}
+          value={selectSpecialization}
+          onChange={handleSpecializationChange}
+          placeholder="Please select a specialization"
+        />
         )}
 
         {/* Bouton pour sauvegarder le personnage */}
