@@ -1,5 +1,4 @@
-// SpecializationsContext.tsx
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useCallback } from 'react';
 import axios from 'axios';
 import apiUrl from '../config/apiConfig';
 
@@ -13,7 +12,8 @@ const SpecializationsContext = createContext<SpecializationsContextProps | undef
 export const SpecializationsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [specializations, setSpecializations] = useState<string[]>([]);
 
-  const fetchSpecializations = async (selectedClass: string) => {
+  // Utilisation de useCallback pour mémoriser la fonction et éviter les appels répétés inutiles
+  const fetchSpecializations = useCallback(async (selectedClass: string) => {
     try {
       // Vérifiez si les spécialisations pour cette classe sont déjà stockées dans le localStorage
       const storedSpecializations = localStorage.getItem(`specializations_${selectedClass}`);
@@ -29,7 +29,7 @@ export const SpecializationsProvider: React.FC<{ children: ReactNode }> = ({ chi
     } catch (error) {
       console.error('Error fetching specializations:', error);
     }
-  };
+  }, []); // Le tableau de dépendances est vide, donc cette fonction ne sera pas recréée à chaque rendu
 
   return (
     <SpecializationsContext.Provider value={{ specializations, fetchSpecializations }}>
@@ -38,7 +38,6 @@ export const SpecializationsProvider: React.FC<{ children: ReactNode }> = ({ chi
   );
 };
 
-// Hook personnalisé pour utiliser le contexte des spécialisations
 export const useSpecializations = () => {
   const context = useContext(SpecializationsContext);
   if (!context) {
