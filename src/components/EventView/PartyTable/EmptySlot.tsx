@@ -23,7 +23,7 @@ const EmptySlot: React.FC<EmptySlotProps> = ({ partyIndex, moveCharacter, curren
 
     return (
         <tr ref={drop} className="empty-slot">
-            <td colSpan={7}>Empty Slot - Drag here to add</td>
+            <td colSpan={8}>Empty Slot - Drag here to add</td>
         </tr>
     );
 };

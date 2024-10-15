@@ -22,6 +22,7 @@ const CharacterTable: React.FC<CharacterTableProps> = ({ characters, onDelete, h
                     <th style={{ width: '20%' }}>Name</th>
                     <th style={{ width: '15%' }}>Class</th>
                     <th style={{ width: '15%' }}>Specialization</th>
+                    <th style={{ width: '15%' }}>Items Level</th>
                     <th style={{ width: '15%' }}>Blood Lust</th>
                     <th style={{ width: '15%' }}>Battle Rez</th>
                     <th style={{ width: '10%' }}>Action</th>
@@ -34,6 +35,7 @@ const CharacterTable: React.FC<CharacterTableProps> = ({ characters, onDelete, h
                         <td><b>{character.name}</b></td>
                         <td>{character.characterClass}</td>
                         <td>{t(`specializations.${character.specialization}`)}</td>
+                        <td>{character.iLevel}</td>
                         <td>
                             <FontAwesomeIcon
                                 icon={character.bloodLust ? faCheck : faTimes}

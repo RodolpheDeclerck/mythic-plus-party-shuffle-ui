@@ -15,6 +15,7 @@ const EventRegisterForm: React.FC = () => {
   const [selectCharacterClass, setSelectCharacterClass] = useState<string>('');
   const [selectSpecialization, setSelectSpecialization] = useState<string>('');
   const [showPasswordPopup, setShowPasswordPopup] = useState(false);
+  const [iLevel, setILevel] = useState<number>(0);
   const navigate = useNavigate();
   const { t } = useTranslation();
 
@@ -47,6 +48,7 @@ const EventRegisterForm: React.FC = () => {
         name,
         characterClass: selectCharacterClass,
         specialization: selectSpecialization,
+        iLevel,
       };
 
       // Envoyer le personnage au backend
@@ -115,18 +117,27 @@ const EventRegisterForm: React.FC = () => {
         {specializations.length > 0 && (
           <SelectField
             label="Specialization: "
-          options={specializations.map(spec => ({
-            value: spec,
-            label: t(`specializations.${spec}`),
-          }))}
-          value={selectSpecialization}
-          onChange={handleSpecializationChange}
-          placeholder="Please select a specialization"
-        />
+            options={specializations.map(spec => ({
+              value: spec,
+              label: t(`specializations.${spec}`),
+            }))}
+            value={selectSpecialization}
+            onChange={handleSpecializationChange}
+            placeholder="Please select a specialization"
+          />
+        )}
+
+        {selectCharacterClass && selectSpecialization && (
+          <InputField
+            label="iLevel: "
+            value={iLevel}
+            onChange={(e) => setILevel(Number(e.target.value))}
+            placeholder="Enter character items level"
+          />
         )}
 
         {/* Bouton pour sauvegarder le personnage */}
-        {selectCharacterClass && selectSpecialization && (
+        {selectCharacterClass && selectSpecialization && iLevel > 0 && (
           <button className="save-button" onClick={handleSave}>
             Join Event!
           </button>

@@ -16,6 +16,7 @@ interface CreatedCharacterProps {
 const CreatedCharacterView: React.FC<CreatedCharacterProps> = ({ character, onSave, onDelete }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [editedName, setEditedName] = useState(character.name);
+    const [editILevel, setILevel] = useState(character.iLevel);
     const { t } = useTranslation();
     const { specializations, fetchSpecializations } = useSpecializations();
     const [selectSpecialization, setSelectSpecialization] = useState<string>(character.specialization);
@@ -45,12 +46,17 @@ const CreatedCharacterView: React.FC<CreatedCharacterProps> = ({ character, onSa
         setEditedName(event.target.value);
     };
 
+    const handleILevelChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setILevel(event.target.value);
+    };
+
     const handleSave = async () => {
         const updatedCharacter = {
             ...character,
             name: editedName,
             characterClass: selectCharacterClass,
             specialization: selectSpecialization,
+            iLevel: editILevel
         };
 
         try {
@@ -133,6 +139,18 @@ const CreatedCharacterView: React.FC<CreatedCharacterProps> = ({ character, onSa
                     />
                 ) : (
                     t(`specializations.${character.specialization}`)
+                )}
+            </div>
+            <div className="character-field">
+                <b>ILevel: </b>
+                {isEditing ? (
+                    <input
+                        type="number"
+                        value={editILevel}
+                        onChange={handleILevelChange}
+                    />
+                ) : (
+                    character.iLevel
                 )}
             </div>
             <div className="character-field">

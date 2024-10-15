@@ -3,6 +3,7 @@ export interface Character {
     name: string;
     characterClass: string;
     specialization: string;
+    iLevel: number;
     role: string;
     bloodLust: boolean;
     battleRez: boolean;

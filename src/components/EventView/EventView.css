@@ -3,31 +3,31 @@
 .party-table-container {
     display: flex;
     flex-wrap: wrap;
-    /* Permet aux éléments de se déplacer à la ligne suivante si nécessaire */
-    justify-content: center;
-    /* Centre les éléments horizontalement */
-    gap: 20px;
-    /* Espace entre les éléments */
+    justify-content: center; /* Centre les éléments horizontalement */
+    gap: 20px; /* Espace entre les éléments */
     margin-top: 20px;
 }
 
+
 /* Style pour chaque tableau et chaque groupe */
 .table-wrapper {
-    flex: 1 1 30%;
-    /* Flex-grow: 1, Flex-shrink: 1, Flex-basis: 30% */
-    min-width: 250px;
-    max-width: 33%;
+    flex: 1 1 45%; /* Ajuste la taille pour deux tableaux par ligne */
+    min-width: 245px;
+    max-width: 45%; /* Ajuste la largeur maximale à 45% pour deux tableaux par ligne */
     background-color: #f9f9f9;
     padding: 15px;
     border-radius: 8px;
     box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
+    overflow-x: auto; /* Permet un défilement horizontal si nécessaire */
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Centre les éléments horizontalement */
 }
-
 /* Style pour les tables */
 table {
-    width: 100%;
+    width: 100%; /* Prend toute la largeur du conteneur */
     border-collapse: collapse;
+    table-layout: auto; /* Permet aux colonnes de s'adapter à leur contenu */
 }
 
 th,
@@ -96,26 +96,20 @@ button:hover {
 
 /* Media query pour les petits écrans */
 @media (max-width: 768px) {
-
     .table-container,
     .party-table-container {
-        flex-direction: column;
-        /* Les éléments seront empilés verticalement sur les petits écrans */
-        align-items: center;
-        /* Centre les éléments lorsqu'ils sont empilés verticalement */
+        flex-direction: column; /* Les éléments seront empilés verticalement sur les petits écrans */
+        align-items: center; /* Centre les éléments lorsqu'ils sont empilés verticalement */
     }
 
     .table-wrapper {
-        flex: 1 1 100%;
-        /* Prend toute la largeur sur les petits écrans */
+        flex: 1 1 100%; /* Prend toute la largeur sur les petits écrans */
     }
 
     th,
     td {
-        font-size: 0.8em;
-        /* Réduit la taille de la police pour les petits écrans */
-        padding: 6px;
-        /* Réduit l'espacement pour les petits écrans */
+        font-size: 0.8em; /* Réduit la taille de la police pour les petits écrans */
+        padding: 6px; /* Réduit l'espacement pour les petits écrans */
     }
 }
 
@@ -139,17 +133,12 @@ button:hover {
 
 .icon-text-container {
     display: flex;
-    align-items: center; /* Vertically center the icon and text */
+    align-items: center; /* Centre verticalement l'icône et le texte */
+    justify-content: center; /* Centre horizontalement le contenu */
 }
 
-.table-wrapper {
-    display: flex;
-    flex-direction: column;
-    align-items: center; /* Centers items horizontally */
-}
-
-.icon-text-container {
-    display: flex;
-    align-items: center; /* Vertically centers the icon and text */
-    justify-content: center; /* Horizontally centers the content */
+/* Styles spécifiques pour ajuster la largeur des nouvelles colonnes */
+th.new-column,
+td.new-column {
+    min-width: 150px; /* Ajuste la largeur minimale selon le contenu */
 }

@@ -21,7 +21,7 @@ import './EventView.css';
 import { useTranslation } from 'react-i18next';
 import ClearButton from './ClearButton/ClearButton';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faShield, faHeart, faCrosshairs } from '@fortawesome/free-solid-svg-icons';
+import { faCheck, faTimes, faShield, faHeart, faGavel, faHatWizard } from '@fortawesome/free-solid-svg-icons';
 import apiUrl from '../../config/apiConfig';
 
 const EventView: React.FC = () => {
@@ -61,6 +61,7 @@ const EventView: React.FC = () => {
 
     const fetchParties = async () => {
         try {
+            console.log('Fetching parties...');
             const updatedParties = await fetchPartiesApi();
             setParties([...updatedParties]); // Spread to force re-render
         } catch (error) {
@@ -218,7 +219,8 @@ const EventView: React.FC = () => {
 
     const tanks = characters.filter((character) => character.role === 'TANK');
     const heals = characters.filter((character) => character.role === 'HEAL');
-    const dps = characters.filter((character) => character.role === 'DIST' || character.role === 'CAC');
+    const melees = characters.filter((character) => character.role === 'CAC');
+    const dist = characters.filter((character) => character.role === 'DIST');
 
     if (loading) return <Loading />;
     if (error || errorState) return <div>{error || errorState}</div>;
@@ -245,7 +247,7 @@ const EventView: React.FC = () => {
             <div className="table-container">
                 <div className="table-wrapper">
                     <div className="icon-text-container">
-                        <FontAwesomeIcon icon={faShield} style={{ color: 'blue', marginRight: '8px' }} />
+                        <FontAwesomeIcon icon={faShield} style={{ color: 'black', marginRight: '8px' }} />
                         <h2>Tanks ({tanks.length})</h2>
                     </div>
                     <CharacterTable
@@ -268,11 +270,23 @@ const EventView: React.FC = () => {
 
                 <div className="table-wrapper">
                     <div className="icon-text-container">
-                        <FontAwesomeIcon icon={faCrosshairs} style={{ color: 'red', marginRight: '8px' }} />
-                        <h2>DPS ({dps.length})</h2>
+                        <FontAwesomeIcon icon={faGavel} style={{ color: 'red', marginRight: '8px' }} />
+                        <h2>Melees ({melees.length})</h2>
                     </div>
                     <CharacterTable
-                        characters={dps}
+                        characters={melees}
+                        onDelete={isAdminPage ? handleDelete : undefined}
+                        highlightedId={createdCharacter?.id}
+                    />
+                </div>
+
+                <div className="table-wrapper">
+                    <div className="icon-text-container">
+                        <FontAwesomeIcon icon={faHatWizard} style={{ color: 'blue', marginRight: '8px' }} />
+                        <h2>Dist ({dist.length})</h2>
+                    </div>
+                    <CharacterTable
+                        characters={dist}
                         onDelete={isAdminPage ? handleDelete : undefined}
                         highlightedId={createdCharacter?.id}
                     />

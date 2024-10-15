@@ -2,7 +2,7 @@ import React from 'react';
 
 interface InputFieldProps {
   label: string;
-  value: string;
+  value: string | number;
   onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   placeholder?: string;
 }
