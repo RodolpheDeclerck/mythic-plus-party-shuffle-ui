@@ -6,6 +6,8 @@ import { useClasses } from '../../../context/ClassesContext';
 import './CreatedCharacterView.css';
 import { deleteCharacter, upsertCharacter } from '../../../services/api';
 import { useNavigate } from 'react-router-dom';
+import InputField from '../../InputFieldProps';
+import AuthButtons from '../../Authentication/AuthButtons';
 
 interface CreatedCharacterProps {
     character: any;
@@ -14,14 +16,15 @@ interface CreatedCharacterProps {
 }
 
 const CreatedCharacterView: React.FC<CreatedCharacterProps> = ({ character, onSave, onDelete }) => {
+    // Utilise des valeurs par défaut si `character` est `null` ou `undefined`
     const [isEditing, setIsEditing] = useState(false);
-    const [editedName, setEditedName] = useState(character.name);
-    const [editILevel, setILevel] = useState(character.iLevel);
+    const [editedName, setEditedName] = useState(character?.name || ''); // Valeur par défaut vide
+    const [editILevel, setILevel] = useState(character?.iLevel || ''); // Valeur par défaut vide
     const { t } = useTranslation();
     const { specializations, fetchSpecializations } = useSpecializations();
-    const [selectSpecialization, setSelectSpecialization] = useState<string>(character.specialization);
-    const [selectCharacterClass, setSelectCharacterClass] = useState<string>(character.characterClass); // Initialiser avec la classe du personnage
-    const { classes } = useClasses(); // Utiliser le contexte pour les classes
+    const [selectSpecialization, setSelectSpecialization] = useState<string>(character?.specialization || ''); // Valeur par défaut vide
+    const [selectCharacterClass, setSelectCharacterClass] = useState<string>(character?.characterClass || ''); // Valeur par défaut vide
+    const { classes } = useClasses();
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -30,15 +33,13 @@ const CreatedCharacterView: React.FC<CreatedCharacterProps> = ({ character, onSa
         }
     }, [selectCharacterClass, fetchSpecializations]);
 
-    const handleClassChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-        const selectedClass = event.target.value;
+    const handleClassChange = (selectedClass: string) => {
         setSelectCharacterClass(selectedClass);
         setSelectSpecialization(''); // Réinitialiser la spécialisation lors du changement de classe
         fetchSpecializations(selectedClass);
     };
 
-    const handleSpecializationChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-        const selectedSpecialization = event.target.value;
+    const handleSpecializationChange = (selectedSpecialization: string) => {
         setSelectSpecialization(selectedSpecialization);
     };
 
@@ -53,17 +54,14 @@ const CreatedCharacterView: React.FC<CreatedCharacterProps> = ({ character, onSa
     const handleSave = async () => {
         const updatedCharacter = {
             ...character,
-            name: editedName,
-            characterClass: selectCharacterClass,
-            specialization: selectSpecialization,
-            iLevel: editILevel
+            name: editedName || 'Unnamed Character', // Valeur par défaut si vide
+            characterClass: selectCharacterClass || 'Unknown Class', // Valeur par défaut si vide
+            specialization: selectSpecialization || 'Unknown Specialization', // Valeur par défaut si vide
+            iLevel: editILevel || 0 // Valeur par défaut si vide
         };
 
         try {
-            // Await the response from the upsert API call
             const savedCharacter = await upsertCharacter(updatedCharacter);
-
-            // Use the response to update the character, including the ID
             onSave(savedCharacter);
             setIsEditing(false);
         } catch (error) {
@@ -77,34 +75,31 @@ const CreatedCharacterView: React.FC<CreatedCharacterProps> = ({ character, onSa
 
     const handleLeave = async () => {
         try {
-            await deleteCharacter(character.id);
-
-            // Supprimer complètement le personnage du localStorage
-            localStorage.removeItem('createdCharacter');
-
-            // Rediriger vers la page d'accueil
-            navigate('/');
-
-            // Notifier le parent de la suppression
-            onDelete(character.id);
+            await deleteCharacter(character?.id || 0); // Valeur par défaut de 0 si id est absent
+            onDelete(character?.id || 0);
         } catch (error) {
             console.error('Failed to delete character:', error);
+        } finally {
+            localStorage.removeItem('createdCharacter');
+            navigate('/event/join');
         }
     };
 
     return (
         <div className="created-character-info">
-            <div className="character-field"><b>ID:</b> {character.id}</div>
+            <div className="character-field"><b>ID:</b> {character?.id || '-'}</div> {/* Valeur par défaut '-' */}
             <div className="character-field">
                 <b>Name: </b>
                 {isEditing ? (
-                    <input
+                    <InputField
+                        label="Character Name:"
                         type="text"
                         value={editedName}
                         onChange={handleNameChange}
+                        placeholder="Enter character name"
                     />
                 ) : (
-                    character.name
+                    character?.name || 'Unnamed Character' // Valeur par défaut si absente
                 )}
             </div>
             <div className="character-field">
@@ -121,7 +116,7 @@ const CreatedCharacterView: React.FC<CreatedCharacterProps> = ({ character, onSa
                         placeholder="Please select a class"
                     />
                 ) : (
-                    character.characterClass
+                    character?.characterClass || 'Unknown Class' // Valeur par défaut si absente
                 )}
             </div>
             <div className="character-field">
@@ -138,19 +133,21 @@ const CreatedCharacterView: React.FC<CreatedCharacterProps> = ({ character, onSa
                         placeholder="Please select a specialization"
                     />
                 ) : (
-                    t(`specializations.${character.specialization}`)
+                    t(`specializations.${character?.specialization}`) || 'Unknown Specialization' // Valeur par défaut
                 )}
             </div>
             <div className="character-field">
                 <b>ILevel: </b>
                 {isEditing ? (
-                    <input
+                    <InputField
+                        label="Item Level:"
                         type="number"
                         value={editILevel}
                         onChange={handleILevelChange}
+                        placeholder="Enter item level"
                     />
                 ) : (
-                    character.iLevel
+                    character?.iLevel !== undefined ? character.iLevel : 'Unknown' // Valeur par défaut
                 )}
             </div>
             <div className="character-field">

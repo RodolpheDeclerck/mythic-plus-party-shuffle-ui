@@ -2,7 +2,9 @@ import { useEffect } from 'react';
 import { io, Socket } from 'socket.io-client';
 import apiUrl from '../config/apiConfig';
 
-const useWebSocket = (onCharacterUpdated: () => void, onPartiesShuffled: () => void): Socket | null => {
+const useWebSocket = (onCharacterUpdated: () => void,
+    onPartiesShuffled: () => void,
+    onEventsUpdated: () => void  = () => {}): Socket | null => {
     useEffect(() => {
         const socket = io(apiUrl, {
             transports: ['websocket'], // Forcer le transport WebSocket
@@ -22,11 +24,12 @@ const useWebSocket = (onCharacterUpdated: () => void, onPartiesShuffled: () => v
 
         socket.on('character-updated', onCharacterUpdated);
         socket.on('parties-updated', onPartiesShuffled);
+        socket.on('event-updated', onEventsUpdated);
 
         return () => {
             socket.disconnect();
         };
-    }, [onCharacterUpdated, onPartiesShuffled]);
+    }, [onCharacterUpdated, onPartiesShuffled, onEventsUpdated]);
 
     return null; // Vous pouvez retourner le socket si vous avez besoin de l'utiliser ailleurs
 };

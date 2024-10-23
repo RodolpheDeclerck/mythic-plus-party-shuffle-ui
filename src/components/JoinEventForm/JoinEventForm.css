@@ -1,0 +1,36 @@
+/* Auth buttons (Sign In, Sign Up) positioned in the top right corner */
+.auth-buttons {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex; /* Utilise flexbox pour aligner les boutons */
+}
+
+.auth-buttons button {
+    background: transparent;
+    border: 2px solid rgba(255, 255, 255, .2);
+    backdrop-filter: blur(30px);
+    color: #fff;
+    border-radius: 10px;
+    padding: 10px 15px; /* Réduire un peu le padding */
+    margin-left: 10px; /* Espace entre les boutons */
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    white-space: nowrap; /* Empêche le texte de se diviser sur plusieurs lignes */
+}
+
+/* Style for hovering over the buttons */
+.auth-buttons button:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+}
+
+.auth-buttons .sign-in {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.auth-buttons .sign-up {
+    background-color: rgba(255, 255, 255, 0.1);
+}

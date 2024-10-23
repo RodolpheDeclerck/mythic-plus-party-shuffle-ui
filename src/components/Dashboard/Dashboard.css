@@ -1,0 +1,45 @@
+button {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0; /* Ajoute une marge entre les boutons */
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+.events-list {
+    max-height: 300px; /* Définis la hauteur maximale de la liste */
+    overflow-y: auto;  /* Active la barre de défilement verticale */
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.events-list ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.events-list li {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+}
+
+.events-list li:last-child {
+    border-bottom: none;
+}
+
+.events-list button {
+    margin-left: 10px;
+}
