@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import InputField from '../InputFieldProps';
 import SelectField from '../SelectField';
-import PasswordPopup from '../PasswordPopup/PasswordPopup';
 import { useTranslation } from 'react-i18next';
 import { useClasses } from '../../context/ClassesContext'; // Importer le hook personnalisé pour les classes
 import { useSpecializations } from '../../context/SpecializationsContext'; // Importer le hook personnalisé pour les spécialisations
 import axios from 'axios';
 import apiUrl from '../../config/apiConfig';
 import './EventRegisterForm.css';
+
 
 const EventRegisterForm: React.FC = () => {
   const [name, setName] = useState<string>('');
@@ -22,23 +22,24 @@ const EventRegisterForm: React.FC = () => {
   const { classes } = useClasses(); // Utiliser le contexte pour les classes
   const { specializations, fetchSpecializations } = useSpecializations(); // Utiliser le contexte pour les spécialisations
 
+  const location = useLocation(); // Utiliser useLocation pour obtenir l'objet location
+  const eventCode = new URLSearchParams(location.search).get('code'); // Extraire le code depuis location.search
+  
   // Vérifier si un personnage existe déjà dans le localStorage
   useEffect(() => {
     const storedCharacter = localStorage.getItem('createdCharacter');
     if (storedCharacter) {
-      navigate('/event'); // Rediriger vers /event si un personnage existe
+      navigate('/event?code=' + eventCode || ''); // Rediriger vers /event si un personnage existe
     }
   }, [navigate]);
 
-  const handleClassChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedClass = event.target.value;
+  const handleClassChange = (selectedClass: string) => {
     setSelectCharacterClass(selectedClass);
     setSelectSpecialization('');
     fetchSpecializations(selectedClass);
   };
 
-  const handleSpecializationChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedSpecialization = event.target.value;
+  const handleSpecializationChange = (selectedSpecialization: string) => {
     setSelectSpecialization(selectedSpecialization);
   };
 
@@ -49,6 +50,7 @@ const EventRegisterForm: React.FC = () => {
         characterClass: selectCharacterClass,
         specialization: selectSpecialization,
         iLevel,
+        eventCode: eventCode,
       };
 
       // Envoyer le personnage au backend
@@ -58,40 +60,18 @@ const EventRegisterForm: React.FC = () => {
       localStorage.setItem('createdCharacter', JSON.stringify(response.data));
 
       // Naviguer vers la page /event
-      navigate('/event');
+      navigate('/event?code=' + eventCode);
     } catch (error) {
       console.error('Error saving character:', error);
     }
   };
 
-  const handleAdminClick = () => {
-    setShowPasswordPopup(true);
-  };
-
-  const handlePasswordConfirm = (password: string) => {
-    if (password === 'W1ck3dWabb1t') {
-      localStorage.setItem('isAdmin', 'true');
-      setShowPasswordPopup(false);
-      navigate('/event/admin');
-    } else {
-      alert('Incorrect password');
-    }
-  };
-
-  const handlePasswordCancel = () => {
-    setShowPasswordPopup(false);
-  };
-
   return (
-    <div className="form-container">
-      {/* Bouton "Admin" en haut à droite */}
-      <div style={{ position: 'absolute', top: '10px', right: '10px' }}>
-        <button onClick={handleAdminClick}>Admin</button>
-      </div>
+    <div className='wrapper'>
 
-      <h1 className="title">Register for the event</h1>
+      <h1>Character Informations</h1>
 
-      <div className="form-content">
+      <div className='content-box'>
         <InputField
           label="Name: "
           value={name}
@@ -143,10 +123,6 @@ const EventRegisterForm: React.FC = () => {
           </button>
         )}
       </div>
-
-      {showPasswordPopup && (
-        <PasswordPopup onConfirm={handlePasswordConfirm} onCancel={handlePasswordCancel} />
-      )}
     </div>
   );
 };

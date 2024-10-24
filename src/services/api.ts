@@ -6,8 +6,8 @@ import { Character } from '../types/Character';
 import { Party } from '../types/Party';
 
 // Récupérer tous les personnages
-export const fetchCharacters = async (): Promise<Character[]> => {
-    const response = await axios.get<Character[]>(`${apiUrl}/api/characters`);
+export const fetchCharacters = async (eventCode: string): Promise<Character[]> => {
+    const response = await axios.get<Character[]>(`${apiUrl}/api/events/${eventCode}/characters`);
     return response.data;
 };
 
@@ -32,17 +32,17 @@ export const deleteCharacters = async (ids: number[]): Promise<void> => {
 };
 
 // Récupérer tous les groupes
-export const fetchParties = async (): Promise<Party[]> => {
-    const response = await axios.get<Party[]>(`${apiUrl}/api/parties`);
+export const fetchParties = async (eventCode: string): Promise<Party[]> => {
+    const response = await axios.get<Party[]>(`${apiUrl}/api/events/${eventCode}/parties`);
     return response.data;
 };
 
 // Mélanger les groupes
-export const shuffleParties = async (): Promise<Party[]> => {
-    const response = await axios.get<Party[]>(`${apiUrl}/api/parties/shuffle`);
+export const shuffleParties = async (eventCode: string): Promise<Party[]> => {
+    const response = await axios.get<Party[]>(`${apiUrl}/api/events/${eventCode}/shuffle-parties`);
     return response.data;
 };
 
-export const deleteParties = async (): Promise<void> => {
-    await axios.delete(`${apiUrl}/api/parties`);
+export const deleteParties = async (eventCode: string): Promise<void> => {
+    await axios.delete(`${apiUrl}/api/events/${eventCode}/parties`);
 };

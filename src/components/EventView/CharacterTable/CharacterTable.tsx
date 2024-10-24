@@ -15,6 +15,7 @@ const CharacterTable: React.FC<CharacterTableProps> = ({ characters, onDelete, h
     const { t } = useTranslation();
 
     return (
+        
         <table>
             <thead>
                 <tr>
