@@ -3,6 +3,7 @@ import './LoginForm.css';
 import { FaUser } from 'react-icons/fa';
 import { FaLock } from 'react-icons/fa';
 import axios from 'axios';
+import apiUrl from '../../config/apiConfig';
 
 const LoginForm = () => {
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -12,7 +13,7 @@ const LoginForm = () => {
         const password = (event.currentTarget as HTMLFormElement).password.value;
 
         axios.post(
-            'http://localhost:8080/auth/login',
+            `${apiUrl}/auth/login`,
             { email, password },
             {
                 withCredentials: true, // Permet l'envoi et la réception des cookies

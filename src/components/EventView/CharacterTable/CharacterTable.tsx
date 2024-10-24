@@ -15,6 +15,7 @@ const CharacterTable: React.FC<CharacterTableProps> = ({ characters, onDelete, h
     const { t } = useTranslation();
 
     return (
+        
         <table>
             <thead>
                 <tr>
@@ -31,11 +32,11 @@ const CharacterTable: React.FC<CharacterTableProps> = ({ characters, onDelete, h
             <tbody>
                 {characters.map((character) => (
                     <tr key={character.id} className={character.id === highlightedId ? 'highlight' : ''}>
-                        <td>{character.id || '-'}</td>
-                        <td><b>{character.name || '-'}</b></td>
-                        <td>{character.characterClass || '-'}</td>
-                        <td>{character.specialization ? t(`specializations.${character.specialization}`) : '-'}</td>
-                        <td>{character.iLevel !== undefined ? character.iLevel : '-'}</td>
+                        <td>{character.id}</td>
+                        <td><b>{character.name}</b></td>
+                        <td>{character.characterClass}</td>
+                        <td>{t(`specializations.${character.specialization}`)}</td>
+                        <td>{character.iLevel}</td>
                         <td>
                             <FontAwesomeIcon
                                 icon={character.bloodLust ? faCheck : faTimes}

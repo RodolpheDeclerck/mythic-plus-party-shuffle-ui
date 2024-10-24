@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import './JoinEventForm.css';
 import axios from 'axios';
-import AuthButtons from '../Authentication/AuthButtons';
 import Cookies from 'js-cookie';  // Importation de js-cookie
-import HomeButton from '../HomeButton/HomeButton';
+import apiUrl from '../../config/apiConfig';
 
 const JoinEventForm = () => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -26,9 +25,9 @@ const JoinEventForm = () => {
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         try {
-            const response = await axios.get(`http://localhost:8080/api/events?code=${eventCode}`, { withCredentials: true });
+            const response = await axios.get(`${apiUrl}/api/events?code=${eventCode}`, { withCredentials: true });
             if (response.status === 200) {
-                window.location.href = `http://localhost:3000/event/register?code=${eventCode}`;
+                window.location.href = `/event/register?code=${eventCode}`;
             }
         } catch (error: Error | any) {
             if (error.response && error.response.status === 404) {

@@ -4,6 +4,7 @@ import { FaUser } from "react-icons/fa";
 import { FaLock } from "react-icons/fa";
 import { FaEnvelope } from "react-icons/fa6";
 import axios from 'axios';
+import apiUrl from '../../config/apiConfig';
 
 const RegisterForm = () => {
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -13,10 +14,10 @@ const RegisterForm = () => {
         const username = (event.currentTarget as HTMLFormElement).username.value;
 
     
-        axios.post('http://localhost:8080/auth/register', { email, password, username })
+        axios.post(`${apiUrl}/auth/register`, { email, password, username })
           .then(response => {
             if (response.status === 200) {
-              window.location.href = 'http://localhost:3000/';
+              window.location.href = '/';
             } else {
               console.error('Erreur d\'authentification');
             }

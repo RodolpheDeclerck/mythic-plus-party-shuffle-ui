@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import AuthButtons from './Authentication/AuthButtons';
 import InputField from './InputFieldProps';
+import apiUrl from '../config/apiConfig';
 
 const CreateEventPage: React.FC = () => {
   const [eventName, setEventName] = useState<string>(''); // Nom de l'événement
@@ -29,7 +30,7 @@ const CreateEventPage: React.FC = () => {
     try {
       // Envoie la requête pour créer un événement avec les cookies inclus
       const response = await axios.post<EventResponse>(
-        'http://localhost:8080/api/events',
+        `${apiUrl}/api/events`,
         { name: eventName }, // Données envoyées dans le corps de la requête
         {
           withCredentials: true, // Envoie automatiquement le cookie `authToken`

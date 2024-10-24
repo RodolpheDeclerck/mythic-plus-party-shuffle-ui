@@ -8,7 +8,7 @@ const Logout = () => {
         Cookies.remove('authToken');  // Suppression du cookie
 
         // Redirection vers la page d'accueil ou de connexion
-        window.location.href = 'http://localhost:3000/';
+        window.location.href = '/';
     };
 
     return (
