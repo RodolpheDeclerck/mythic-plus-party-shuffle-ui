@@ -5,6 +5,10 @@ import { FaLock } from 'react-icons/fa';
 import axios from 'axios';
 import apiUrl from '../../config/apiConfig';
 
+interface LoginResponse {
+    token: string; // Spécifie que la réponse attend un token
+}
+
 const LoginForm = () => {
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -12,16 +16,19 @@ const LoginForm = () => {
         const email = (event.currentTarget as HTMLFormElement).username.value;
         const password = (event.currentTarget as HTMLFormElement).password.value;
 
-        axios.post(
+        axios.post<LoginResponse>( // Spécifie ici le type attendu
             `${apiUrl}/auth/login`,
             { email, password },
             {
-                withCredentials: true, // Permet l'envoi et la réception des cookies
+                withCredentials: true, // Permet l'envoi et la réception des cookies httpOnly
             }
         )
             .then(response => {
                 if (response.status === 200) {
                     console.log('Login successful, status:', response.status);
+
+                    // TypeScript sait maintenant que response.data contient un token
+                    localStorage.setItem('authToken', response.data.token);
 
                     // Vérifie si la redirection est définie dans localStorage
                     let redirectUrl = localStorage.getItem('redirectAfterLogin');
@@ -36,8 +43,10 @@ const LoginForm = () => {
                     // Supprime la clé redirectAfterLogin du localStorage
                     localStorage.removeItem('redirectAfterLogin');
 
-                    // Redirige l'utilisateur
-                    window.location.replace(redirectUrl);
+                    // Redirige l'utilisateur après un délai
+                    setTimeout(() => {
+                        window.location.replace(redirectUrl);
+                    }, 500); // Délai de 500ms pour s'assurer que tout est bien pris en compte
                 } else {
                     console.error('Erreur d\'authentification');
                 }
