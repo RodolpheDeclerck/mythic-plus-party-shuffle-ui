@@ -1,10 +1,9 @@
 import './Dashboard.css';
-import Logout from "../Authentication/Logout";
-import Cookies from 'js-cookie';
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import apiUrl from '../../config/apiConfig';
 import useWebSocket from '../../hooks/useWebSocket';
+import useAuthCheck from '../../hooks/useAuthCheck';
 
 // Définition de l'interface pour les événements
 interface Event {
@@ -14,24 +13,10 @@ interface Event {
 }
 
 const EventSelectionPage = () => {
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [loading, setLoading] = useState(true); // Nouvel état pour le chargement
+    const { isAuthenticated, isAuthChecked, handleLogout } = useAuthCheck(); // Utilisation du hook pour centraliser l'authentification
     const [events, setEvents] = useState<Event[]>([]); // Définition explicite du type Event[]
 
-    // Vérifier l'authentification en regardant le cookie JWT
-    useEffect(() => {
-        const token = Cookies.get('authToken'); // Récupérer le cookie JWT
-        if (token) {
-            setIsAuthenticated(true);
-            fetchAdminEvents(); // Si authentifié, récupère les événements
-        } else {
-            setIsAuthenticated(false);
-            window.location.href = '/login'; // Redirection si non authentifié
-        }
-        setLoading(false); // Fin du chargement après vérification
-    }, []);
-
-    // Fonction pour récupérer les événements administrés par l'utilisateur
+    // Déclare la fonction fetchAdminEvents avant son utilisation
     const fetchAdminEvents = async () => {
         try {
             const response = await axios.get(`${apiUrl}/api/events/admin-events`, { withCredentials: true });
@@ -41,14 +26,28 @@ const EventSelectionPage = () => {
         }
     };
 
+    // Utiliser useEffect pour la redirection et la récupération des événements
+    useEffect(() => {
+        if (isAuthChecked && isAuthenticated !== null) {  // Attendre la fin du chargement
+            if (!isAuthenticated) {
+                window.location.href = '/login'; // Redirection si non authentifié
+            } else {
+                fetchAdminEvents(); // Si authentifié, récupère les événements
+            }
+        }
+    }, [isAuthenticated, isAuthChecked]);
+
+    // Utiliser useWebSocket inconditionnellement
+    useWebSocket(() => { }, () => { }, fetchAdminEvents);
+
     // Redirection vers un événement spécifique
     const handleJoinEvent = (eventCode: string) => {
         window.location.href = `/event?code=${eventCode}`;
     };
 
+    // Fonction pour supprimer un événement
     const handleDeleteEvent = async (eventCode: string) => {
         try {
-            // Requête DELETE pour supprimer l'événement avec l'eventCode
             await axios.delete(`${apiUrl}/api/events/${eventCode}`, { withCredentials: true });
             console.log(`Event ${eventCode} deleted successfully`);
             fetchAdminEvents(); // Actualise la liste des événements après suppression
@@ -57,24 +56,14 @@ const EventSelectionPage = () => {
         }
     };
 
-    useWebSocket(() => { }, () => { }, fetchAdminEvents);
-
     // Si la vérification de l'authentification est en cours, afficher un indicateur de chargement
-    if (loading) {
-        return <div>Loading...</div>;
-    }
-
-    // Si l'utilisateur n'est pas authentifié, ne rien afficher (redirigé vers /login)
-    if (!isAuthenticated) {
-        return null;
+    if (!isAuthChecked) {
+        return <div>Loading...</div>; // Attendre la vérification de l'authentification
     }
 
     // Afficher le contenu uniquement si l'utilisateur est authentifié
     return (
         <div className="container">
-            <div className="auth-buttons">
-                {isAuthenticated && <Logout />}
-            </div>
             <div className='wrapper'>
                 <div className='content-box'>
                     <h1>Hello</h1>
@@ -82,10 +71,9 @@ const EventSelectionPage = () => {
                     <button onClick={() => window.location.href = '/event/create'}>Create New Event</button>
 
                     {/* Affiche la liste des événements */}
-                    {isAuthenticated && events.length > 0 && (
+                    {events.length > 0 ? (
                         <div>
                             <h2>Your Admin Events</h2>
-
                             <div className="events-list">
                                 <ul>
                                     {events.map(event => (
@@ -98,6 +86,8 @@ const EventSelectionPage = () => {
                                 </ul>
                             </div>
                         </div>
+                    ) : (
+                        <p>No events available.</p>
                     )}
                 </div>
             </div>

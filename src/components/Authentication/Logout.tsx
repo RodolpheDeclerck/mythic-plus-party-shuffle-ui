@@ -1,15 +1,9 @@
 // Logout.tsx
 import React from 'react';
-import Cookies from 'js-cookie';  // Importation de js-cookie
+import useAuthCheck from '../../hooks/useAuthCheck';
 
 const Logout = () => {
-    const handleLogout = () => {
-        // Suppression du cookie contenant le token JWT
-        Cookies.remove('authToken');  // Suppression du cookie
-
-        // Redirection vers la page d'accueil ou de connexion
-        window.location.href = '/';
-    };
+    const { isAuthenticated, isAuthChecked, handleLogout } = useAuthCheck();
 
     return (
         <button className="logout" onClick={handleLogout}>Logout</button>

@@ -14,31 +14,34 @@ import Dashboard from './components/Dashboard/Dashboard';
 import JoinEventForm from './components/JoinEventForm/JoinEventForm';
 import CreateEventPage from './components/CreateEventPage';
 import Layout from './components/Layout';
+import { AuthProvider } from './context/AuthContext';
 
 const App: React.FC = () => {
     return (
         <div className="App">
-            <ClassesProvider>
-                <SpecializationsProvider>
-                    {/* Place DndProvider here to wrap all components that will use drag and drop */}
-                    <DndProvider backend={HTML5Backend}>
-                        <Router>
-                            <Routes>
-                                <Route path="/" element={<Layout />}>  {/* Utilise le layout pour toutes les routes */}
-                                    <Route path="/" element={<JoinEventForm />} />
-                                    <Route path="/login" element={<LoginForm />} />
-                                    <Route path="/event/register" element={<EventRegisterForm />} />
-                                    <Route path="/register" element={<RegisterForm />} />
-                                    <Route path="/event" element={<EventView />} />
-                                    <Route path="/dashboard" element={<Dashboard />} />
-                                    <Route path="/event/join" element={<JoinEventForm />} />
-                                    <Route path="/event/create" element={<CreateEventPage />} />
-                                </Route>
-                            </Routes>
-                        </Router>
-                    </DndProvider>
-                </SpecializationsProvider>
-            </ClassesProvider>
+            <AuthProvider>
+                <ClassesProvider>
+                    <SpecializationsProvider>
+                        {/* Place DndProvider here to wrap all components that will use drag and drop */}
+                        <DndProvider backend={HTML5Backend}>
+                            <Router>
+                                <Routes>
+                                    <Route path="/" element={<Layout />}>  {/* Utilise le layout pour toutes les routes */}
+                                        <Route path="/" element={<JoinEventForm />} />
+                                        <Route path="/login" element={<LoginForm />} />
+                                        <Route path="/event/register" element={<EventRegisterForm />} />
+                                        <Route path="/register" element={<RegisterForm />} />
+                                        <Route path="/event" element={<EventView />} />
+                                        <Route path="/dashboard" element={<Dashboard />} />
+                                        <Route path="/event/join" element={<JoinEventForm />} />
+                                        <Route path="/event/create" element={<CreateEventPage />} />
+                                    </Route>
+                                </Routes>
+                            </Router>
+                        </DndProvider>
+                    </SpecializationsProvider>
+                </ClassesProvider>
+            </AuthProvider>
         </div>
     );
 };

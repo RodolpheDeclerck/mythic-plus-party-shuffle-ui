@@ -31,7 +31,7 @@ const LoginForm = () => {
                     localStorage.setItem('authToken', response.data.token);
 
                     // Vérifie si la redirection est définie dans localStorage
-                    let redirectUrl = localStorage.getItem('redirectAfterLogin');
+                    let redirectUrl = localStorage.getItem('redirectAfterLogin') || '/dashboard';
 
                     // Si redirectAfterLogin est défini sur `/` ou absent, rediriger vers `/dashboard`
                     if (!redirectUrl || redirectUrl === '/') {

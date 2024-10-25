@@ -20,34 +20,28 @@ import './EventView.css';
 import ClearButton from './ClearButton/ClearButton';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faShield, faHeart, faGavel, faHatWizard } from '@fortawesome/free-solid-svg-icons';
+import useAuthCheck from '../../hooks/useAuthCheck';
 import apiUrl from '../../config/apiConfig';
-import Cookies from 'js-cookie';  // Importation de js-cookie
 
 const EventView: React.FC = () => {
-
     const location = useLocation();
+    const navigate = useNavigate();
 
     const eventCode = new URLSearchParams(location.search).get('code'); // Extraire le code depuis location.search
-
+    const { isAuthenticated, isAuthChecked } = useAuthCheck(); // Utilisation de useAuthCheck pour gérer l'authentification
     const { characters, loading, error, setCharacters } = useFetchCharacters(eventCode || '');
     const [parties, setParties] = useState<Party[]>([]);
     const [errorState, setErrorState] = useState<string | null>(null);
     const [createdCharacter, setCreatedCharacter] = useState<any | null>(null);
-    const [isAdmin, setIsAdmin] = useState(false); // Nouvel état pour isAdmin
 
-
-
-    // Vérifie l'état d'authentification
+    // Redirection si l'utilisateur n'est pas authentifié
     useEffect(() => {
-        const token = Cookies.get('authToken');  // Vérifie si le cookie JWT est présent
-        if (token) {
-            setIsAdmin(true);  // Si le token est présent, l'utilisateur est admin
-        } else {
-            setIsAdmin(false);  // Si pas de token, l'utilisateur n'est pas connecté
+        if (isAuthChecked && !isAuthenticated) {
+            navigate('/login'); // Redirige vers la page de connexion
         }
-        console.log("isAdmin:", isAdmin);  // Vérifie la valeur de isAdmin dans la console
-    }, []);
+    }, [isAuthChecked, isAuthenticated, navigate]);
 
+    // Charger le personnage créé depuis le localStorage
     useEffect(() => {
         const characterData = localStorage.getItem('createdCharacter');
         if (characterData) {
@@ -66,7 +60,6 @@ const EventView: React.FC = () => {
             }
         } else {
             console.error('Event code is null');
-            // You can also set an error state or handle this case in a different way
         }
     };
 
@@ -81,7 +74,6 @@ const EventView: React.FC = () => {
             }
         } else {
             console.error('Event code is null');
-            // You can also set an error state or handle this case in a different way
         }
     };
 
@@ -140,7 +132,6 @@ const EventView: React.FC = () => {
 
     const handleClearEvent = async () => {
         if (eventCode) {
-
             try {
                 await deleteParties(eventCode);
                 setParties([]); // Clear the parties state
@@ -150,7 +141,6 @@ const EventView: React.FC = () => {
             }
         } else {
             console.error('Event code is null');
-            // You can also set an error state or handle this case in a different way
         }
     };
 
@@ -239,12 +229,11 @@ const EventView: React.FC = () => {
     const melees = characters.filter((character) => character.role === 'CAC');
     const dist = characters.filter((character) => character.role === 'DIST');
 
-    if (loading) return <Loading />;
+    if (loading || !isAuthChecked) return <Loading />;
     if (error || errorState) return <div>{error || errorState}</div>;
 
     return (
         <div>
-
             <CreatedCharacter
                 character={createdCharacter}
                 onSave={handleSaveCharacter}
@@ -253,7 +242,7 @@ const EventView: React.FC = () => {
 
             <div className="title-container">
                 <h1 className="title">Waiting Room ({characters.length} participants)</h1>
-                {isAdmin && <ClearButton onClear={handleClear} />}
+                {isAuthenticated && <ClearButton onClear={handleClear} />}
             </div>
 
             <div className="table-container">
@@ -264,7 +253,7 @@ const EventView: React.FC = () => {
                     </div>
                     <CharacterTable
                         characters={tanks}
-                        onDelete={isAdmin ? handleDelete : undefined}
+                        onDelete={isAuthenticated ? handleDelete : undefined}
                         highlightedId={createdCharacter?.id}
                     />
                 </div>
@@ -275,7 +264,7 @@ const EventView: React.FC = () => {
                     </div>
                     <CharacterTable
                         characters={heals}
-                        onDelete={isAdmin ? handleDelete : undefined}
+                        onDelete={isAuthenticated ? handleDelete : undefined}
                         highlightedId={createdCharacter?.id}
                     />
                 </div>
@@ -287,7 +276,7 @@ const EventView: React.FC = () => {
                     </div>
                     <CharacterTable
                         characters={melees}
-                        onDelete={isAdmin ? handleDelete : undefined}
+                        onDelete={isAuthenticated ? handleDelete : undefined}
                         highlightedId={createdCharacter?.id}
                     />
                 </div>
@@ -299,13 +288,13 @@ const EventView: React.FC = () => {
                     </div>
                     <CharacterTable
                         characters={dist}
-                        onDelete={isAdmin ? handleDelete : undefined}
+                        onDelete={isAuthenticated ? handleDelete : undefined}
                         highlightedId={createdCharacter?.id}
                     />
                 </div>
             </div>
 
-            {isAdmin && <ShuffleButton onShuffle={handleShuffle} />}
+            {isAuthenticated && <ShuffleButton onShuffle={handleShuffle} />}
 
             {parties.length === 0 &&
                 <div className="title-container">
@@ -318,13 +307,13 @@ const EventView: React.FC = () => {
                         <h2 className="subtitle">
                             Event running... ({parties.reduce((acc, party) => acc + party.members.length, 0)} participants)
                         </h2>
-                        {isAdmin && <ClearButton onClear={handleClearEvent} />}
+                        {isAuthenticated && <ClearButton onClear={handleClearEvent} />}
                     </div>
                     <PartyTable
                         parties={parties}
                         moveCharacter={moveCharacter}
                         swapCharacters={swapCharacters}
-                        isAdmin={isAdmin}
+                        isAdmin={isAuthenticated as boolean}
                     />
                 </div>
             )}
