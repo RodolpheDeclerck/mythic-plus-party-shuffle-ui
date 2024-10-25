@@ -36,7 +36,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const handleLogout = async () => {
         try {
             await axios.post(`${apiUrl}/auth/logout`, {}, { withCredentials: true });
-            localStorage.removeItem('authToken');
+            localStorage.removeItem('session');
             setIsAuthenticated(false);
             setIsAuthChecked(false);
             window.location.href = '/login';
