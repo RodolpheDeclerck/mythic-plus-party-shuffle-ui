@@ -34,6 +34,7 @@ const EventView: React.FC = () => {
     const [errorState, setErrorState] = useState<string | null>(null);
     const [createdCharacter, setCreatedCharacter] = useState<any | null>(null);
     const [isEditing, setIsEditing] = useState(false);
+    const [isVerifying, setIsVerifying] = useState(true); // État pour suivre la vérification
 
     // Fonction pour vérifier l'existence de l'événement
     const checkEventExistence = async (): Promise<boolean> => {
@@ -66,6 +67,7 @@ const EventView: React.FC = () => {
                     navigate('/event/register?code=' + eventCode);
                 }
             }
+            setIsVerifying(false); // Fin de la vérification
         };
 
         verifyAndRedirect();
@@ -251,7 +253,7 @@ const EventView: React.FC = () => {
     const melees = characters.filter((character) => character.role === 'CAC');
     const dist = characters.filter((character) => character.role === 'DIST');
 
-    if (loading || !isAuthChecked) return <Loading />;
+    if (isVerifying || loading || !isAuthChecked) return <Loading />;
     if (error || errorState) return <div>{error || errorState}</div>;
 
     return (
