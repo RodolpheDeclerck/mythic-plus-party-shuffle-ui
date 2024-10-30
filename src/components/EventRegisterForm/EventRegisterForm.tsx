@@ -24,14 +24,14 @@ const EventRegisterForm: React.FC = () => {
 
   const location = useLocation(); // Utiliser useLocation pour obtenir l'objet location
   const eventCode = new URLSearchParams(location.search).get('code'); // Extraire le code depuis location.search
-  
+
   // Vérifier si un personnage existe déjà dans le localStorage
   useEffect(() => {
     const storedCharacter = localStorage.getItem('createdCharacter');
-    if (storedCharacter) {
-      navigate('/event?code=' + eventCode || ''); // Rediriger vers /event si un personnage existe
+    if (storedCharacter && eventCode) { // Vérifie également que eventCode est défini
+        navigate('/event?code=' + eventCode);
     }
-  }, [navigate]);
+}, [navigate, eventCode]);
 
   const handleClassChange = (selectedClass: string) => {
     setSelectCharacterClass(selectedClass);
@@ -44,22 +44,22 @@ const EventRegisterForm: React.FC = () => {
   };
 
   const handleSave = async () => {
+    if (!eventCode) {
+      console.error('Event code is missing');
+      return; // Stoppe la fonction si eventCode est manquant
+    }
+
     try {
       const characterData = {
         name,
         characterClass: selectCharacterClass,
         specialization: selectSpecialization,
         iLevel,
-        eventCode: eventCode,
+        eventCode, // Utilise eventCode directement
       };
 
-      // Envoyer le personnage au backend
       const response = await axios.post(`${apiUrl}/api/characters`, characterData);
-
-      // Stocker les informations du personnage dans le localStorage
       localStorage.setItem('createdCharacter', JSON.stringify(response.data));
-
-      // Naviguer vers la page /event
       navigate('/event?code=' + eventCode);
     } catch (error) {
       console.error('Error saving character:', error);

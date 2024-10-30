@@ -63,7 +63,7 @@ const EventView: React.FC = () => {
                 if (characterData) {
                     setCreatedCharacter(JSON.parse(characterData));
                 } else if (isAuthChecked && !isAuthenticated) {
-                    navigate('/event/register?');
+                    navigate('/event/register?code=' + eventCode);
                 }
             }
         };
