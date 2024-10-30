@@ -22,27 +22,54 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faShield, faHeart, faGavel, faHatWizard } from '@fortawesome/free-solid-svg-icons';
 import useAuthCheck from '../../hooks/useAuthCheck';
 import apiUrl from '../../config/apiConfig';
+import axios from 'axios';
 
 const EventView: React.FC = () => {
     const location = useLocation();
     const navigate = useNavigate();
-
-    const eventCode = new URLSearchParams(location.search).get('code'); // Extraire le code depuis location.search
-    const { isAuthenticated, isAuthChecked } = useAuthCheck(); // Utilisation de useAuthCheck pour gérer l'authentification
+    const eventCode = new URLSearchParams(location.search).get('code');
+    const { isAuthenticated, isAuthChecked } = useAuthCheck();
     const { characters, loading, error, setCharacters } = useFetchCharacters(eventCode || '');
     const [parties, setParties] = useState<Party[]>([]);
     const [errorState, setErrorState] = useState<string | null>(null);
     const [createdCharacter, setCreatedCharacter] = useState<any | null>(null);
-
     const [isEditing, setIsEditing] = useState(false);
 
-    // Charger le personnage créé depuis le localStorage
-    useEffect(() => {
-        const characterData = localStorage.getItem('createdCharacter');
-        if (characterData) {
-            setCreatedCharacter(JSON.parse(characterData));
+    // Fonction pour vérifier l'existence de l'événement
+    const checkEventExistence = async (): Promise<boolean> => {
+        if (eventCode) {
+            try {
+                await axios.get(`${apiUrl}/api/events?code=${eventCode}`, { withCredentials: true });
+                return true; // L'événement existe
+            } catch (error: any) {
+                if (error.response && error.response.status === 404) {
+                    return false; // L'événement n'existe pas
+                } else {
+                    console.error('Erreur lors de la vérification de l\'événement:', error);
+                }
+            }
         }
-    }, []);
+        return false; // Aucun eventCode ou autre erreur
+    };
+
+    // useEffect pour vérifier l'existence de l'événement au montage
+    useEffect(() => {
+        const verifyAndRedirect = async () => {
+            const eventExists = await checkEventExistence();
+            if (!eventExists) {
+                navigate('/'); // Redirection vers la page d'accueil si l'événement n'existe pas
+            } else {
+                const characterData = localStorage.getItem('createdCharacter');
+                if (characterData) {
+                    setCreatedCharacter(JSON.parse(characterData));
+                } else if (isAuthChecked && !isAuthenticated) {
+                    navigate('/event/register?');
+                }
+            }
+        };
+
+        verifyAndRedirect();
+    }, [eventCode, isAuthChecked, isAuthenticated, navigate]);
 
     const fetchCharacters = async () => {
         if (eventCode) {
@@ -62,7 +89,7 @@ const EventView: React.FC = () => {
         if (eventCode) {
             try {
                 const updatedParties = await fetchPartiesApi(eventCode);
-                setParties([...updatedParties]); // Spread pour forcer le re-render
+                setParties([...updatedParties]);
             } catch (error) {
                 console.error('Error fetching parties:', error);
                 setErrorState('Failed to fetch parties');
@@ -85,8 +112,8 @@ const EventView: React.FC = () => {
     };
 
     const handleUpdate = (character: any) => {
-        setCreatedCharacter(character);  // Sélectionne le personnage à éditer
-        setIsEditing(true);  // Active le mode édition
+        setCreatedCharacter(character);
+        setIsEditing(true);
     };
 
     const handleShuffle = async () => {
@@ -134,7 +161,7 @@ const EventView: React.FC = () => {
         if (eventCode) {
             try {
                 await deleteParties(eventCode);
-                setParties([]); // Clear the parties state
+                setParties([]);
             } catch (error) {
                 console.error('Error deleting parties:', error);
                 setErrorState('Failed to delete parties');
@@ -162,8 +189,6 @@ const EventView: React.FC = () => {
 
             const sourceParty = updatedParties[fromPartyIndex];
             const targetParty = updatedParties[toPartyIndex];
-
-            // Swap des personnages
             [sourceParty.members[fromIndex], targetParty.members[toIndex]] =
                 [targetParty.members[toIndex], sourceParty.members[fromIndex]];
 
@@ -176,7 +201,6 @@ const EventView: React.FC = () => {
     const moveCharacter = (fromPartyIndex: number, toPartyIndex: number, fromIndex: number, toIndex: number) => {
         setParties((prevParties) => {
             const updatedParties = [...prevParties];
-
             const sourceParty = updatedParties[fromPartyIndex];
             const targetParty = updatedParties[toPartyIndex];
 
@@ -186,7 +210,6 @@ const EventView: React.FC = () => {
             }
 
             const [movedCharacter] = sourceParty.members.splice(fromIndex, 1);
-
             if (targetParty.members.length < 5) {
                 targetParty.members.splice(toIndex, 0, movedCharacter);
             } else {
@@ -213,7 +236,6 @@ const EventView: React.FC = () => {
             if (!response.ok) {
                 throw new Error('Failed to update parties');
             }
-
             console.log('Parties updated in Redis');
         } catch (error) {
             console.error('Error updating parties in Redis:', error);
@@ -238,18 +260,16 @@ const EventView: React.FC = () => {
                 character={isAuthenticated && !isEditing ? undefined : createdCharacter}
                 onSave={handleSaveCharacter}
                 onDelete={handleCharacterDeletion}
-                isAdmin={isAuthenticated ?? false} // provide a default value of false when isAuthenticated is null or undefined
+                isAdmin={isAuthenticated ?? false}
                 isEditing={isEditing}
-                setIsEditing={setIsEditing}  // Transmet la fonction de mise à jour du mode édition
+                setIsEditing={setIsEditing}
             />
-
             <div className="title-container">
                 <div className="title-clear-container">
                     <h1 className="title">Waiting Room ({characters.length} participants)</h1>
                     {isAuthenticated && <ClearButton onClear={handleClear} />}
                 </div>
             </div>
-
             <div className="table-container">
                 <div className="table-wrapper">
                     <div className="icon-text-container">
@@ -259,7 +279,7 @@ const EventView: React.FC = () => {
                     <CharacterTable
                         characters={tanks}
                         onDelete={isAuthenticated ? handleDelete : undefined}
-                        onUpdate={isAuthenticated ? handleUpdate : undefined}  // Utilisation de handleUpdate
+                        onUpdate={isAuthenticated ? handleUpdate : undefined}
                         highlightedId={createdCharacter?.id}
                     />
                 </div>
@@ -271,11 +291,10 @@ const EventView: React.FC = () => {
                     <CharacterTable
                         characters={heals}
                         onDelete={isAuthenticated ? handleDelete : undefined}
-                        onUpdate={isAuthenticated ? handleUpdate : undefined}  // Utilisation de handleUpdate
+                        onUpdate={isAuthenticated ? handleUpdate : undefined}
                         highlightedId={createdCharacter?.id}
                     />
                 </div>
-
                 <div className="table-wrapper">
                     <div className="icon-text-container">
                         <FontAwesomeIcon icon={faGavel} style={{ color: 'red', marginRight: '8px' }} />
@@ -284,11 +303,10 @@ const EventView: React.FC = () => {
                     <CharacterTable
                         characters={melees}
                         onDelete={isAuthenticated ? handleDelete : undefined}
-                        onUpdate={isAuthenticated ? handleUpdate : undefined}  // Utilisation de handleUpdate
+                        onUpdate={isAuthenticated ? handleUpdate : undefined}
                         highlightedId={createdCharacter?.id}
                     />
                 </div>
-
                 <div className="table-wrapper">
                     <div className="icon-text-container">
                         <FontAwesomeIcon icon={faHatWizard} style={{ color: 'blue', marginRight: '8px' }} />
@@ -297,19 +315,16 @@ const EventView: React.FC = () => {
                     <CharacterTable
                         characters={dist}
                         onDelete={isAuthenticated ? handleDelete : undefined}
-                        onUpdate={isAuthenticated ? handleUpdate : undefined}  // Utilisation de handleUpdate
+                        onUpdate={isAuthenticated ? handleUpdate : undefined}
                         highlightedId={createdCharacter?.id}
                     />
                 </div>
             </div>
-
-
             {isAuthenticated &&
                 <div className="title-container">
                     <ShuffleButton onShuffle={handleShuffle} />
                 </div>
             }
-
             {parties.length === 0 &&
                 <div className="title-container">
                     <p><b>Waiting for the event to launch...</b></p>
