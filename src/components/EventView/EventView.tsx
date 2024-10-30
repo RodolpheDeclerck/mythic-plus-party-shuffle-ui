@@ -228,9 +228,10 @@ const EventView: React.FC = () => {
     return (
         <div>
             <CreatedCharacter
-                character={createdCharacter}
+                character={isAuthenticated ? undefined :createdCharacter}
                 onSave={handleSaveCharacter}
                 onDelete={handleCharacterDeletion}
+                isAdmin={isAuthenticated ?? false} // provide a default value of false when isAuthenticated is null or undefined
             />
 
             <div className="title-container">

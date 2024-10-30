@@ -12,9 +12,10 @@ interface CreatedCharacterProps {
     character: any;
     onSave: (updatedCharacter: any) => void;
     onDelete: (id: number) => void;
+    isAdmin: boolean; // Nouvelle prop pour indiquer si l'utilisateur est admin
 }
 
-const CreatedCharacterView: React.FC<CreatedCharacterProps> = ({ character, onSave, onDelete }) => {
+const CreatedCharacterView: React.FC<CreatedCharacterProps> = ({ character, onSave, onDelete, isAdmin }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [editedName, setEditedName] = useState('');
     const [editILevel, setILevel] = useState('');
@@ -32,7 +33,7 @@ const CreatedCharacterView: React.FC<CreatedCharacterProps> = ({ character, onSa
             setILevel(character.iLevel || '');
             setSelectCharacterClass(character.characterClass || '');
             setSelectSpecialization(character.specialization || '');
-            
+
             // Charge les spécialisations pour la classe existante
             if (character.characterClass) {
                 fetchSpecializations(character.characterClass);
@@ -69,7 +70,9 @@ const CreatedCharacterView: React.FC<CreatedCharacterProps> = ({ character, onSa
 
         try {
             const savedCharacter = await upsertCharacter(updatedCharacter);
-            onSave(savedCharacter);
+            if (!isAdmin) {
+                onSave(savedCharacter);
+            }
             setIsEditing(false);
         } catch (error) {
             console.error('Failed to upsert character:', error);
@@ -82,12 +85,16 @@ const CreatedCharacterView: React.FC<CreatedCharacterProps> = ({ character, onSa
 
     const handleLeave = async () => {
         try {
-            await deleteCharacter(character?.id || 0);
-            onDelete(character?.id || 0);
+            if (!isAdmin) {
+                await deleteCharacter(character?.id || 0);
+                onDelete(character?.id || 0);
+            }
         } catch (error) {
             console.error('Failed to delete character:', error);
         } finally {
-            localStorage.removeItem('createdCharacter');
+            if (!isAdmin) {
+                localStorage.removeItem('createdCharacter');
+            }
             navigate('/event/join');
         }
     };
@@ -165,7 +172,8 @@ const CreatedCharacterView: React.FC<CreatedCharacterProps> = ({ character, onSa
                     </>
                 ) : (
                     <>
-                        <button onClick={() => setIsEditing(true)}>Update</button>
+                        <button onClick={() => setIsEditing(true)}>{isAdmin ? 'Add' : 'Update'}
+                        </button>
                         <button className='cancel-button' onClick={handleLeave}>Leave</button>
                     </>
                 )}
