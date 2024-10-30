@@ -8,14 +8,14 @@ import { faCheck, faTimes } from '@fortawesome/free-solid-svg-icons';
 interface CharacterTableProps {
     characters: Character[];
     onDelete?: (id: number) => void;
+    onUpdate?: (character: Character) => void; // Nouvelle prop pour Update
     highlightedId?: number; // Add this prop for row highlighting
 }
 
-const CharacterTable: React.FC<CharacterTableProps> = ({ characters, onDelete, highlightedId }) => {
+const CharacterTable: React.FC<CharacterTableProps> = ({ characters, onDelete, onUpdate, highlightedId }) => {
     const { t } = useTranslation();
 
     return (
-        
         <table>
             <thead>
                 <tr>
@@ -31,7 +31,11 @@ const CharacterTable: React.FC<CharacterTableProps> = ({ characters, onDelete, h
             </thead>
             <tbody>
                 {characters.map((character) => (
-                    <tr key={character.id} className={character.id === highlightedId ? 'highlight' : ''}>
+                    <tr
+                        key={character.id}
+                        className={character.id === highlightedId ? 'highlight' : ''}
+                        onClick={() => onUpdate && onUpdate(character)} // Appel de onUpdate lors du clic sur la ligne
+                    >
                         <td>{character.id}</td>
                         <td><b>{character.name}</b></td>
                         <td>{character.characterClass}</td>
@@ -51,7 +55,15 @@ const CharacterTable: React.FC<CharacterTableProps> = ({ characters, onDelete, h
                         </td>
                         <td>
                             {onDelete && (
-                                <button className="delete-button" onClick={() => onDelete(character.id)}>Delete</button>
+                                <button
+                                    className="delete-button"
+                                    onClick={(e) => {
+                                        e.stopPropagation(); // Empêche onClick de la ligne de se déclencher
+                                        onDelete(character.id);
+                                    }}
+                                >
+                                    Delete
+                                </button>
                             )}
                         </td>
                     </tr>

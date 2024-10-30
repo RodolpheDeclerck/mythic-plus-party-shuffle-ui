@@ -12,11 +12,19 @@ interface CreatedCharacterProps {
     character: any;
     onSave: (updatedCharacter: any) => void;
     onDelete: (id: number) => void;
-    isAdmin: boolean; // Nouvelle prop pour indiquer si l'utilisateur est admin
+    isAdmin: boolean;
+    isEditing: boolean;
+    setIsEditing: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const CreatedCharacterView: React.FC<CreatedCharacterProps> = ({ character, onSave, onDelete, isAdmin }) => {
-    const [isEditing, setIsEditing] = useState(false);
+const CreatedCharacterView: React.FC<CreatedCharacterProps> = ({
+    character,
+    onSave,
+    onDelete,
+    isAdmin,
+    isEditing,
+    setIsEditing,
+}) => {
     const [editedName, setEditedName] = useState('');
     const [editILevel, setILevel] = useState('');
     const { t } = useTranslation();
@@ -26,20 +34,24 @@ const CreatedCharacterView: React.FC<CreatedCharacterProps> = ({ character, onSa
     const { classes } = useClasses();
     const navigate = useNavigate();
 
-    // Initialise les valeurs en fonction du personnage chargé
+    // Initialise les champs en fonction du personnage ou les réinitialise
     useEffect(() => {
-        if (character) {
+        if (character && isEditing) {
             setEditedName(character.name || '');
             setILevel(character.iLevel || '');
             setSelectCharacterClass(character.characterClass || '');
             setSelectSpecialization(character.specialization || '');
 
-            // Charge les spécialisations pour la classe existante
             if (character.characterClass) {
                 fetchSpecializations(character.characterClass);
             }
+        } else if (!character) {
+            setEditedName('');
+            setILevel('');
+            setSelectCharacterClass('');
+            setSelectSpecialization('');
         }
-    }, [character, fetchSpecializations]);
+    }, [character, isEditing, fetchSpecializations]);
 
     const handleClassChange = (selectedClass: string) => {
         setSelectCharacterClass(selectedClass);
@@ -65,7 +77,7 @@ const CreatedCharacterView: React.FC<CreatedCharacterProps> = ({ character, onSa
             name: editedName || 'Unnamed Character',
             characterClass: selectCharacterClass || 'Unknown Class',
             specialization: selectSpecialization || 'Unknown Specialization',
-            iLevel: editILevel || 0
+            iLevel: editILevel || 0,
         };
 
         try {
@@ -83,18 +95,19 @@ const CreatedCharacterView: React.FC<CreatedCharacterProps> = ({ character, onSa
         setIsEditing(false);
     };
 
+    const handleAdd = () => {
+        setIsEditing(true); // Active le mode édition pour un nouveau personnage
+        onSave({}); // Utilise un personnage vide pour réinitialiser les valeurs des champs
+    };
+
     const handleLeave = async () => {
         try {
-            if (!isAdmin) {
-                await deleteCharacter(character?.id || 0);
-                onDelete(character?.id || 0);
-            }
+            await deleteCharacter(character?.id || 0);
+            onDelete(character?.id || 0);
         } catch (error) {
             console.error('Failed to delete character:', error);
         } finally {
-            if (!isAdmin) {
-                localStorage.removeItem('createdCharacter');
-            }
+            localStorage.removeItem('createdCharacter');
             navigate('/event/join');
         }
     };
@@ -172,9 +185,14 @@ const CreatedCharacterView: React.FC<CreatedCharacterProps> = ({ character, onSa
                     </>
                 ) : (
                     <>
-                        <button onClick={() => setIsEditing(true)}>{isAdmin ? 'Add' : 'Update'}
-                        </button>
-                        <button className='cancel-button' onClick={handleLeave}>Leave</button>
+                        {isAdmin ? (
+                            <button onClick={handleAdd}>Add</button>
+                        ) : (
+                            <>
+                                <button onClick={() => setIsEditing(true)}>{'Update'}</button>
+                                <button className='cancel-button' onClick={handleLeave}>Leave</button>
+                            </>
+                        )}
                     </>
                 )}
             </div>

@@ -34,6 +34,8 @@ const EventView: React.FC = () => {
     const [errorState, setErrorState] = useState<string | null>(null);
     const [createdCharacter, setCreatedCharacter] = useState<any | null>(null);
 
+    const [isEditing, setIsEditing] = useState(false);
+
     // Charger le personnage créé depuis le localStorage
     useEffect(() => {
         const characterData = localStorage.getItem('createdCharacter');
@@ -80,6 +82,11 @@ const EventView: React.FC = () => {
             console.error(`Error deleting character with ID ${id}:`, error);
             setErrorState('Failed to delete character');
         }
+    };
+
+    const handleUpdate = (character: any) => {
+        setCreatedCharacter(character);  // Sélectionne le personnage à éditer
+        setIsEditing(true);  // Active le mode édition
     };
 
     const handleShuffle = async () => {
@@ -228,10 +235,12 @@ const EventView: React.FC = () => {
     return (
         <div>
             <CreatedCharacter
-                character={isAuthenticated ? undefined :createdCharacter}
+                character={isAuthenticated && !isEditing ? undefined : createdCharacter}
                 onSave={handleSaveCharacter}
                 onDelete={handleCharacterDeletion}
                 isAdmin={isAuthenticated ?? false} // provide a default value of false when isAuthenticated is null or undefined
+                isEditing={isEditing}
+                setIsEditing={setIsEditing}  // Transmet la fonction de mise à jour du mode édition
             />
 
             <div className="title-container">
@@ -250,6 +259,7 @@ const EventView: React.FC = () => {
                     <CharacterTable
                         characters={tanks}
                         onDelete={isAuthenticated ? handleDelete : undefined}
+                        onUpdate={isAuthenticated ? handleUpdate : undefined}  // Utilisation de handleUpdate
                         highlightedId={createdCharacter?.id}
                     />
                 </div>
@@ -261,6 +271,7 @@ const EventView: React.FC = () => {
                     <CharacterTable
                         characters={heals}
                         onDelete={isAuthenticated ? handleDelete : undefined}
+                        onUpdate={isAuthenticated ? handleUpdate : undefined}  // Utilisation de handleUpdate
                         highlightedId={createdCharacter?.id}
                     />
                 </div>
@@ -273,6 +284,7 @@ const EventView: React.FC = () => {
                     <CharacterTable
                         characters={melees}
                         onDelete={isAuthenticated ? handleDelete : undefined}
+                        onUpdate={isAuthenticated ? handleUpdate : undefined}  // Utilisation de handleUpdate
                         highlightedId={createdCharacter?.id}
                     />
                 </div>
@@ -285,6 +297,7 @@ const EventView: React.FC = () => {
                     <CharacterTable
                         characters={dist}
                         onDelete={isAuthenticated ? handleDelete : undefined}
+                        onUpdate={isAuthenticated ? handleUpdate : undefined}  // Utilisation de handleUpdate
                         highlightedId={createdCharacter?.id}
                     />
                 </div>
