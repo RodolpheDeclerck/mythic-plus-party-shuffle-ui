@@ -15,6 +15,7 @@ interface CreatedCharacterProps {
     isAdmin: boolean;
     isEditing: boolean;
     setIsEditing: React.Dispatch<React.SetStateAction<boolean>>;
+    eventCode: string;
 }
 
 const CreatedCharacterView: React.FC<CreatedCharacterProps> = ({
@@ -24,6 +25,7 @@ const CreatedCharacterView: React.FC<CreatedCharacterProps> = ({
     isAdmin,
     isEditing,
     setIsEditing,
+    eventCode,
 }) => {
     const [editedName, setEditedName] = useState('');
     const [editILevel, setILevel] = useState('');
@@ -78,6 +80,7 @@ const CreatedCharacterView: React.FC<CreatedCharacterProps> = ({
             characterClass: selectCharacterClass || 'Unknown Class',
             specialization: selectSpecialization || 'Unknown Specialization',
             iLevel: editILevel || 0,
+            eventCode: eventCode,
         };
 
         try {

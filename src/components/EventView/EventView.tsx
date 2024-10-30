@@ -265,6 +265,7 @@ const EventView: React.FC = () => {
                 isAdmin={isAuthenticated ?? false}
                 isEditing={isEditing}
                 setIsEditing={setIsEditing}
+                eventCode={eventCode ?? ''}
             />
             <div className="title-container">
                 <div className="title-clear-container">
