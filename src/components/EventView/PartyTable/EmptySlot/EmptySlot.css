@@ -1,0 +1,7 @@
+.empty-slot {
+    background-color: #f0f0f0  !important; /* Couleur de fond pour les emplacements vides */
+    color: #000000; /* Couleur du texte */
+    border: 2px dashed #ccc; /* Style de bordure pour différencier */
+    text-align: center;
+    font-style: italic;
+}

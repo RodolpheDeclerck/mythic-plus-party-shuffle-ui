@@ -52,7 +52,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, [isAuthChecked]);
 
     if (!isAuthChecked) {
-        return <div>Loading...</div>;
+        return <div className="wrapper">Loading...</div>;
     }
 
     return (

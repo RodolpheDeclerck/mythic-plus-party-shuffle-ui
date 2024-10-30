@@ -32,26 +32,28 @@ const customStyles = {
     singleValue: (base: any) => ({
         ...base,
         color: '#fff',
-        textAlign: 'left', // Aligne le texte à gauche
+        textAlign: 'left',
     }),
     placeholder: (base: any) => ({
         ...base,
         color: '#fff',
-        textAlign: 'left', // Aligne le texte à gauche
+        textAlign: 'left',
     }),
 };
 
 interface CustomSelectProps {
     options: { value: string; label: string }[];
+    value: { value: string; label: string } | null; // Ajout de la prop value
     placeholder?: string;
     onChange: (selectedOption: SingleValue<{ value: string; label: string }>) => void;
 }
 
-const CustomSelect: React.FC<CustomSelectProps> = ({ options, placeholder = "Select an option", onChange }) => {
+const CustomSelect: React.FC<CustomSelectProps> = ({ options, value, placeholder = "Select an option", onChange }) => {
     return (
         <Select
             styles={customStyles}
             options={options}
+            value={value} // Définit la valeur sélectionnée
             placeholder={placeholder}
             onChange={onChange}
         />

@@ -56,43 +56,41 @@ const EventSelectionPage = () => {
         }
     };
 
-    // Si la vérification de l'authentification est en cours, afficher un indicateur de chargement
-    if (!isAuthChecked) {
-        return <div>Loading...</div>; // Attendre la vérification de l'authentification
-    }
+    if (isAuthenticated) {
+        // Afficher le contenu uniquement si l'utilisateur est authentifié
+        return (
+            <div className="container">
+                <div className='wrapper'>
+                    <div className='content-box'>
+                        <h1>Hello</h1>
+                        <button onClick={() => window.location.href = '/event/join'}>Join Existing Event</button>
+                        <button onClick={() => window.location.href = '/event/create'}>Create New Event</button>
 
-    // Afficher le contenu uniquement si l'utilisateur est authentifié
-    return (
-        <div className="container">
-            <div className='wrapper'>
-                <div className='content-box'>
-                    <h1>Hello</h1>
-                    <button onClick={() => window.location.href = '/event/join'}>Join Existing Event</button>
-                    <button onClick={() => window.location.href = '/event/create'}>Create New Event</button>
-
-                    {/* Affiche la liste des événements */}
-                    {events.length > 0 ? (
-                        <div>
-                            <h2>Your Admin Events</h2>
-                            <div className="events-list">
-                                <ul>
-                                    {events.map(event => (
-                                        <li key={event.id}>
-                                            <span>{event.name}</span>
-                                            <button onClick={() => handleJoinEvent(event.code)}>Open</button>
-                                            <button onClick={() => handleDeleteEvent(event.code)}>Delete</button>
-                                        </li>
-                                    ))}
-                                </ul>
+                        {/* Affiche la liste des événements */}
+                        {events.length > 0 ? (
+                            <div>
+                                <h2>Your Admin Events</h2>
+                                <div className="events-list">
+                                    <ul>
+                                        {events.map(event => (
+                                            <li key={event.id}>
+                                                <span>{event.name}</span>
+                                                <button onClick={() => handleJoinEvent(event.code)}>Open</button>
+                                                <button onClick={() => handleDeleteEvent(event.code)}>Delete</button>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
                             </div>
-                        </div>
-                    ) : (
-                        <p>No events available.</p>
-                    )}
+                        ) : (
+                            <p>No events available.</p>
+                        )}
+                    </div>
                 </div>
             </div>
-        </div>
-    );
+        );
+    }
+    return null;
 };
 
 export default EventSelectionPage;

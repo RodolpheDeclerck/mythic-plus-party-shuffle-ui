@@ -1,4 +1,3 @@
-/* Style for the Clear button */
 .clear-button {
     background-color: #d9534f; /* Red background */
     color: white;
@@ -6,8 +5,14 @@
     border: none;
     cursor: pointer;
     border-radius: 4px;
+    width: auto;
+    font-size: 14px;
+    transition: background-color 0.3s, border-color 0.3s;
+    margin-left: 10px; /* Espace entre "Waiting Room" et "Clear" */
 }
 
 .clear-button:hover {
-    background-color: #c9302c; /* Darker red for hover */
+    background-color: rgba(217, 83, 79, 0.8); /* Fond rouge plus opaque au survol */
+    border-color: rgba(217, 83, 79, 1);
+    color: white;
 }

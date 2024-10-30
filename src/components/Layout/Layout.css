@@ -1,0 +1,31 @@
+.layout-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background-image: url('../Assets/background.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.layout-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 60px; /* Hauteur du header */
+    background-color: transparent; /* Le header est entièrement transparent */
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 1000; /* Assure que le header reste au-dessus du contenu */
+}
+
+.layout-content {
+    margin-top: 60px; /* Espace sous le header pour éviter que le contenu ne soit caché */
+    padding: 20px;
+    flex-grow: 1;
+    color: white;
+}

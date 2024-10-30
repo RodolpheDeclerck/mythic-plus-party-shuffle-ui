@@ -34,13 +34,6 @@ const EventView: React.FC = () => {
     const [errorState, setErrorState] = useState<string | null>(null);
     const [createdCharacter, setCreatedCharacter] = useState<any | null>(null);
 
-    // Redirection si l'utilisateur n'est pas authentifié
-    useEffect(() => {
-        if (isAuthChecked && !isAuthenticated) {
-            navigate('/login'); // Redirige vers la page de connexion
-        }
-    }, [isAuthChecked, isAuthenticated, navigate]);
-
     // Charger le personnage créé depuis le localStorage
     useEffect(() => {
         const characterData = localStorage.getItem('createdCharacter');
@@ -202,7 +195,7 @@ const EventView: React.FC = () => {
 
     const updatePartiesInBackend = async (updatedParties: Party[]) => {
         try {
-            const response = await fetch(`${apiUrl}/api/parties`, {
+            const response = await fetch(`${apiUrl}/api/events/${eventCode}/parties`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -241,8 +234,10 @@ const EventView: React.FC = () => {
             />
 
             <div className="title-container">
-                <h1 className="title">Waiting Room ({characters.length} participants)</h1>
-                {isAuthenticated && <ClearButton onClear={handleClear} />}
+                <div className="title-clear-container">
+                    <h1 className="title">Waiting Room ({characters.length} participants)</h1>
+                    {isAuthenticated && <ClearButton onClear={handleClear} />}
+                </div>
             </div>
 
             <div className="table-container">
@@ -294,7 +289,12 @@ const EventView: React.FC = () => {
                 </div>
             </div>
 
-            {isAuthenticated && <ShuffleButton onShuffle={handleShuffle} />}
+
+            {isAuthenticated &&
+                <div className="title-container">
+                    <ShuffleButton onShuffle={handleShuffle} />
+                </div>
+            }
 
             {parties.length === 0 &&
                 <div className="title-container">

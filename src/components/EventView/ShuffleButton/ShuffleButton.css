@@ -1,5 +1,13 @@
+/* ShuffleButton.css */
+
 .shuffle-button-container {
     display: flex;
-    justify-content: center;
-    margin-top: 20px;
+    justify-content: center; /* Centre horizontalement le bouton dans le conteneur */
+    width: 100%;             /* Assure que le conteneur prend toute la largeur de son parent */
+    margin-top: 20px;        /* Espacement au-dessus si nécessaire */
+}
+
+.shuffle-button {
+    width: 100%;      
+    background-color: rgb(15, 95, 42);
 }

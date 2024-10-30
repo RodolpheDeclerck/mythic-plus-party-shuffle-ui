@@ -1,15 +1,18 @@
 .created-character-info {
+    position: sticky;
+    top: 0; /* Fixe l'élément en haut de la page lorsqu'il atteint ce point */
+    z-index: 1000; /* Assure que l'élément reste au-dessus du contenu */
     display: flex;
     align-items: center;
     gap: 20px;
     flex-wrap: wrap;
-    background: rgba(255, 255, 255, 0.1) !important; /* Fond semi-transparent forcé */
-    border: 2px solid rgba(255, 255, 255, 0.2); /* Bordure légère */
-    backdrop-filter: blur(10px); /* Effet de flou */
+    background: rgba(255, 255, 255, 0.1) !important;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
     border-radius: 10px;
     padding: 15px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2); /* Ombre légère */
-    color: #fff; /* Texte blanc */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    color: #fff;
 }
 
 .character-field {
@@ -23,9 +26,9 @@
 }
 
 .cancel-button {
-    background: transparent;
+    background-color: #d9534f; /* Red background */
     border: 2px solid rgba(217, 83, 79, 0.5); /* Bordure rouge légère */
-    color: #d9534f;
+    color: white;
     padding: 8px 16px;
     border-radius: 4px;
     cursor: pointer;
@@ -36,4 +39,57 @@
     background-color: rgba(217, 83, 79, 0.8); /* Fond rouge plus opaque au survol */
     border-color: rgba(217, 83, 79, 1);
     color: white;
+}
+
+/* Alignement en ligne pour les boutons */
+.button-container {
+    display: flex;
+    gap: 10px;
+    align-self: center; /* Centre le conteneur de boutons par rapport aux autres champs */
+}
+
+/* Style des boutons "Update" et "Leave" */
+.button-container button {
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.created-character-info.editing {
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: nowrap;
+}
+
+/* Champs de caractère avec alignement uniforme */
+.created-character-info.editing .character-field {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    min-width: 150px;
+    height: 40px;
+}
+
+/* Champs de saisie avec largeur auto en mode édition */
+.created-character-info.editing .input-field, 
+.created-character-info.editing .select-field {
+    height: 100%;
+    flex-grow: 0; /* Empêche le champ de prendre plus d'espace qu'il n'en a besoin */
+    width: auto; /* S'adapte à la longueur du contenu */
+    border: none;
+    background: transparent;
+    color: #fff;
+    padding: 0 5px; /* Espacement léger pour un affichage propre */
+}
+
+/* Autres champs qui peuvent continuer à occuper l'espace */
+.created-character-info.editing .select-field-container {
+    flex-grow: 1; /* Prend de l'espace disponible pour remplir */
+    width: 100%;
 }

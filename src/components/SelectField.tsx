@@ -24,6 +24,7 @@ const SelectField: React.FC<SelectFieldProps> = ({ label, options, value, onChan
       <label>{label}</label>
       <CustomSelect
         options={options}
+        value={options.find(option => option.value === value) || null} // Définit la valeur sélectionnée
         placeholder={placeholder || "Select an option"}
         onChange={handleChange}
       />

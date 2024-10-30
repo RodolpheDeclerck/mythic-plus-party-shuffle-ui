@@ -13,7 +13,7 @@ import RegisterForm from './components/RegisterForm/RegisterForm';
 import Dashboard from './components/Dashboard/Dashboard';
 import JoinEventForm from './components/JoinEventForm/JoinEventForm';
 import CreateEventPage from './components/CreateEventPage';
-import Layout from './components/Layout';
+import Layout from './components/Layout/Layout';
 import { AuthProvider } from './context/AuthContext';
 
 const App: React.FC = () => {

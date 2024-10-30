@@ -73,20 +73,6 @@ tbody tr:hover {
     margin-bottom: 10px;
 }
 
-/* Bouton stylisé */
-button {
-    background-color: #4CAF50;
-    color: white;
-    padding: 8px 16px;
-    border: none;
-    cursor: pointer;
-    border-radius: 4px;
-}
-
-button:hover {
-    background-color: #45a049;
-}
-
 /* Ajuste les styles des listes dans PartyTable */
 .party-card ul {
     list-style-type: none;
@@ -160,4 +146,10 @@ button:hover {
 th.new-column,
 td.new-column {
     min-width: 150px; /* Ajuste la largeur minimale selon le contenu */
+}
+
+.title-clear-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
