@@ -34,7 +34,7 @@ const LoginForm = () => {
                     let redirectUrl = localStorage.getItem('redirectAfterLogin') || '/dashboard';
 
                     // Si redirectAfterLogin est défini sur `/` ou absent, rediriger vers `/dashboard`
-                    if (!redirectUrl || redirectUrl === '/') {
+                    if (!redirectUrl || redirectUrl === '/' || redirectUrl === '/login') {
                         redirectUrl = '/dashboard';
                     }
 
