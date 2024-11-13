@@ -34,6 +34,14 @@ const PartyTable: React.FC<PartyTableProps> = ({ parties, moveCharacter, swapCha
         return Math.max(...party.members.map(member => member.iLevel));
     };
 
+    // Fonction pour trier les membres : tank > healer > autres
+    const sortMembersByRole = (members: Party['members']) => {
+        return [...members].sort((a, b) => {
+            const rolePriority: Record<string, number> = { TANK: 1, HEAL: 2, CAC: 3, DIST: 4 };
+            return (rolePriority[a.role] || 5) - (rolePriority[b.role] || 5);
+        });
+    };
+
     return (
         <div className="party-table-container">
             {parties.map((party, partyIndex) => (
@@ -55,7 +63,7 @@ const PartyTable: React.FC<PartyTableProps> = ({ parties, moveCharacter, swapCha
                             </tr>
                         </thead>
                         <tbody>
-                            {party.members.map((member, index) => (
+                            {sortMembersByRole(party.members).map((member, index) => (
                                 <DraggableCharacter
                                     key={member.id}
                                     member={member}
