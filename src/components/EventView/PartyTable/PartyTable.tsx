@@ -17,11 +17,10 @@ interface PartyTableProps {
 const PartyTable: React.FC<PartyTableProps> = ({ parties, moveCharacter, swapCharacters, isAdmin }) => {
     const { t } = useTranslation();
 
-    // Fonction pour calculer l'iLevel moyen du groupe
     const calculateAverageIlevel = (party: Party) => {
         if (party.members.length === 0) return 0;
         const totalIlevel = party.members.reduce((sum, member) => sum + member.iLevel, 0);
-        return (totalIlevel / party.members.length).toFixed(2); // Retourne l'ilevel moyen avec deux décimales
+        return (totalIlevel / party.members.length).toFixed(2);
     };
 
     const findMinIlevel = (party: Party) => {
@@ -34,12 +33,10 @@ const PartyTable: React.FC<PartyTableProps> = ({ parties, moveCharacter, swapCha
         return Math.max(...party.members.map(member => member.iLevel));
     };
 
-    // Fonction pour trier les membres : tank > healer > autres
-    const sortMembersByRole = (members: Party['members']) => {
-        return [...members].sort((a, b) => {
-            const rolePriority: Record<string, number> = { TANK: 1, HEAL: 2, CAC: 3, DIST: 4 };
-            return (rolePriority[a.role] || 5) - (rolePriority[b.role] || 5);
-        });
+    // Tri des membres uniquement pour l'affichage
+    const getSortedMembers = (party: Party) => {
+        const rolePriority: Record<string, number> = { TANK: 1, HEAL: 2, CAC: 3, DIST: 4 };
+        return [...party.members].sort((a, b) => (rolePriority[a.role] || 5) - (rolePriority[b.role] || 5));
     };
 
     return (
@@ -63,48 +60,54 @@ const PartyTable: React.FC<PartyTableProps> = ({ parties, moveCharacter, swapCha
                             </tr>
                         </thead>
                         <tbody>
-                            {sortMembersByRole(party.members).map((member, index) => (
-                                <DraggableCharacter
-                                    key={member.id}
-                                    member={member}
-                                    partyIndex={partyIndex}
-                                    index={index}
-                                    moveCharacter={moveCharacter}
-                                    swapCharacters={swapCharacters}
-                                    isAdmin={isAdmin}
-                                >
-                                    <td>{member.id}</td>
-                                    <td><b>{member.name}</b></td>
-                                    <td>{member.characterClass}</td>
-                                    <td>{t(`specializations.${member.specialization}`)}</td>
-                                    <td>{member.iLevel}</td>
-                                    <td>
-                                        {member.role === 'TANK' ? (
-                                            <FontAwesomeIcon icon={faShield} style={{ color: 'black' }} />
-                                        ) : member.role === 'HEAL' ? (
-                                            <FontAwesomeIcon icon={faHeart} style={{ color: 'green' }} />
-                                        ) : member.role === 'CAC' ? (
-                                            <FontAwesomeIcon icon={faGavel} style={{ color: 'red' }} />
-                                        ) : member.role === 'DIST' ? (
-                                            <FontAwesomeIcon icon={faHatWizard} style={{ color: 'blue' }} />
-                                        ) : (
-                                            member.role
-                                        )}
-                                    </td>
-                                    <td>
-                                        <FontAwesomeIcon
-                                            icon={member.bloodLust ? faCheck : faTimes}
-                                            style={{ color: member.bloodLust ? 'green' : 'red' }}
-                                        />
-                                    </td>
-                                    <td>
-                                        <FontAwesomeIcon
-                                            icon={member.battleRez ? faCheck : faTimes}
-                                            style={{ color: member.battleRez ? 'green' : 'red' }}
-                                        />
-                                    </td>
-                                </DraggableCharacter>
-                            ))}
+                            {party.members.map((member, originalIndex) => {
+                                const sortedIndex = getSortedMembers(party).findIndex(
+                                    sortedMember => sortedMember.id === member.id
+                                );
+
+                                return (
+                                    <DraggableCharacter
+                                        key={member.id}
+                                        member={member}
+                                        partyIndex={partyIndex}
+                                        index={originalIndex} // Utilisez l'indice original pour les opérations
+                                        moveCharacter={moveCharacter}
+                                        swapCharacters={swapCharacters}
+                                        isAdmin={isAdmin}
+                                    >
+                                        <td>{originalIndex + 1}</td>
+                                        <td><b>{member.name}</b></td>
+                                        <td>{member.characterClass}</td>
+                                        <td>{t(`specializations.${member.specialization}`)}</td>
+                                        <td>{member.iLevel}</td>
+                                        <td>
+                                            {member.role === 'TANK' ? (
+                                                <FontAwesomeIcon icon={faShield} style={{ color: 'black' }} />
+                                            ) : member.role === 'HEAL' ? (
+                                                <FontAwesomeIcon icon={faHeart} style={{ color: 'green' }} />
+                                            ) : member.role === 'CAC' ? (
+                                                <FontAwesomeIcon icon={faGavel} style={{ color: 'red' }} />
+                                            ) : member.role === 'DIST' ? (
+                                                <FontAwesomeIcon icon={faHatWizard} style={{ color: 'blue' }} />
+                                            ) : (
+                                                member.role
+                                            )}
+                                        </td>
+                                        <td>
+                                            <FontAwesomeIcon
+                                                icon={member.bloodLust ? faCheck : faTimes}
+                                                style={{ color: member.bloodLust ? 'green' : 'red' }}
+                                            />
+                                        </td>
+                                        <td>
+                                            <FontAwesomeIcon
+                                                icon={member.battleRez ? faCheck : faTimes}
+                                                style={{ color: member.battleRez ? 'green' : 'red' }}
+                                            />
+                                        </td>
+                                    </DraggableCharacter>
+                                );
+                            })}
                             {party.members.length < 5 && (
                                 <EmptySlot
                                     partyIndex={partyIndex}
@@ -116,12 +119,13 @@ const PartyTable: React.FC<PartyTableProps> = ({ parties, moveCharacter, swapCha
                         </tbody>
                     </table>
                     <h3>
-                        {t('Average iLevel')}: {calculateAverageIlevel(party)}  ({findMinIlevel(party)} - {findMaxIlevel(party)})
+                        {t('Average iLevel')}: {calculateAverageIlevel(party)} ({findMinIlevel(party)} - {findMaxIlevel(party)})
                     </h3>
                 </div>
             ))}
         </div>
     );
 };
+
 
 export default PartyTable;
