@@ -17,10 +17,11 @@ interface PartyTableProps {
 const PartyTable: React.FC<PartyTableProps> = ({ parties, moveCharacter, swapCharacters, isAdmin }) => {
     const { t } = useTranslation();
 
+    // Fonction pour calculer l'iLevel moyen du groupe
     const calculateAverageIlevel = (party: Party) => {
         if (party.members.length === 0) return 0;
         const totalIlevel = party.members.reduce((sum, member) => sum + member.iLevel, 0);
-        return (totalIlevel / party.members.length).toFixed(2);
+        return (totalIlevel / party.members.length).toFixed(2); // Retourne l'ilevel moyen avec deux décimales
     };
 
     const findMinIlevel = (party: Party) => {
@@ -36,8 +37,13 @@ const PartyTable: React.FC<PartyTableProps> = ({ parties, moveCharacter, swapCha
     // Tri des membres uniquement pour l'affichage
     const getSortedMembers = (party: Party) => {
         const rolePriority: Record<string, number> = { TANK: 1, HEAL: 2, CAC: 3, DIST: 4 };
-        return [...party.members].sort((a, b) => (rolePriority[a.role] || 5) - (rolePriority[b.role] || 5));
+        return [...party.members].sort((a, b) => {
+            const priorityA = rolePriority[a.role] || 5; // Priorité par défaut si le rôle est manquant
+            const priorityB = rolePriority[b.role] || 5;
+            return priorityA - priorityB;
+        });
     };
+
 
     return (
         <div className="party-table-container">
@@ -60,10 +66,8 @@ const PartyTable: React.FC<PartyTableProps> = ({ parties, moveCharacter, swapCha
                             </tr>
                         </thead>
                         <tbody>
-                            {party.members.map((member, originalIndex) => {
-                                const sortedIndex = getSortedMembers(party).findIndex(
-                                    sortedMember => sortedMember.id === member.id
-                                );
+                            {getSortedMembers(party).map((member, sortedIndex) => {
+                                const originalIndex = party.members.findIndex(m => m.id === member.id); // Retrouver l'indice original
 
                                 return (
                                     <DraggableCharacter
@@ -126,6 +130,4 @@ const PartyTable: React.FC<PartyTableProps> = ({ parties, moveCharacter, swapCha
         </div>
     );
 };
-
-
 export default PartyTable;
