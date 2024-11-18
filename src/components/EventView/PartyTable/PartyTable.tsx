@@ -6,6 +6,8 @@ import './PartyTable.css';
 import { useTranslation } from 'react-i18next';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheck, faTimes, faShield, faHeart, faGavel, faHatWizard } from '@fortawesome/free-solid-svg-icons';
+import { CharacterClassColors } from '../../../enums/CharacterClassColours';
+import { CharacterClass } from '../../../enums/CharacterClass';
 
 interface PartyTableProps {
     parties: Party[];
@@ -79,11 +81,21 @@ const PartyTable: React.FC<PartyTableProps> = ({ parties, moveCharacter, swapCha
                                         swapCharacters={swapCharacters}
                                         isAdmin={isAdmin}
                                     >
-                                        <td>{originalIndex + 1}</td>
-                                        <td><b>{member.name}</b></td>
-                                        <td>{member.characterClass}</td>
-                                        <td>{t(`specializations.${member.specialization}`)}</td>
-                                        <td>{member.iLevel}</td>
+                                        <td style={{ color: CharacterClassColors[member.characterClass as CharacterClass] }}>
+                                            <b>{originalIndex + 1}</b>
+                                        </td>
+                                        <td style={{ color: CharacterClassColors[member.characterClass as CharacterClass] }}>
+                                            <b>{member.name}</b>
+                                        </td>
+                                        <td style={{ color: CharacterClassColors[member.characterClass as CharacterClass] }}>
+                                            <b>{member.characterClass}</b>
+                                        </td>
+                                        <td style={{ color: CharacterClassColors[member.characterClass as CharacterClass] }}>
+                                            <b>{t(`specializations.${member.specialization}`)}</b>
+                                        </td>
+                                        <td style={{ color: CharacterClassColors[member.characterClass as CharacterClass] }}>
+                                            <b>{member.iLevel}</b>
+                                        </td>
                                         <td>
                                             {member.role === 'TANK' ? (
                                                 <FontAwesomeIcon icon={faShield} style={{ color: 'black' }} />

@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next';
 import './CharacterTable.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheck, faTimes } from '@fortawesome/free-solid-svg-icons';
+import { CharacterClassColors } from '../../../enums/CharacterClassColours';
+import { CharacterClass } from '../../../enums/CharacterClass';
 
 interface CharacterTableProps {
     characters: Character[];
@@ -36,11 +38,21 @@ const CharacterTable: React.FC<CharacterTableProps> = ({ characters, onDelete, o
                         className={character.id === highlightedId ? 'highlight' : ''}
                         onClick={() => onUpdate && onUpdate(character)} // Appel de onUpdate lors du clic sur la ligne
                     >
-                        <td>{character.id}</td>
-                        <td><b>{character.name}</b></td>
-                        <td>{character.characterClass}</td>
-                        <td>{t(`specializations.${character.specialization}`)}</td>
-                        <td>{character.iLevel}</td>
+                        <td style={{ color: CharacterClassColors[character.characterClass as CharacterClass] }}>
+                            <b>{character.id}</b>
+                        </td>
+                        <td style={{ color: CharacterClassColors[character.characterClass as CharacterClass] }}>
+                            <b>{character.name}</b>
+                        </td>
+                        <td style={{ color: CharacterClassColors[character.characterClass as CharacterClass] }}>
+                            <b>{character.characterClass}</b>
+                        </td>
+                        <td style={{ color: CharacterClassColors[character.characterClass as CharacterClass] }}>
+                            <b>{t(`specializations.${character.specialization}`)}</b>
+                        </td>
+                        <td style={{ color: CharacterClassColors[character.characterClass as CharacterClass] }}>
+                            <b>{character.iLevel}</b>
+                        </td>
                         <td>
                             <FontAwesomeIcon
                                 icon={character.bloodLust ? faCheck : faTimes}
