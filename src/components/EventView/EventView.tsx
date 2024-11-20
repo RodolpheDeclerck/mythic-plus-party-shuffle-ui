@@ -15,11 +15,12 @@ import {
     deleteCharacters,
 } from '../../services/api';
 import { Party } from '../../types/Party';
+import { Event } from '../../types/Event';
 import CreatedCharacter from './CreatedCharacter/CreatedCharacterView';
 import './EventView.css';
 import ClearButton from './ClearButton/ClearButton';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faShield, faHeart, faGavel, faHatWizard } from '@fortawesome/free-solid-svg-icons';
+import { faShield, faHeart, faGavel, faHatWizard, faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 import useAuthCheck from '../../hooks/useAuthCheck';
 import apiUrl from '../../config/apiConfig';
 import axios from 'axios';
@@ -35,12 +36,18 @@ const EventView: React.FC = () => {
     const [createdCharacter, setCreatedCharacter] = useState<any | null>(null);
     const [isEditing, setIsEditing] = useState(false);
     const [isVerifying, setIsVerifying] = useState(true); // État pour suivre la vérification
+    const [arePartiesVisible, setArePartiesVisible] = useState(false);
 
     // Fonction pour vérifier l'existence de l'événement
     const checkEventExistence = async (): Promise<boolean> => {
         if (eventCode) {
             try {
-                await axios.get(`${apiUrl}/api/events?code=${eventCode}`, { withCredentials: true });
+                const response = await axios.get<Event>(`${apiUrl}/api/events?code=${eventCode}`, { withCredentials: true });
+                const event = response.data;
+                if (event) {
+                    setArePartiesVisible(event.arePartiesVisible); // Stockez la valeur dans l'état
+                }
+                setArePartiesVisible(event.arePartiesVisible); // Stockez la valeur dans l'état
                 return true; // L'événement existe
             } catch (error: any) {
                 if (error.response && error.response.status === 404) {
@@ -101,7 +108,27 @@ const EventView: React.FC = () => {
         }
     };
 
-    useWebSocket(fetchCharacters, fetchParties);
+    const fetchEvent = async () => {
+        if (eventCode) {
+            try {
+                const response = await axios.get<Event>(`${apiUrl}/api/events?code=${eventCode}`, { withCredentials: true });
+                const event = response.data;
+                if (event) {
+                    setArePartiesVisible(event.arePartiesVisible); // Stockez la valeur dans l'état
+                }
+            } catch (error: any) {
+                if (error.response && error.response.status === 404) {
+                    console.error('Error fetching event:', error);
+                    setErrorState('Failed to fetch event');
+                } else {
+                    console.error('Error fetching event:', error);
+                }
+            }
+        }
+    }
+
+
+    useWebSocket(fetchCharacters, fetchParties, fetchEvent);
 
     const handleDelete = async (id: number) => {
         try {
@@ -180,6 +207,25 @@ const EventView: React.FC = () => {
 
     const handleCharacterDeletion = (deletedId: number) => {
         setCharacters((prevCharacters) => prevCharacters.filter((character) => character.id !== deletedId));
+    };
+
+    const handleEyeButtonClick = async () => {
+        if (!eventCode) {
+            console.error('Event code is missing.');
+            return;
+        }
+
+        try {
+            // Envoyer une requête PATCH pour mettre à jour la visibilité
+            await axios.patch(
+                `${apiUrl}/api/events/${eventCode}/setPartiesVisibility`,
+                { visible: !arePartiesVisible }, // Corps de la requête
+                { withCredentials: true } // Inclure les cookies si nécessaires
+            );
+
+        } catch (error) {
+            console.error('Failed to update parties visibility:', error);
+        }
     };
 
     const swapCharacters = (fromPartyIndex: number, toPartyIndex: number, fromIndex: number, toIndex: number) => {
@@ -328,25 +374,35 @@ const EventView: React.FC = () => {
                     <ShuffleButton onShuffle={handleShuffle} />
                 </div>
             }
-            {parties.length === 0 &&
+            {parties.length === 0 || !arePartiesVisible &&
                 <div className="title-container">
                     <p><b>Waiting for the event to launch...</b></p>
                 </div>
             }
-            {parties.length > 0 && (
+            {parties.length > 0 && (isAuthenticated || arePartiesVisible) && (
                 <div>
                     <div className="title-container">
                         <h2 className="subtitle">
                             Event running... ({parties.reduce((acc, party) => acc + party.members.length, 0)} participants)
                         </h2>
-                        {isAuthenticated && <ClearButton onClear={handleClearEvent} />}
+                        {isAuthenticated && (
+                            <div className="party-button-container">
+                                <ClearButton onClear={handleClearEvent} />
+                                <button className="eye-button" onClick={handleEyeButtonClick}>
+                                    {!arePartiesVisible ? <FontAwesomeIcon icon={faEye} /> : <FontAwesomeIcon icon={faEyeSlash} style={{ color: 'red' }} />}
+
+                                </button>
+                            </div>
+                        )}
                     </div>
+
                     <PartyTable
                         parties={parties}
                         moveCharacter={moveCharacter}
                         swapCharacters={swapCharacters}
                         isAdmin={isAuthenticated as boolean}
                     />
+
                 </div>
             )}
         </div>

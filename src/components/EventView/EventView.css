@@ -153,3 +153,17 @@ td.new-column {
     justify-content: space-between;
     align-items: center;
 }
+
+
+.party-button-container {
+    display: flex; /* Aligner les boutons horizontalement */
+    gap: 10px; /* Espacement uniforme entre les boutons */
+    align-items: center; /* Centrer les boutons verticalement */
+}
+
+.party-button-container button {
+    height: 40px; /* Assure une hauteur uniforme */
+    display: flex; /* Pour aligner le contenu à l'intérieur */
+    align-items: center; /* Centrer verticalement le contenu */
+    justify-content: center; /* Centrer horizontalement le contenu */
+}
