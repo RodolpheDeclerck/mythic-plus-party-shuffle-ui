@@ -148,6 +148,12 @@ const EventView: React.FC = () => {
     const handleShuffle = async () => {
         if (eventCode) {
             try {
+                await axios.patch(
+                    `${apiUrl}/api/events/${eventCode}/setPartiesVisibility`,
+                    { visible: false },
+                    { withCredentials: true }
+                );
+                
                 const shuffledParties = await shuffleParties(eventCode);
                 let updatedCharacter = null;
 
@@ -166,6 +172,7 @@ const EventView: React.FC = () => {
                 }
 
                 setParties([...shuffledParties]);
+
             } catch (error) {
                 console.error('Error shuffling parties:', error);
                 setErrorState('Failed to shuffle parties');
