@@ -81,22 +81,22 @@ const PartyTable: React.FC<PartyTableProps> = ({ parties, moveCharacter, swapCha
                                         swapCharacters={swapCharacters}
                                         isAdmin={isAdmin}
                                     >
-                                        <td style={{ color: CharacterClassColors[member.characterClass as CharacterClass] }}>
+                                        <td style={{ color: 'black', backgroundColor: CharacterClassColors[member.characterClass as CharacterClass] }}>
                                             <b>{originalIndex + 1}</b>
                                         </td>
-                                        <td style={{ color: CharacterClassColors[member.characterClass as CharacterClass] }}>
+                                        <td style={{ color: 'black', backgroundColor: CharacterClassColors[member.characterClass as CharacterClass] }}>
                                             <b>{member.name}</b>
                                         </td>
-                                        <td style={{ color: CharacterClassColors[member.characterClass as CharacterClass] }}>
+                                        <td style={{ color: 'black', backgroundColor: CharacterClassColors[member.characterClass as CharacterClass] }}>
                                             <b>{member.characterClass}</b>
                                         </td>
-                                        <td style={{ color: CharacterClassColors[member.characterClass as CharacterClass] }}>
+                                        <td style={{ color: 'black', backgroundColor: CharacterClassColors[member.characterClass as CharacterClass] }}>
                                             <b>{t(`specializations.${member.specialization}`)}</b>
                                         </td>
-                                        <td style={{ color: CharacterClassColors[member.characterClass as CharacterClass] }}>
+                                        <td style={{ color: 'black', backgroundColor: CharacterClassColors[member.characterClass as CharacterClass] }}>
                                             <b>{member.iLevel}</b>
                                         </td>
-                                        <td>
+                                        <td style={{ color: 'black', backgroundColor: CharacterClassColors[member.characterClass as CharacterClass] }}>
                                             {member.role === 'TANK' ? (
                                                 <FontAwesomeIcon icon={faShield} style={{ color: 'black' }} />
                                             ) : member.role === 'HEAL' ? (
@@ -109,17 +109,21 @@ const PartyTable: React.FC<PartyTableProps> = ({ parties, moveCharacter, swapCha
                                                 member.role
                                             )}
                                         </td>
-                                        <td>
-                                            <FontAwesomeIcon
-                                                icon={member.bloodLust ? faCheck : faTimes}
-                                                style={{ color: member.bloodLust ? 'green' : 'red' }}
-                                            />
+                                        <td style={{ color: 'black', backgroundColor: CharacterClassColors[member.characterClass as CharacterClass] }}>
+                                            {member.bloodLust && (
+                                                <FontAwesomeIcon
+                                                    icon={faCheck}
+                                                    style={{ color: 'black' }}
+                                                />
+                                            )}
                                         </td>
-                                        <td>
-                                            <FontAwesomeIcon
-                                                icon={member.battleRez ? faCheck : faTimes}
-                                                style={{ color: member.battleRez ? 'green' : 'red' }}
-                                            />
+                                        <td style={{ color: 'black', backgroundColor: CharacterClassColors[member.characterClass as CharacterClass] }}>
+                                            {member.battleRez && (
+                                                <FontAwesomeIcon
+                                                    icon={faCheck}
+                                                    style={{ color: 'black' }}
+                                                />
+                                            )}
                                         </td>
                                     </DraggableCharacter>
                                 );

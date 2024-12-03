@@ -38,34 +38,38 @@ const CharacterTable: React.FC<CharacterTableProps> = ({ characters, onDelete, o
                         className={character.id === highlightedId ? 'highlight' : ''}
                         onClick={() => onUpdate && onUpdate(character)} // Appel de onUpdate lors du clic sur la ligne
                     >
-                        <td style={{ color: CharacterClassColors[character.characterClass as CharacterClass] }}>
+                        <td style={{ color: 'black', backgroundColor: CharacterClassColors[character.characterClass as CharacterClass] }}>
                             <b>{character.id}</b>
                         </td>
-                        <td style={{ color: CharacterClassColors[character.characterClass as CharacterClass] }}>
+                        <td style={{ color: 'black', backgroundColor: CharacterClassColors[character.characterClass as CharacterClass] }}>
                             <b>{character.name}</b>
                         </td>
-                        <td style={{ color: CharacterClassColors[character.characterClass as CharacterClass] }}>
+                        <td style={{ color: 'black', backgroundColor: CharacterClassColors[character.characterClass as CharacterClass] }}>
                             <b>{character.characterClass}</b>
                         </td>
-                        <td style={{ color: CharacterClassColors[character.characterClass as CharacterClass] }}>
+                        <td style={{ color: 'black', backgroundColor: CharacterClassColors[character.characterClass as CharacterClass] }}>
                             <b>{t(`specializations.${character.specialization}`)}</b>
                         </td>
-                        <td style={{ color: CharacterClassColors[character.characterClass as CharacterClass] }}>
+                        <td style={{ color: 'black', backgroundColor: CharacterClassColors[character.characterClass as CharacterClass] }}>
                             <b>{character.iLevel}</b>
                         </td>
-                        <td>
-                            <FontAwesomeIcon
-                                icon={character.bloodLust ? faCheck : faTimes}
-                                style={{ color: character.bloodLust ? 'green' : 'red' }}
-                            />
+                        <td style={{ color: 'black', backgroundColor: CharacterClassColors[character.characterClass as CharacterClass] }}>
+                            {character.bloodLust && (
+                                <FontAwesomeIcon
+                                    icon={faCheck}
+                                    style={{ color: 'black' }}
+                                />
+                            )}
                         </td>
-                        <td>
-                            <FontAwesomeIcon
-                                icon={character.battleRez ? faCheck : faTimes}
-                                style={{ color: character.battleRez ? 'green' : 'red' }}
-                            />
+                        <td style={{ color: 'black', backgroundColor: CharacterClassColors[character.characterClass as CharacterClass] }}>
+                            {character.battleRez && (
+                                <FontAwesomeIcon
+                                    icon={faCheck}
+                                    style={{ color: 'black' }}
+                                />
+                            )}
                         </td>
-                        <td>
+                        <td style={{ color: 'black', backgroundColor: CharacterClassColors[character.characterClass as CharacterClass] }}>
                             {onDelete && (
                                 <button
                                     className="delete-button"
