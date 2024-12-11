@@ -14,8 +14,10 @@ const EventRegisterForm: React.FC = () => {
   const [name, setName] = useState<string>('');
   const [selectCharacterClass, setSelectCharacterClass] = useState<string>('');
   const [selectSpecialization, setSelectSpecialization] = useState<string>('');
-  const [showPasswordPopup, setShowPasswordPopup] = useState(false);
   const [iLevel, setILevel] = useState<number>(0);
+  const [kStoneMin, setKStoneMin] = useState<number>(2);
+  const [kStoneMax, setKStoneMax] = useState<number>(99);
+
   const navigate = useNavigate();
   const { t } = useTranslation();
 
@@ -29,9 +31,9 @@ const EventRegisterForm: React.FC = () => {
   useEffect(() => {
     const storedCharacter = localStorage.getItem('createdCharacter');
     if (storedCharacter && eventCode) { // Vérifie également que eventCode est défini
-        navigate('/event?code=' + eventCode);
+      navigate('/event?code=' + eventCode);
     }
-}, [navigate, eventCode]);
+  }, [navigate, eventCode]);
 
   const handleClassChange = (selectedClass: string) => {
     setSelectCharacterClass(selectedClass);
@@ -118,9 +120,21 @@ const EventRegisterForm: React.FC = () => {
 
         {/* Bouton pour sauvegarder le personnage */}
         {selectCharacterClass && selectSpecialization && iLevel > 0 && (
-          <button className="save-button" onClick={handleSave}>
-            Join Event!
-          </button>
+          <div>
+            <InputField
+              label="(OPTIONAL) Keystone MIN level: "
+              value={kStoneMin}
+              onChange={(e) => setKStoneMin(Number(e.target.value))}
+            />
+             <InputField
+              label="(OPTIONAL) Keystone MAX level: "
+              value={kStoneMax}
+              onChange={(e) => setKStoneMax(Number(e.target.value))}
+            />
+            <button className="save-button" onClick={handleSave}>
+              Join Event!
+            </button>
+          </div>
         )}
       </div>
     </div>

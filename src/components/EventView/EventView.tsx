@@ -153,7 +153,7 @@ const EventView: React.FC = () => {
                     { visible: false },
                     { withCredentials: true }
                 );
-                
+
                 const shuffledParties = await shuffleParties(eventCode);
                 let updatedCharacter = null;
 
@@ -320,12 +320,48 @@ const EventView: React.FC = () => {
                 setIsEditing={setIsEditing}
                 eventCode={eventCode ?? ''}
             />
+            {parties.length > 0 && (isAuthenticated || arePartiesVisible) && (
+                <div>
+                    <div className="title-container">
+                        <h2 className="subtitle">
+                            Event running... ({parties.reduce((acc, party) => acc + party.members.length, 0)} participants)
+                        </h2>
+                        {isAuthenticated && (
+                            <div className="party-button-container">
+                                <ClearButton onClear={handleClearEvent} />
+                                <button className="eye-button" onClick={handleEyeButtonClick}>
+                                    {!arePartiesVisible ? <FontAwesomeIcon icon={faEyeSlash}  style={{ color: 'red' }} /> : <FontAwesomeIcon icon={faEye} />}
+
+                                </button>
+                            </div>
+                        )}
+                    </div>
+
+                    <PartyTable
+                        parties={parties}
+                        moveCharacter={moveCharacter}
+                        swapCharacters={swapCharacters}
+                        isAdmin={isAuthenticated as boolean}
+                    />
+
+                </div>
+            )}
             <div className="title-container">
                 <div className="title-clear-container">
                     <h1 className="title">Waiting Room ({characters.length} participants)</h1>
                     {isAuthenticated && <ClearButton onClear={handleClear} />}
                 </div>
             </div>
+            {parties.length === 0 || !arePartiesVisible &&
+                <div className="title-container">
+                    <p><b>Waiting for the event to launch...</b></p>
+                </div>
+            }
+            {isAuthenticated &&
+                <div className="title-container">
+                    <ShuffleButton onShuffle={handleShuffle} />
+                </div>
+            }
             <div className="table-container">
                 <div className="table-wrapper">
                     <div className="icon-text-container">
@@ -376,42 +412,6 @@ const EventView: React.FC = () => {
                     />
                 </div>
             </div>
-            {isAuthenticated &&
-                <div className="title-container">
-                    <ShuffleButton onShuffle={handleShuffle} />
-                </div>
-            }
-            {parties.length === 0 || !arePartiesVisible &&
-                <div className="title-container">
-                    <p><b>Waiting for the event to launch...</b></p>
-                </div>
-            }
-            {parties.length > 0 && (isAuthenticated || arePartiesVisible) && (
-                <div>
-                    <div className="title-container">
-                        <h2 className="subtitle">
-                            Event running... ({parties.reduce((acc, party) => acc + party.members.length, 0)} participants)
-                        </h2>
-                        {isAuthenticated && (
-                            <div className="party-button-container">
-                                <ClearButton onClear={handleClearEvent} />
-                                <button className="eye-button" onClick={handleEyeButtonClick}>
-                                    {!arePartiesVisible ? <FontAwesomeIcon icon={faEye} /> : <FontAwesomeIcon icon={faEyeSlash} style={{ color: 'red' }} />}
-
-                                </button>
-                            </div>
-                        )}
-                    </div>
-
-                    <PartyTable
-                        parties={parties}
-                        moveCharacter={moveCharacter}
-                        swapCharacters={swapCharacters}
-                        isAdmin={isAuthenticated as boolean}
-                    />
-
-                </div>
-            )}
         </div>
     );
 };

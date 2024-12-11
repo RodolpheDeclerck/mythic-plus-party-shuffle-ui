@@ -8,7 +8,7 @@ export enum CharacterClass {
     Druid = 'Druid',
     Rogue = 'Rogue',
     Hunter = 'Hunter',
-    DemonHunter = 'DemonHunter',
+    DemonHunter = 'Demon Hunter',
     Warlock = 'Warlock',
     Evoker = 'Evoker',
     Shaman = 'Shaman',
