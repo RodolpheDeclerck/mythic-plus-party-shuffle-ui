@@ -29,6 +29,8 @@ const CreatedCharacterView: React.FC<CreatedCharacterProps> = ({
 }) => {
     const [editedName, setEditedName] = useState('');
     const [editILevel, setILevel] = useState('');
+    const [keystoneMaxLevel, setKeystoneMaxLevel] = useState('');
+    const [keystoneMinLevel, setKeystoneMinLevel] = useState('');
     const { t } = useTranslation();
     const { specializations, fetchSpecializations } = useSpecializations();
     const [selectSpecialization, setSelectSpecialization] = useState<string>('');
@@ -41,6 +43,8 @@ const CreatedCharacterView: React.FC<CreatedCharacterProps> = ({
         if (character && isEditing) {
             setEditedName(character.name || '');
             setILevel(character.iLevel || '');
+            setKeystoneMinLevel(character.keystoneMinLevel || '');
+            setKeystoneMaxLevel(character.keystoneMaxLevel || '');
             setSelectCharacterClass(character.characterClass || '');
             setSelectSpecialization(character.specialization || '');
 
@@ -73,6 +77,14 @@ const CreatedCharacterView: React.FC<CreatedCharacterProps> = ({
         setILevel(event.target.value);
     };
 
+    const handleKeystoneMinLevelChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setKeystoneMinLevel(event.target.value);
+    };
+
+    const handleKeystoneMaxLevelChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setKeystoneMaxLevel(event.target.value);
+    };
+
     const handleSave = async () => {
         const updatedCharacter = {
             ...character,
@@ -80,6 +92,8 @@ const CreatedCharacterView: React.FC<CreatedCharacterProps> = ({
             characterClass: selectCharacterClass || 'Unknown Class',
             specialization: selectSpecialization || 'Unknown Specialization',
             iLevel: editILevel || 0,
+            keystoneMinLevel: keystoneMinLevel || 2,
+            keystoneMaxLevel: keystoneMaxLevel || 99,
             eventCode: eventCode,
         };
 
@@ -178,6 +192,34 @@ const CreatedCharacterView: React.FC<CreatedCharacterProps> = ({
                     />
                 ) : (
                     character?.iLevel !== undefined ? character.iLevel : 'Unknown'
+                )}
+            </div>
+            <div className="character-field">
+                <b>KeyMin: </b>
+                {isEditing ? (
+                    <InputField
+                        label=""
+                        type="number"
+                        value={keystoneMinLevel}
+                        onChange={handleKeystoneMaxLevelChange}
+                        placeholder="Enter keystone max level"
+                    />
+                ) : (
+                    character?.keystoneMaxLevel !== undefined ? character.keystoneMaxLevel : 'Unknown'
+                )}
+            </div>
+            <div className="character-field">
+                <b>KeyMax: </b>
+                {isEditing ? (
+                    <InputField
+                        label=""
+                        type="number"
+                        value={keystoneMaxLevel}
+                        onChange={handleKeystoneMaxLevelChange}
+                        placeholder="Enter keystone max level"
+                    />
+                ) : (
+                    character?.keystoneMaxLevel !== undefined ? character.keystoneMaxLevel : 'Unknown'
                 )}
             </div>
             <div className="button-container">

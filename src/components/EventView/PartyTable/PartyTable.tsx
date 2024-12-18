@@ -61,7 +61,9 @@ const PartyTable: React.FC<PartyTableProps> = ({ parties, moveCharacter, swapCha
                                 <th>Name</th>
                                 <th>Class</th>
                                 <th>Specialization</th>
-                                <th>Items Level</th>
+                                <th style={{ width: '15%' }}>
+                                    Items Level <br /> (Key min-max)
+                                </th>
                                 <th>Role</th>
                                 <th>Blood Lust</th>
                                 <th>Battle Rez</th>
@@ -94,7 +96,8 @@ const PartyTable: React.FC<PartyTableProps> = ({ parties, moveCharacter, swapCha
                                             <b>{t(`specializations.${member.specialization}`)}</b>
                                         </td>
                                         <td style={{ color: 'black', backgroundColor: CharacterClassColors[member.characterClass as CharacterClass] }}>
-                                            <b>{member.iLevel}</b>
+                                            <b>{member.iLevel}</b> <br />
+                                            ({member.keystoneMinLevel}-{member.keystoneMaxLevel})
                                         </td>
                                         <td style={{ color: 'black', backgroundColor: CharacterClassColors[member.characterClass as CharacterClass] }}>
                                             {member.role === 'TANK' ? (

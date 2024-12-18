@@ -7,4 +7,6 @@ export interface Character {
     role: string;
     bloodLust: boolean;
     battleRez: boolean;
+    keystoneMinLevel: number;
+    keystoneMaxLevel: number;
 }

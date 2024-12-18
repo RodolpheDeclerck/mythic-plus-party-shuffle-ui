@@ -25,7 +25,9 @@ const CharacterTable: React.FC<CharacterTableProps> = ({ characters, onDelete, o
                     <th style={{ width: '20%' }}>Name</th>
                     <th style={{ width: '15%' }}>Class</th>
                     <th style={{ width: '15%' }}>Specialization</th>
-                    <th style={{ width: '15%' }}>Items Level</th>
+                    <th style={{ width: '15%' }}>
+                        Items Level <br /> (Key min-max)
+                    </th>
                     <th style={{ width: '15%' }}>Blood Lust</th>
                     <th style={{ width: '15%' }}>Battle Rez</th>
                     <th style={{ width: '10%' }}>Action</th>
@@ -51,7 +53,8 @@ const CharacterTable: React.FC<CharacterTableProps> = ({ characters, onDelete, o
                             <b>{t(`specializations.${character.specialization}`)}</b>
                         </td>
                         <td style={{ color: 'black', backgroundColor: CharacterClassColors[character.characterClass as CharacterClass] }}>
-                            <b>{character.iLevel}</b>
+                            <b>{character.iLevel}</b> <br></br>
+                            ({character.keystoneMinLevel}-{character.keystoneMaxLevel})
                         </td>
                         <td style={{ color: 'black', backgroundColor: CharacterClassColors[character.characterClass as CharacterClass] }}>
                             {character.bloodLust && (

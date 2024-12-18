@@ -57,7 +57,9 @@ const EventRegisterForm: React.FC = () => {
         characterClass: selectCharacterClass,
         specialization: selectSpecialization,
         iLevel,
-        eventCode, // Utilise eventCode directement
+        eventCode,
+        keystoneMinLevel: kStoneMin,
+        keystoneMaxLevel: kStoneMax
       };
 
       const response = await axios.post(`${apiUrl}/api/characters`, characterData);
@@ -126,7 +128,7 @@ const EventRegisterForm: React.FC = () => {
               value={kStoneMin}
               onChange={(e) => setKStoneMin(Number(e.target.value))}
             />
-             <InputField
+            <InputField
               label="(OPTIONAL) Keystone MAX level: "
               value={kStoneMax}
               onChange={(e) => setKStoneMax(Number(e.target.value))}
