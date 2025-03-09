@@ -16,8 +16,8 @@ const RegisterForm = () => {
     
         axios.post(`${apiUrl}/auth/register`, { email, password, username })
           .then(response => {
-            if (response.status === 200) {
-              window.location.href = '/';
+            if (response.status === 201) {
+              window.location.href = '/login';
             } else {
               console.error('Erreur d\'authentification');
             }
