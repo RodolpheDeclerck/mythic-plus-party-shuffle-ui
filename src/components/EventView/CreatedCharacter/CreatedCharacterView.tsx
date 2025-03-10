@@ -7,6 +7,8 @@ import './CreatedCharacterView.css';
 import { deleteCharacter, upsertCharacter } from '../../../services/api';
 import { useNavigate } from 'react-router-dom';
 import InputField from '../../InputFieldProps';
+import { KEYSTONE_MIN_LEVEL, KEYSTONE_MAX_LEVEL } from '../../../constants/keystoneLevels';
+import { ITEM_LEVEL_MIN, ITEM_LEVEL_MAX } from '../../../constants/itemLevels';
 
 interface CreatedCharacterProps {
     character: any;
@@ -28,7 +30,7 @@ const CreatedCharacterView: React.FC<CreatedCharacterProps> = ({
     eventCode,
 }) => {
     const [editedName, setEditedName] = useState('');
-    const [editILevel, setILevel] = useState('');
+    const [editILevel, setILevel] = useState(ITEM_LEVEL_MIN.toString());
     const [keystoneMaxLevel, setKeystoneMaxLevel] = useState('');
     const [keystoneMinLevel, setKeystoneMinLevel] = useState('');
     const { t } = useTranslation();
@@ -38,13 +40,12 @@ const CreatedCharacterView: React.FC<CreatedCharacterProps> = ({
     const { classes } = useClasses();
     const navigate = useNavigate();
 
-    // Initialise les champs en fonction du personnage ou les réinitialise
     useEffect(() => {
         if (character && isEditing) {
             setEditedName(character.name || '');
-            setILevel(character.iLevel || '');
-            setKeystoneMinLevel(character.keystoneMinLevel || '');
-            setKeystoneMaxLevel(character.keystoneMaxLevel || '');
+            setILevel(character.iLevel?.toString() || ITEM_LEVEL_MIN.toString());
+            setKeystoneMinLevel(character.keystoneMinLevel || KEYSTONE_MIN_LEVEL.toString());
+            setKeystoneMaxLevel(character.keystoneMaxLevel || KEYSTONE_MAX_LEVEL.toString());
             setSelectCharacterClass(character.characterClass || '');
             setSelectSpecialization(character.specialization || '');
 
@@ -53,7 +54,9 @@ const CreatedCharacterView: React.FC<CreatedCharacterProps> = ({
             }
         } else if (!character) {
             setEditedName('');
-            setILevel('');
+            setILevel(ITEM_LEVEL_MIN.toString());
+            setKeystoneMinLevel(KEYSTONE_MIN_LEVEL.toString());
+            setKeystoneMaxLevel(KEYSTONE_MAX_LEVEL.toString());
             setSelectCharacterClass('');
             setSelectSpecialization('');
         }
@@ -74,26 +77,33 @@ const CreatedCharacterView: React.FC<CreatedCharacterProps> = ({
     };
 
     const handleILevelChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setILevel(event.target.value);
+        const value = Math.max(ITEM_LEVEL_MIN, Math.min(parseInt(event.target.value) || ITEM_LEVEL_MIN, ITEM_LEVEL_MAX));
+        setILevel(value.toString());
     };
 
     const handleKeystoneMinLevelChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setKeystoneMinLevel(event.target.value);
+        const value = Math.max(KEYSTONE_MIN_LEVEL, Math.min(parseInt(event.target.value) || KEYSTONE_MIN_LEVEL, parseInt(keystoneMaxLevel) || KEYSTONE_MAX_LEVEL));
+        setKeystoneMinLevel(value.toString());
     };
 
     const handleKeystoneMaxLevelChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setKeystoneMaxLevel(event.target.value);
+        const value = Math.max(parseInt(keystoneMinLevel) || KEYSTONE_MIN_LEVEL, Math.min(parseInt(event.target.value) || KEYSTONE_MAX_LEVEL, KEYSTONE_MAX_LEVEL));
+        setKeystoneMaxLevel(value.toString());
     };
 
     const handleSave = async () => {
+        const minLevel = Math.max(KEYSTONE_MIN_LEVEL, parseInt(keystoneMinLevel) || KEYSTONE_MIN_LEVEL);
+        const maxLevel = Math.min(KEYSTONE_MAX_LEVEL, Math.max(minLevel, parseInt(keystoneMaxLevel) || KEYSTONE_MAX_LEVEL));
+        const itemLevel = Math.max(ITEM_LEVEL_MIN, Math.min(parseInt(editILevel) || ITEM_LEVEL_MIN, ITEM_LEVEL_MAX));
+        
         const updatedCharacter = {
             ...character,
             name: editedName || 'Unnamed Character',
             characterClass: selectCharacterClass || 'Unknown Class',
             specialization: selectSpecialization || 'Unknown Specialization',
-            iLevel: editILevel || 0,
-            keystoneMinLevel: keystoneMinLevel || 2,
-            keystoneMaxLevel: keystoneMaxLevel || 99,
+            iLevel: itemLevel,
+            keystoneMinLevel: minLevel,
+            keystoneMaxLevel: maxLevel,
             eventCode: eventCode,
         };
 
@@ -113,8 +123,8 @@ const CreatedCharacterView: React.FC<CreatedCharacterProps> = ({
     };
 
     const handleAdd = () => {
-        setIsEditing(true); // Active le mode édition pour un nouveau personnage
-        onSave({}); // Utilise un personnage vide pour réinitialiser les valeurs des champs
+        setIsEditing(true);
+        onSave({});
     };
 
     const handleLeave = async () => {
@@ -189,9 +199,11 @@ const CreatedCharacterView: React.FC<CreatedCharacterProps> = ({
                         value={editILevel}
                         onChange={handleILevelChange}
                         placeholder="Enter item level"
+                        min={ITEM_LEVEL_MIN}
+                        max={ITEM_LEVEL_MAX}
                     />
                 ) : (
-                    character?.iLevel !== undefined ? character.iLevel : 'Unknown'
+                    character?.iLevel !== undefined ? character.iLevel : ITEM_LEVEL_MIN
                 )}
             </div>
             <div className="character-field">
@@ -201,11 +213,13 @@ const CreatedCharacterView: React.FC<CreatedCharacterProps> = ({
                         label=""
                         type="number"
                         value={keystoneMinLevel}
-                        onChange={handleKeystoneMaxLevelChange}
-                        placeholder="Enter keystone max level"
+                        onChange={handleKeystoneMinLevelChange}
+                        placeholder="Enter keystone min level"
+                        min={KEYSTONE_MIN_LEVEL}
+                        max={parseInt(keystoneMaxLevel) || KEYSTONE_MAX_LEVEL}
                     />
                 ) : (
-                    character?.keystoneMaxLevel !== undefined ? character.keystoneMaxLevel : 'Unknown'
+                    character?.keystoneMinLevel !== undefined ? character.keystoneMinLevel : KEYSTONE_MIN_LEVEL
                 )}
             </div>
             <div className="character-field">
@@ -217,9 +231,11 @@ const CreatedCharacterView: React.FC<CreatedCharacterProps> = ({
                         value={keystoneMaxLevel}
                         onChange={handleKeystoneMaxLevelChange}
                         placeholder="Enter keystone max level"
+                        min={parseInt(keystoneMinLevel) || KEYSTONE_MIN_LEVEL}
+                        max={KEYSTONE_MAX_LEVEL}
                     />
                 ) : (
-                    character?.keystoneMaxLevel !== undefined ? character.keystoneMaxLevel : 'Unknown'
+                    character?.keystoneMaxLevel !== undefined ? character.keystoneMaxLevel : KEYSTONE_MAX_LEVEL
                 )}
             </div>
             <div className="button-container">

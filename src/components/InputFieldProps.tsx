@@ -6,9 +6,11 @@ interface InputFieldProps {
   value: string | number;
   onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   placeholder?: string;
+  min?: number;
+  max?: number;
 }
 
-const InputField: React.FC<InputFieldProps> = ({ label, type = 'text', value, onChange, placeholder }) => (
+const InputField: React.FC<InputFieldProps> = ({ label, type = 'text', value, onChange, placeholder, min, max }) => (
   <div className="input-box">
     <label>{label}</label>
     <input
@@ -16,6 +18,8 @@ const InputField: React.FC<InputFieldProps> = ({ label, type = 'text', value, on
       value={value}
       onChange={onChange}
       placeholder={placeholder}
+      min={min}
+      max={max}
       className="input-field" // Ajout d'une classe pour le style
     />
   </div>

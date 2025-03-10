@@ -8,15 +8,17 @@ import { useSpecializations } from '../../context/SpecializationsContext'; // Im
 import axios from 'axios';
 import apiUrl from '../../config/apiConfig';
 import './EventRegisterForm.css';
+import { KEYSTONE_MIN_LEVEL, KEYSTONE_MAX_LEVEL } from '../../constants/keystoneLevels';
+import { ITEM_LEVEL_MIN, ITEM_LEVEL_MAX } from '../../constants/itemLevels';
 
 
 const EventRegisterForm: React.FC = () => {
   const [name, setName] = useState<string>('');
   const [selectCharacterClass, setSelectCharacterClass] = useState<string>('');
   const [selectSpecialization, setSelectSpecialization] = useState<string>('');
-  const [iLevel, setILevel] = useState<number>(0);
-  const [kStoneMin, setKStoneMin] = useState<number>(2);
-  const [kStoneMax, setKStoneMax] = useState<number>(99);
+  const [iLevel, setILevel] = useState<number>(ITEM_LEVEL_MIN);
+  const [kStoneMin, setKStoneMin] = useState<number>(KEYSTONE_MIN_LEVEL);
+  const [kStoneMax, setKStoneMax] = useState<number>(KEYSTONE_MAX_LEVEL);
 
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -45,6 +47,21 @@ const EventRegisterForm: React.FC = () => {
     setSelectSpecialization(selectedSpecialization);
   };
 
+  const handleILevelChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = Math.max(ITEM_LEVEL_MIN, Math.min(parseInt(e.target.value) || ITEM_LEVEL_MIN, ITEM_LEVEL_MAX));
+    setILevel(value);
+  };
+
+  const handleKeystoneMinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = Math.max(KEYSTONE_MIN_LEVEL, Math.min(parseInt(e.target.value) || KEYSTONE_MIN_LEVEL, kStoneMax));
+    setKStoneMin(value);
+  };
+
+  const handleKeystoneMaxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = Math.max(kStoneMin, Math.min(parseInt(e.target.value) || KEYSTONE_MAX_LEVEL, KEYSTONE_MAX_LEVEL));
+    setKStoneMax(value);
+  };
+
   const handleSave = async () => {
     if (!eventCode) {
       console.error('Event code is missing');
@@ -56,10 +73,10 @@ const EventRegisterForm: React.FC = () => {
         name,
         characterClass: selectCharacterClass,
         specialization: selectSpecialization,
-        iLevel,
+        iLevel: Math.max(ITEM_LEVEL_MIN, Math.min(iLevel, ITEM_LEVEL_MAX)),
         eventCode,
-        keystoneMinLevel: kStoneMin,
-        keystoneMaxLevel: kStoneMax
+        keystoneMinLevel: Math.max(KEYSTONE_MIN_LEVEL, kStoneMin),
+        keystoneMaxLevel: Math.min(KEYSTONE_MAX_LEVEL, Math.max(kStoneMin, kStoneMax))
       };
 
       const response = await axios.post(`${apiUrl}/api/characters`, characterData);
@@ -114,24 +131,35 @@ const EventRegisterForm: React.FC = () => {
         {selectCharacterClass && selectSpecialization && (
           <InputField
             label="iLevel: "
+            type="number"
             value={iLevel}
-            onChange={(e) => setILevel(Number(e.target.value))}
+            onChange={handleILevelChange}
             placeholder="Enter character items level"
+            min={ITEM_LEVEL_MIN}
+            max={ITEM_LEVEL_MAX}
           />
         )}
 
         {/* Bouton pour sauvegarder le personnage */}
-        {selectCharacterClass && selectSpecialization && iLevel > 0 && (
+        {selectCharacterClass && selectSpecialization && iLevel >= ITEM_LEVEL_MIN && (
           <div>
             <InputField
               label="(OPTIONAL) Keystone MIN level: "
+              type="number"
               value={kStoneMin}
-              onChange={(e) => setKStoneMin(Number(e.target.value))}
+              onChange={handleKeystoneMinChange}
+              min={KEYSTONE_MIN_LEVEL}
+              max={kStoneMax}
+              placeholder="Enter minimum keystone level"
             />
             <InputField
               label="(OPTIONAL) Keystone MAX level: "
+              type="number"
               value={kStoneMax}
-              onChange={(e) => setKStoneMax(Number(e.target.value))}
+              onChange={handleKeystoneMaxChange}
+              min={kStoneMin}
+              max={KEYSTONE_MAX_LEVEL}
+              placeholder="Enter maximum keystone level"
             />
             <button className="save-button" onClick={handleSave}>
               Join Event!

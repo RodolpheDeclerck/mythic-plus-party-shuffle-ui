@@ -235,7 +235,7 @@ const EventView: React.FC = () => {
         }
     };
 
-    const swapCharacters = (fromPartyIndex: number, toPartyIndex: number, fromIndex: number, toIndex: number) => {
+    const swapCharacters = (fromPartyIndex: number, toPartyIndex: number, sourceId: number, targetId: number) => {
         setParties((prevParties) => {
             const updatedParties = prevParties.map((party) => ({
                 ...party,
@@ -244,8 +244,19 @@ const EventView: React.FC = () => {
 
             const sourceParty = updatedParties[fromPartyIndex];
             const targetParty = updatedParties[toPartyIndex];
-            [sourceParty.members[fromIndex], targetParty.members[toIndex]] =
-                [targetParty.members[toIndex], sourceParty.members[fromIndex]];
+
+            // Find the members by their IDs
+            const sourceMemberIndex = sourceParty.members.findIndex(m => m.id === sourceId);
+            const targetMemberIndex = targetParty.members.findIndex(m => m.id === targetId);
+
+            if (sourceMemberIndex === -1 || targetMemberIndex === -1) {
+                console.error("Members not found");
+                return prevParties;
+            }
+
+            // Perform the swap using the found indices
+            [sourceParty.members[sourceMemberIndex], targetParty.members[targetMemberIndex]] =
+                [targetParty.members[targetMemberIndex], sourceParty.members[sourceMemberIndex]];
 
             updatePartiesInBackend(updatedParties);
 
@@ -253,23 +264,34 @@ const EventView: React.FC = () => {
         });
     };
 
-    const moveCharacter = (fromPartyIndex: number, toPartyIndex: number, fromIndex: number, toIndex: number) => {
+    const moveCharacter = (fromPartyIndex: number, toPartyIndex: number, memberId: number, toIndex: number) => {
         setParties((prevParties) => {
             const updatedParties = [...prevParties];
             const sourceParty = updatedParties[fromPartyIndex];
             const targetParty = updatedParties[toPartyIndex];
 
-            if (!sourceParty || !targetParty || !sourceParty.members[fromIndex]) {
-                console.error("Invalid indices or no character to move");
-                return updatedParties;
+            if (!sourceParty || !targetParty) {
+                console.error("Invalid party indices");
+                return prevParties;
             }
 
-            const [movedCharacter] = sourceParty.members.splice(fromIndex, 1);
+            // Find the member by ID
+            const memberIndex = sourceParty.members.findIndex(m => m.id === memberId);
+            if (memberIndex === -1) {
+                console.error("Member not found");
+                return prevParties;
+            }
+
+            // Remove the member from the source party
+            const [movedCharacter] = sourceParty.members.splice(memberIndex, 1);
+
             if (targetParty.members.length < 5) {
+                // Insert at the specified target index
                 targetParty.members.splice(toIndex, 0, movedCharacter);
             } else {
                 console.error("Target party is full. Move not allowed.");
-                sourceParty.members.splice(fromIndex, 0, movedCharacter);
+                // Put the character back in the source party
+                sourceParty.members.splice(memberIndex, 0, movedCharacter);
             }
 
             updatePartiesInBackend(updatedParties);

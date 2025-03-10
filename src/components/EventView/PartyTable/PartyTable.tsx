@@ -11,8 +11,8 @@ import { CharacterClass } from '../../../enums/CharacterClass';
 
 interface PartyTableProps {
     parties: Party[];
-    moveCharacter: (fromPartyIndex: number, toPartyIndex: number, fromIndex: number, toIndex: number) => void;
-    swapCharacters: (fromPartyIndex: number, toPartyIndex: number, fromIndex: number, toIndex: number) => void;
+    moveCharacter: (fromPartyIndex: number, toPartyIndex: number, memberId: number, toIndex: number) => void;
+    swapCharacters: (fromPartyIndex: number, toPartyIndex: number, sourceId: number, targetId: number) => void;
     isAdmin: boolean;
 }
 
@@ -23,7 +23,7 @@ const PartyTable: React.FC<PartyTableProps> = ({ parties, moveCharacter, swapCha
     const calculateAverageIlevel = (party: Party) => {
         if (party.members.length === 0) return 0;
         const totalIlevel = party.members.reduce((sum, member) => sum + member.iLevel, 0);
-        return (totalIlevel / party.members.length).toFixed(2); // Retourne l'ilevel moyen avec deux décimales
+        return (totalIlevel / party.members.length).toFixed(2);
     };
 
     const findMinIlevel = (party: Party) => {
@@ -31,21 +31,30 @@ const PartyTable: React.FC<PartyTableProps> = ({ parties, moveCharacter, swapCha
         return Math.min(...party.members.map(member => member.iLevel));
     };
 
+    const findMinKeystoneLevel = (party: Party) => {
+        if (party.members.length === 0) return 0;
+        return Math.min(...party.members.map(member => member.keystoneMinLevel));
+    };
+
     const findMaxIlevel = (party: Party) => {
         if (party.members.length === 0) return 0;
         return Math.max(...party.members.map(member => member.iLevel));
+    };
+
+    const findMaxKeystoneLevel = (party: Party) => {
+        if (party.members.length === 0) return 0;
+        return Math.min(...party.members.map(member => member.keystoneMaxLevel));
     };
 
     // Tri des membres uniquement pour l'affichage
     const getSortedMembers = (party: Party) => {
         const rolePriority: Record<string, number> = { TANK: 1, HEAL: 2, CAC: 3, DIST: 4 };
         return [...party.members].sort((a, b) => {
-            const priorityA = rolePriority[a.role] || 5; // Priorité par défaut si le rôle est manquant
+            const priorityA = rolePriority[a.role] || 5;
             const priorityB = rolePriority[b.role] || 5;
             return priorityA - priorityB;
         });
     };
-
 
     return (
         <div className="party-table-container">
@@ -71,14 +80,13 @@ const PartyTable: React.FC<PartyTableProps> = ({ parties, moveCharacter, swapCha
                         </thead>
                         <tbody>
                             {getSortedMembers(party).map((member, sortedIndex) => {
-                                const originalIndex = party.members.findIndex(m => m.id === member.id); // Retrouver l'indice original
-
+                                const originalIndex = party.members.findIndex(m => m.id === member.id);
                                 return (
                                     <DraggableCharacter
                                         key={member.id}
                                         member={member}
                                         partyIndex={partyIndex}
-                                        index={originalIndex} // Utilisez l'indice original pour les opérations
+                                        index={originalIndex}
                                         moveCharacter={moveCharacter}
                                         swapCharacters={swapCharacters}
                                         isAdmin={isAdmin}
@@ -144,9 +152,13 @@ const PartyTable: React.FC<PartyTableProps> = ({ parties, moveCharacter, swapCha
                     <h3>
                         {t('Average iLevel')}: {calculateAverageIlevel(party)} ({findMinIlevel(party)} - {findMaxIlevel(party)})
                     </h3>
+                    <h3>
+                        {findMinKeystoneLevel(party)} - {findMaxKeystoneLevel(party)}
+                    </h3>
                 </div>
             ))}
         </div>
     );
 };
+
 export default PartyTable;

@@ -4,7 +4,7 @@ import './EmptySlot.css';
 
 interface EmptySlotProps {
     partyIndex: number;
-    moveCharacter: (fromPartyIndex: number, toPartyIndex: number, fromIndex: number, toIndex: number) => void;
+    moveCharacter: (fromPartyIndex: number, toPartyIndex: number, memberId: number, toIndex: number) => void;
     currentMembersCount: number;
     isAdmin: boolean;
 }
@@ -12,14 +12,13 @@ interface EmptySlotProps {
 const EmptySlot: React.FC<EmptySlotProps> = ({ partyIndex, moveCharacter, currentMembersCount, isAdmin }) => {
     const [, drop] = useDrop({
         accept: 'CHARACTER',
-        drop: (item: { fromPartyIndex: number; fromIndex: number }) => {
+        drop: (item: { fromPartyIndex: number; memberId: number }) => {
             if (isAdmin) {
-                console.log(`Dropping character from party ${item.fromPartyIndex}, index ${item.fromIndex}, into empty slot at party ${partyIndex}, position ${currentMembersCount}`);
-                // Déplacer le personnage dans l'emplacement vide
-                moveCharacter(item.fromPartyIndex, partyIndex, item.fromIndex, currentMembersCount);
+                console.log(`Dropping character ${item.memberId} from party ${item.fromPartyIndex} into empty slot at party ${partyIndex}`);
+                moveCharacter(item.fromPartyIndex, partyIndex, item.memberId, currentMembersCount);
             }
         },
-        canDrop: () => isAdmin, // Seuls les admins peuvent déplacer des personnages
+        canDrop: () => isAdmin,
     });
 
     return (
