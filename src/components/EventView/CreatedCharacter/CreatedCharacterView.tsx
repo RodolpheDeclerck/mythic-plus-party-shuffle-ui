@@ -77,7 +77,22 @@ const CreatedCharacterView: React.FC<CreatedCharacterProps> = ({
     };
 
     const handleILevelChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const value = Math.max(ITEM_LEVEL_MIN, Math.min(parseInt(event.target.value) || ITEM_LEVEL_MIN, ITEM_LEVEL_MAX));
+        const inputValue = event.target.value;
+        
+        // Si le champ est vide, on met la valeur minimale
+        if (inputValue === '') {
+            setILevel(ITEM_LEVEL_MIN.toString());
+            return;
+        }
+
+        // On convertit en nombre et on applique les limites
+        const numValue = parseInt(inputValue);
+        if (isNaN(numValue)) {
+            setILevel(ITEM_LEVEL_MIN.toString());
+            return;
+        }
+
+        const value = Math.max(ITEM_LEVEL_MIN, Math.min(numValue, ITEM_LEVEL_MAX));
         setILevel(value.toString());
     };
 
