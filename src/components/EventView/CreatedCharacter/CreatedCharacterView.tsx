@@ -85,15 +85,8 @@ const CreatedCharacterView: React.FC<CreatedCharacterProps> = ({
             return;
         }
 
-        // On convertit en nombre et on applique les limites
-        const numValue = parseInt(inputValue);
-        if (isNaN(numValue)) {
-            setILevel(ITEM_LEVEL_MIN.toString());
-            return;
-        }
-
-        const value = Math.max(ITEM_LEVEL_MIN, Math.min(numValue, ITEM_LEVEL_MAX));
-        setILevel(value.toString());
+        // On accepte la valeur saisie sans appliquer les limites immédiatement
+        setILevel(inputValue);
     };
 
     const handleKeystoneMinLevelChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -109,6 +102,8 @@ const CreatedCharacterView: React.FC<CreatedCharacterProps> = ({
     const handleSave = async () => {
         const minLevel = Math.max(KEYSTONE_MIN_LEVEL, parseInt(keystoneMinLevel) || KEYSTONE_MIN_LEVEL);
         const maxLevel = Math.min(KEYSTONE_MAX_LEVEL, Math.max(minLevel, parseInt(keystoneMaxLevel) || KEYSTONE_MAX_LEVEL));
+        
+        // On applique les limites uniquement lors de la sauvegarde
         const itemLevel = Math.max(ITEM_LEVEL_MIN, Math.min(parseInt(editILevel) || ITEM_LEVEL_MIN, ITEM_LEVEL_MAX));
         
         const updatedCharacter = {
