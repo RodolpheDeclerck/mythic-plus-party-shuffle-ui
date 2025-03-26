@@ -33,6 +33,9 @@ const CreatedCharacterView: React.FC<CreatedCharacterProps> = ({
     const [editILevel, setILevel] = useState(ITEM_LEVEL_MIN.toString());
     const [keystoneMaxLevel, setKeystoneMaxLevel] = useState('');
     const [keystoneMinLevel, setKeystoneMinLevel] = useState('');
+    const [isFirstInputAfterFocus, setIsFirstInputAfterFocus] = useState(false);
+    const [isFirstInputAfterFocusKeyMin, setIsFirstInputAfterFocusKeyMin] = useState(false);
+    const [isFirstInputAfterFocusKeyMax, setIsFirstInputAfterFocusKeyMax] = useState(false);
     const { t } = useTranslation();
     const { specializations, fetchSpecializations } = useSpecializations();
     const [selectSpecialization, setSelectSpecialization] = useState<string>('');
@@ -79,24 +82,130 @@ const CreatedCharacterView: React.FC<CreatedCharacterProps> = ({
     const handleILevelChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const inputValue = event.target.value;
         
-        // Si le champ est vide, on met la valeur minimale
+        // Si c'est la première saisie après le focus, on remplace complètement la valeur
+        if (isFirstInputAfterFocus) {
+            setIsFirstInputAfterFocus(false);
+            // On prend uniquement le dernier caractère saisi
+            const lastChar = inputValue.slice(-1);
+            setILevel(lastChar);
+            return;
+        }
+
+        // Si la valeur dépasse 3 chiffres (4 ou plus), on prend le dernier chiffre saisi
+        if (inputValue.length > 3) {
+            const lastChar = inputValue.slice(-1);
+            setILevel(lastChar);
+            return;
+        }
+
+        // Sinon on accepte la valeur saisie (y compris vide)
+        setILevel(inputValue);
+    };
+
+    const handleILevelBlur = (event: React.FocusEvent<HTMLInputElement>) => {
+        const inputValue = event.target.value;
         if (inputValue === '') {
             setILevel(ITEM_LEVEL_MIN.toString());
             return;
         }
 
-        // On accepte la valeur saisie sans appliquer les limites immédiatement
-        setILevel(inputValue);
+        const numValue = parseInt(inputValue);
+        if (!isNaN(numValue)) {
+            const value = Math.max(ITEM_LEVEL_MIN, Math.min(numValue, ITEM_LEVEL_MAX));
+            setILevel(value.toString());
+        } else {
+            setILevel(ITEM_LEVEL_MIN.toString());
+        }
+    };
+
+    const handleILevelFocus = (event: React.FocusEvent<HTMLInputElement>) => {
+        setIsFirstInputAfterFocus(true);
     };
 
     const handleKeystoneMinLevelChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const value = Math.max(KEYSTONE_MIN_LEVEL, Math.min(parseInt(event.target.value) || KEYSTONE_MIN_LEVEL, parseInt(keystoneMaxLevel) || KEYSTONE_MAX_LEVEL));
-        setKeystoneMinLevel(value.toString());
+        const inputValue = event.target.value;
+        
+        // Si c'est la première saisie après le focus, on remplace complètement la valeur
+        if (isFirstInputAfterFocusKeyMin) {
+            setIsFirstInputAfterFocusKeyMin(false);
+            // On prend uniquement le dernier caractère saisi
+            const lastChar = inputValue.slice(-1);
+            setKeystoneMinLevel(lastChar);
+            return;
+        }
+
+        // Si la valeur dépasse 2 chiffres (3 ou plus), on prend le dernier chiffre saisi
+        if (inputValue.length > 2) {
+            const lastChar = inputValue.slice(-1);
+            setKeystoneMinLevel(lastChar);
+            return;
+        }
+
+        // Sinon on accepte la valeur saisie (y compris vide)
+        setKeystoneMinLevel(inputValue);
     };
 
     const handleKeystoneMaxLevelChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const value = Math.max(parseInt(keystoneMinLevel) || KEYSTONE_MIN_LEVEL, Math.min(parseInt(event.target.value) || KEYSTONE_MAX_LEVEL, KEYSTONE_MAX_LEVEL));
-        setKeystoneMaxLevel(value.toString());
+        const inputValue = event.target.value;
+        
+        // Si c'est la première saisie après le focus, on remplace complètement la valeur
+        if (isFirstInputAfterFocusKeyMax) {
+            setIsFirstInputAfterFocusKeyMax(false);
+            // On prend uniquement le dernier caractère saisi
+            const lastChar = inputValue.slice(-1);
+            setKeystoneMaxLevel(lastChar);
+            return;
+        }
+
+        // Si la valeur dépasse 2 chiffres (3 ou plus), on prend le dernier chiffre saisi
+        if (inputValue.length > 2) {
+            const lastChar = inputValue.slice(-1);
+            setKeystoneMaxLevel(lastChar);
+            return;
+        }
+
+        // Sinon on accepte la valeur saisie (y compris vide)
+        setKeystoneMaxLevel(inputValue);
+    };
+
+    const handleKeystoneMinFocus = (event: React.FocusEvent<HTMLInputElement>) => {
+        setIsFirstInputAfterFocusKeyMin(true);
+    };
+
+    const handleKeystoneMaxFocus = (event: React.FocusEvent<HTMLInputElement>) => {
+        setIsFirstInputAfterFocusKeyMax(true);
+    };
+
+    const handleKeystoneMinBlur = (event: React.FocusEvent<HTMLInputElement>) => {
+        const inputValue = event.target.value;
+        if (inputValue === '') {
+            setKeystoneMinLevel(KEYSTONE_MIN_LEVEL.toString());
+            return;
+        }
+
+        const numValue = parseInt(inputValue);
+        if (!isNaN(numValue)) {
+            const value = Math.max(KEYSTONE_MIN_LEVEL, Math.min(numValue, parseInt(keystoneMaxLevel) || KEYSTONE_MAX_LEVEL));
+            setKeystoneMinLevel(value.toString());
+        } else {
+            setKeystoneMinLevel(KEYSTONE_MIN_LEVEL.toString());
+        }
+    };
+
+    const handleKeystoneMaxBlur = (event: React.FocusEvent<HTMLInputElement>) => {
+        const inputValue = event.target.value;
+        if (inputValue === '') {
+            setKeystoneMaxLevel(KEYSTONE_MAX_LEVEL.toString());
+            return;
+        }
+
+        const numValue = parseInt(inputValue);
+        if (!isNaN(numValue)) {
+            const value = Math.max(parseInt(keystoneMinLevel) || KEYSTONE_MIN_LEVEL, Math.min(numValue, KEYSTONE_MAX_LEVEL));
+            setKeystoneMaxLevel(value.toString());
+        } else {
+            setKeystoneMaxLevel(KEYSTONE_MAX_LEVEL.toString());
+        }
     };
 
     const handleSave = async () => {
@@ -208,6 +317,8 @@ const CreatedCharacterView: React.FC<CreatedCharacterProps> = ({
                         type="number"
                         value={editILevel}
                         onChange={handleILevelChange}
+                        onBlur={handleILevelBlur}
+                        onFocus={handleILevelFocus}
                         placeholder="Enter item level"
                         min={ITEM_LEVEL_MIN}
                         max={ITEM_LEVEL_MAX}
@@ -224,6 +335,8 @@ const CreatedCharacterView: React.FC<CreatedCharacterProps> = ({
                         type="number"
                         value={keystoneMinLevel}
                         onChange={handleKeystoneMinLevelChange}
+                        onBlur={handleKeystoneMinBlur}
+                        onFocus={handleKeystoneMinFocus}
                         placeholder="Enter keystone min level"
                         min={KEYSTONE_MIN_LEVEL}
                         max={parseInt(keystoneMaxLevel) || KEYSTONE_MAX_LEVEL}
@@ -240,6 +353,8 @@ const CreatedCharacterView: React.FC<CreatedCharacterProps> = ({
                         type="number"
                         value={keystoneMaxLevel}
                         onChange={handleKeystoneMaxLevelChange}
+                        onBlur={handleKeystoneMaxBlur}
+                        onFocus={handleKeystoneMaxFocus}
                         placeholder="Enter keystone max level"
                         min={parseInt(keystoneMinLevel) || KEYSTONE_MIN_LEVEL}
                         max={KEYSTONE_MAX_LEVEL}
