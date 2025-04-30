@@ -10,6 +10,8 @@ import InputField from '../../InputFieldProps';
 import { KEYSTONE_MIN_LEVEL, KEYSTONE_MAX_LEVEL } from '../../../constants/keystoneLevels';
 import { ITEM_LEVEL_MIN, ITEM_LEVEL_MAX } from '../../../constants/itemLevels';
 
+const NAME_MAX_LENGTH = 12;
+
 interface CreatedCharacterProps {
     character: any;
     onSave: (updatedCharacter: any) => void;
@@ -76,7 +78,10 @@ const CreatedCharacterView: React.FC<CreatedCharacterProps> = ({
     };
 
     const handleNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setEditedName(event.target.value);
+        const inputValue = event.target.value;
+        if (inputValue.length <= NAME_MAX_LENGTH) {
+            setEditedName(inputValue);
+        }
     };
 
     const handleILevelChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -269,7 +274,8 @@ const CreatedCharacterView: React.FC<CreatedCharacterProps> = ({
                         type="text"
                         value={editedName}
                         onChange={handleNameChange}
-                        placeholder="Enter character name"
+                        placeholder={`Enter character name`}
+                        maxLength={NAME_MAX_LENGTH}
                     />
                 ) : (
                     character?.name || 'Unnamed Character'

@@ -11,6 +11,7 @@ import './EventRegisterForm.css';
 import { KEYSTONE_MIN_LEVEL, KEYSTONE_MAX_LEVEL } from '../../constants/keystoneLevels';
 import { ITEM_LEVEL_MIN, ITEM_LEVEL_MAX } from '../../constants/itemLevels';
 
+const NAME_MAX_LENGTH = 12;
 
 const EventRegisterForm: React.FC = () => {
   const [name, setName] = useState<string>('');
@@ -179,6 +180,13 @@ const EventRegisterForm: React.FC = () => {
     }
   };
 
+  const handleNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const inputValue = event.target.value;
+    if (inputValue.length <= NAME_MAX_LENGTH) {
+      setName(inputValue);
+    }
+  };
+
   const handleSave = async () => {
     if (!eventCode) {
       console.error('Event code is missing');
@@ -213,8 +221,9 @@ const EventRegisterForm: React.FC = () => {
         <InputField
           label="Name: "
           value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Enter character name"
+          onChange={handleNameChange}
+          placeholder={`Enter character name`}
+          maxLength={NAME_MAX_LENGTH}
         />
 
         {/* Champ de sélection pour les classes */}

@@ -10,9 +10,10 @@ export interface InputFieldProps {
   placeholder?: string;
   min?: number;
   max?: number;
+  maxLength?: number;
 }
 
-const InputField: React.FC<InputFieldProps> = ({ label, type = 'text', value, onChange, onBlur, onFocus, placeholder, min, max }) => (
+const InputField: React.FC<InputFieldProps> = ({ label, type = 'text', value, onChange, onBlur, onFocus, placeholder, min, max, maxLength }) => (
   <div className="input-box">
     <label>{label}</label>
     <input
@@ -24,6 +25,7 @@ const InputField: React.FC<InputFieldProps> = ({ label, type = 'text', value, on
       placeholder={placeholder}
       min={min}
       max={max}
+      maxLength={maxLength}
       className="input-field" // Ajout d'une classe pour le style
     />
   </div>
