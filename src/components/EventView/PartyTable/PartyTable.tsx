@@ -1,5 +1,6 @@
 import React from 'react';
 import { Party } from '../../../types/Party';
+import { Character } from '../../../types/Character';
 import DraggableCharacter from './DraggableCharacter';
 import EmptySlot from './EmptySlot/EmptySlot';
 import './PartyTable.css';
@@ -14,9 +15,16 @@ interface PartyTableProps {
     moveCharacter: (fromPartyIndex: number, toPartyIndex: number, memberId: number, toIndex: number) => void;
     swapCharacters: (fromPartyIndex: number, toPartyIndex: number, sourceId: number, targetId: number) => void;
     isAdmin: boolean;
+    onDrop?: (partyIndex: number, position: number, character: Character) => void;
 }
 
-const PartyTable: React.FC<PartyTableProps> = ({ parties, moveCharacter, swapCharacters, isAdmin }) => {
+const PartyTable: React.FC<PartyTableProps> = ({
+    parties,
+    moveCharacter,
+    swapCharacters,
+    isAdmin,
+    onDrop
+}) => {
     const { t } = useTranslation();
 
     // Fonction pour calculer l'iLevel moyen du groupe
@@ -56,6 +64,23 @@ const PartyTable: React.FC<PartyTableProps> = ({ parties, moveCharacter, swapCha
         });
     };
 
+    const handleDragOver = (e: React.DragEvent) => {
+        e.preventDefault();
+    };
+
+    const handleDrop = (e: React.DragEvent, partyIndex: number, position: number) => {
+        e.preventDefault();
+        const data = e.dataTransfer.getData('text/plain');
+        try {
+            const character = JSON.parse(data);
+            if (onDrop) {
+                onDrop(partyIndex, position, character);
+            }
+        } catch (error) {
+            console.error('Error parsing dragged character:', error);
+        }
+    };
+
     return (
         <div className="party-table-container">
             {parties.map((party, partyIndex) => (
@@ -78,7 +103,10 @@ const PartyTable: React.FC<PartyTableProps> = ({ parties, moveCharacter, swapCha
                                 <th>Battle Rez</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody
+                            onDragOver={handleDragOver}
+                            onDrop={(e) => handleDrop(e, partyIndex, party.members.length)}
+                        >
                             {getSortedMembers(party).map((member, sortedIndex) => {
                                 const originalIndex = party.members.findIndex(m => m.id === member.id);
                                 return (
@@ -145,6 +173,7 @@ const PartyTable: React.FC<PartyTableProps> = ({ parties, moveCharacter, swapCha
                                     moveCharacter={moveCharacter}
                                     currentMembersCount={party.members.length}
                                     isAdmin={isAdmin}
+                                    onDrop={onDrop}
                                 />
                             )}
                         </tbody>

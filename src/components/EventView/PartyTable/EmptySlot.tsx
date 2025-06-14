@@ -1,7 +1,6 @@
 import React from 'react';
 import { useDrop } from 'react-dnd';
-import './EmptySlot.css';
-import { Character } from '../../../../types/Character';
+import { Character } from '../../../types/Character';
 
 interface EmptySlotProps {
     partyIndex: number;
@@ -18,11 +17,9 @@ const EmptySlot: React.FC<EmptySlotProps> = ({ partyIndex, moveCharacter, curren
             if (isAdmin) {
                 if (item.fromPartyIndex !== undefined && item.memberId !== undefined) {
                     // C'est un drag and drop entre groupes
-                    console.log(`Dropping character ${item.memberId} from party ${item.fromPartyIndex} into empty slot at party ${partyIndex}`);
                     moveCharacter(item.fromPartyIndex, partyIndex, item.memberId, currentMembersCount);
                 } else if (item.character && onDrop) {
                     // C'est un drag and drop depuis la table des nouveaux joueurs
-                    console.log(`Dropping new character ${item.character.id} into empty slot at party ${partyIndex}`);
                     onDrop(partyIndex, currentMembersCount, item.character);
                 }
             }
@@ -40,4 +37,4 @@ const EmptySlot: React.FC<EmptySlotProps> = ({ partyIndex, moveCharacter, curren
     );
 };
 
-export default EmptySlot;
+export default EmptySlot; 

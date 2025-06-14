@@ -24,6 +24,7 @@ import { faShield, faHeart, faGavel, faHatWizard, faEye, faEyeSlash } from '@for
 import useAuthCheck from '../../hooks/useAuthCheck';
 import apiUrl from '../../config/apiConfig';
 import axios from 'axios';
+import { Character } from '../../types/Character';
 
 const EventView: React.FC = () => {
     const location = useLocation();
@@ -37,6 +38,8 @@ const EventView: React.FC = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [isVerifying, setIsVerifying] = useState(true); // État pour suivre la vérification
     const [arePartiesVisible, setArePartiesVisible] = useState(false);
+    const [draggedCharacter, setDraggedCharacter] = useState<Character | null>(null);
+    const [lastShuffleMaxId, setLastShuffleMaxId] = useState<number | null>(null);
 
     // Fonction pour vérifier l'existence de l'événement
     const checkEventExistence = async (): Promise<boolean> => {
@@ -172,6 +175,9 @@ const EventView: React.FC = () => {
                 }
 
                 setParties([...shuffledParties]);
+                // Stocker l'ID maximum des personnages présents au moment du mélange
+                const maxId = Math.max(...characters.map(char => char.id));
+                setLastShuffleMaxId(maxId);
 
             } catch (error) {
                 console.error('Error shuffling parties:', error);
@@ -323,10 +329,48 @@ const EventView: React.FC = () => {
         fetchParties();
     }, []);
 
+    // Filtrer les personnages qui ont rejoint après le dernier mélange
+    const charactersAfterShuffle = lastShuffleMaxId 
+        ? characters.filter(character => character.id > lastShuffleMaxId)
+        : [];
+
+    // Utiliser tous les personnages pour la waiting room
     const tanks = characters.filter((character) => character.role === 'TANK');
     const heals = characters.filter((character) => character.role === 'HEAL');
     const melees = characters.filter((character) => character.role === 'CAC');
     const dist = characters.filter((character) => character.role === 'DIST');
+
+    const handleDragStart = (character: Character) => {
+        setDraggedCharacter(character);
+    };
+
+    const handleDragEnd = () => {
+        setDraggedCharacter(null);
+    };
+
+    const handleDrop = (partyIndex: number, position: number, character: Character) => {
+        setParties(prevParties => {
+            const newParties = [...prevParties];
+            const targetParty = newParties[partyIndex];
+            
+            if (targetParty.members.length >= 5) {
+                return prevParties; // Le groupe est déjà complet
+            }
+
+            // Ajouter le personnage au groupe
+            targetParty.members.splice(position, 0, character);
+            
+            // Mettre à jour le backend
+            updatePartiesInBackend(newParties);
+            
+            return newParties;
+        });
+
+        // Mettre à jour lastShuffleMaxId pour que le personnage ne soit plus considéré comme nouveau
+        if (lastShuffleMaxId && character.id > lastShuffleMaxId) {
+            setLastShuffleMaxId(character.id);
+        }
+    };
 
     if (isVerifying || loading || !isAuthChecked) return <Loading />;
     if (error || errorState) return <div>{error || errorState}</div>;
@@ -353,18 +397,68 @@ const EventView: React.FC = () => {
                                 <ClearButton onClear={handleClearEvent} />
                                 <button className="eye-button" onClick={handleEyeButtonClick}>
                                     {!arePartiesVisible ? <FontAwesomeIcon icon={faEyeSlash}  style={{ color: 'red' }} /> : <FontAwesomeIcon icon={faEye} />}
-
                                 </button>
                             </div>
                         )}
                     </div>
+
+                    {!isAuthenticated && createdCharacter && parties.length > 0 && (
+                        <div style={{
+                            backgroundColor: '#dc3545',
+                            color: 'white',
+                            padding: '20px',
+                            margin: '20px auto',
+                            borderRadius: '8px',
+                            textAlign: 'center',
+                            fontSize: '1.2em',
+                            maxWidth: '800px',
+                            boxShadow: '0 4px 8px rgba(0,0,0,0.2)'
+                        }}>
+                            <h3 style={{ margin: '0 0 10px 0', fontSize: '1.5em' }}>
+                                ⚠️ Groups Have Been Formed!
+                            </h3>
+                            {!parties.some(party => party.members.some(member => member.id === createdCharacter.id)) ? (
+                                <p style={{ margin: '0' }}>
+                                    <strong>You are not yet assigned to a group.</strong><br/>
+                                    Please wait for the next shuffle to be included in a group.
+                                </p>
+                            ) : (
+                                <p style={{ margin: '0' }}>
+                                    <strong>You have been assigned to a group!</strong><br/>
+                                    Check the groups below to find your position.
+                                </p>
+                            )}
+                        </div>
+                    )}
 
                     <PartyTable
                         parties={parties}
                         moveCharacter={moveCharacter}
                         swapCharacters={swapCharacters}
                         isAdmin={isAuthenticated as boolean}
+                        onDrop={handleDrop}
                     />
+
+                    {charactersAfterShuffle.length > 0 && (
+                        <div className="table-container">
+                            <div className="table-wrapper">
+                                <div className="icon-text-container">
+                                    <h2 style={{ color: 'red' }}>⚠️ New Players ({charactersAfterShuffle.length})</h2>
+                                    <p style={{ color: 'gray', fontSize: '0.9em' }}>These players joined after the last shuffle and are not in the current groups</p>
+                                </div>
+                                <CharacterTable
+                                    characters={charactersAfterShuffle}
+                                    onDelete={isAuthenticated ? handleDelete : undefined}
+                                    onUpdate={isAuthenticated ? handleUpdate : undefined}
+                                    highlightedId={createdCharacter?.id}
+                                    isDraggable={!!isAuthenticated}
+                                    onDragStart={handleDragStart}
+                                    onDragEnd={handleDragEnd}
+                                    onDrop={handleDrop}
+                                />
+                            </div>
+                        </div>
+                    )}
 
                 </div>
             )}
