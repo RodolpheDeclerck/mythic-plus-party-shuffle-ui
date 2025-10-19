@@ -26,7 +26,7 @@ const EventView: React.FC = () => {
     const { isAuthenticated, isAuthChecked } = useAuthCheck();
     const { characters, loading, error, setCharacters } = useFetchCharacters(eventCode || '');
     // Custom hook for party management
-    const { parties, fetchParties, handleClearEvent, swapCharacters, moveCharacter, handleShuffle } = usePartyManagement(eventCode || '');
+    const { parties, error: partyError, fetchParties, handleClearEvent, swapCharacters, moveCharacter, handleShuffle } = usePartyManagement(eventCode || '');
     const [errorState, setErrorState] = useState<string | null>(null);
     
     // Custom hook for character management
@@ -71,7 +71,7 @@ const EventView: React.FC = () => {
     };
 
     const fetchPartiesWrapper = async () => {
-        fetchParties(setErrorState);
+        fetchParties();
     };
 
     // Initialize WebSocket connection
@@ -79,11 +79,11 @@ const EventView: React.FC = () => {
 
     // Wrapper functions to pass dependencies to hooks
     const handleShuffleWrapper = async () => {
-        handleShuffle(createdCharacter, setCreatedCharacter, setErrorState);
+        handleShuffle(createdCharacter, setCreatedCharacter);
     };
 
     const handleClearEventWrapper = async () => {
-        handleClearEvent(setErrorState);
+        handleClearEvent();
     };
 
     // Load parties on component mount
@@ -98,7 +98,7 @@ const EventView: React.FC = () => {
     const dist = characters.filter((character) => character.role === 'DIST');
 
     if (isVerifying || loading || !isAuthChecked) return <Loading />;
-    if (error || errorState || characterError) return <div>{error || errorState || characterError}</div>;
+    if (error || errorState || characterError || partyError) return <div>{error || errorState || characterError || partyError}</div>;
 
     return (
         <div>

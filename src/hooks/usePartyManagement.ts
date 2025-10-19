@@ -6,29 +6,30 @@ import axios from 'axios';
 
 export const usePartyManagement = (eventCode: string) => {
     const [parties, setParties] = useState<Party[]>([]);
+    const [error, setError] = useState<string | null>(null);
     
-    const fetchParties = async (setErrorState: (error: string) => void) => {
+    const fetchParties = async () => {
         if (eventCode) {
             try {
                 const updatedParties = await fetchPartiesApi(eventCode);
                 setParties([...updatedParties]);
             } catch (error) {
                 console.error('Error fetching parties:', error);
-                setErrorState('Failed to fetch parties');
+                setError('Failed to fetch parties');
             }
         } else {
             console.error('Event code is null');
         }
     };
     
-    const handleClearEvent = async (setErrorState: (error: string) => void) => {
+    const handleClearEvent = async () => {
         if (eventCode) {
             try {
                 await deleteParties(eventCode);
                 setParties([]);
             } catch (error) {
                 console.error('Error deleting parties:', error);
-                setErrorState('Failed to delete parties');
+                setError('Failed to delete parties');
             }
         } else {
             console.error('Event code is null');
@@ -119,7 +120,7 @@ export const usePartyManagement = (eventCode: string) => {
         });
     };
     
-    const handleShuffle = async (createdCharacter: any, setCreatedCharacter: (character: any) => void, setErrorState: (error: string) => void) => {
+    const handleShuffle = async (createdCharacter: any, setCreatedCharacter: (character: any) => void) => {
         if (eventCode) {
             try {
                 await axios.patch(
@@ -149,7 +150,7 @@ export const usePartyManagement = (eventCode: string) => {
 
             } catch (error) {
                 console.error('Error shuffling parties:', error);
-                setErrorState('Failed to shuffle parties');
+                setError('Failed to shuffle parties');
             }
         } else {
             console.error('Event code is null');
@@ -159,6 +160,7 @@ export const usePartyManagement = (eventCode: string) => {
     return { 
         parties, 
         setParties,
+        error,
         fetchParties,
         handleClearEvent,
         updatePartiesInBackend,
