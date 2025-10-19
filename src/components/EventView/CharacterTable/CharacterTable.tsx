@@ -4,8 +4,7 @@ import { useTranslation } from 'react-i18next';
 import './CharacterTable.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheck, faTimes } from '@fortawesome/free-solid-svg-icons';
-import { CharacterClassColors } from '../../../enums/CharacterClassColours';
-import { CharacterClass } from '../../../enums/CharacterClass';
+import { getCharacterCellClass } from '../../../utils/classNameHelper';
 
 interface CharacterTableProps {
     characters: Character[];
@@ -40,23 +39,23 @@ const CharacterTable: React.FC<CharacterTableProps> = ({ characters, onDelete, o
                         className={character.id === highlightedId ? 'highlight' : ''}
                         onClick={() => onUpdate && onUpdate(character)} // Appel de onUpdate lors du clic sur la ligne
                     >
-                        <td style={{ color: 'black', backgroundColor: CharacterClassColors[character.characterClass as CharacterClass] }}>
+                        <td className={getCharacterCellClass(character.characterClass)}>
                             <b>{character.id}</b>
                         </td>
-                        <td style={{ color: 'black', backgroundColor: CharacterClassColors[character.characterClass as CharacterClass] }}>
+                        <td className={getCharacterCellClass(character.characterClass)}>
                             <b>{character.name}</b>
                         </td>
-                        <td style={{ color: 'black', backgroundColor: CharacterClassColors[character.characterClass as CharacterClass] }}>
+                        <td className={getCharacterCellClass(character.characterClass)}>
                             <b>{character.characterClass}</b>
                         </td>
-                        <td style={{ color: 'black', backgroundColor: CharacterClassColors[character.characterClass as CharacterClass] }}>
+                        <td className={getCharacterCellClass(character.characterClass)}>
                             <b>{t(`specializations.${character.specialization}`)}</b>
                         </td>
-                        <td style={{ color: 'black', backgroundColor: CharacterClassColors[character.characterClass as CharacterClass] }}>
+                        <td className={getCharacterCellClass(character.characterClass)}>
                             <b>{character.iLevel}</b> <br></br>
                             ({character.keystoneMinLevel}-{character.keystoneMaxLevel})
                         </td>
-                        <td style={{ color: 'black', backgroundColor: CharacterClassColors[character.characterClass as CharacterClass] }}>
+                        <td className={getCharacterCellClass(character.characterClass)}>
                             {character.bloodLust && (
                                 <FontAwesomeIcon
                                     icon={faCheck}
@@ -64,7 +63,7 @@ const CharacterTable: React.FC<CharacterTableProps> = ({ characters, onDelete, o
                                 />
                             )}
                         </td>
-                        <td style={{ color: 'black', backgroundColor: CharacterClassColors[character.characterClass as CharacterClass] }}>
+                        <td className={getCharacterCellClass(character.characterClass)}>
                             {character.battleRez && (
                                 <FontAwesomeIcon
                                     icon={faCheck}
@@ -72,7 +71,7 @@ const CharacterTable: React.FC<CharacterTableProps> = ({ characters, onDelete, o
                                 />
                             )}
                         </td>
-                        <td style={{ color: 'black', backgroundColor: CharacterClassColors[character.characterClass as CharacterClass] }}>
+                        <td className={getCharacterCellClass(character.characterClass)}>
                             {onDelete && (
                                 <button
                                     className="delete-button"
