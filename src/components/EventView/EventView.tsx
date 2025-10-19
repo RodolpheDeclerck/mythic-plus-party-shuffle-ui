@@ -27,22 +27,23 @@ const EventView: React.FC = () => {
     const eventCode = new URLSearchParams(location.search).get('code');
     const { isAuthenticated, isAuthChecked } = useAuthCheck();
     const { characters, loading, error, setCharacters } = useFetchCharacters(eventCode || '');
-    // Hook personnalisé pour la gestion des groupes
+    // Custom hook for party management
     const { parties, fetchParties, handleClearEvent, swapCharacters, moveCharacter, handleShuffle } = usePartyManagement(eventCode || '');
     const [errorState, setErrorState] = useState<string | null>(null);
-    // Hook personnalisé pour la gestion des personnages
+    
+    // Custom hook for character management
     const { createdCharacter, setCreatedCharacter, isEditing, setIsEditing, handleSaveCharacter, handleUpdate, handleDelete, handleClear, handleCharacterDeletion } = useCharacterManagement();
     
-    // Hook personnalisé pour les données d'événement
+    // Custom hook for event data
     const { arePartiesVisible, isVerifying, setIsVerifying, checkEventExistence, fetchEvent, togglePartiesVisibility } = useEventData(eventCode || '');
 
 
-    // useEffect pour vérifier l'existence de l'événement au montage
+    // Check event existence on component mount
     useEffect(() => {
         const verifyAndRedirect = async () => {
             const eventExists = await checkEventExistence();
             if (!eventExists) {
-                navigate('/'); // Redirection vers la page d'accueil si l'événement n'existe pas
+                navigate('/'); // Redirect to home if event doesn't exist
             } else {
                 const characterData = localStorage.getItem('createdCharacter');
                 if (characterData) {
@@ -51,7 +52,7 @@ const EventView: React.FC = () => {
                     navigate('/event/register?code=' + eventCode);
                 }
             }
-            setIsVerifying(false); // Fin de la vérification
+            setIsVerifying(false); // End verification
         };
 
         verifyAndRedirect();
@@ -75,14 +76,13 @@ const EventView: React.FC = () => {
         fetchParties(setErrorState);
     };
 
-
-
+    // Initialize WebSocket connection
     useWebSocket(fetchCharacters, fetchPartiesWrapper, fetchEvent);
 
+    // Wrapper functions to pass dependencies to hooks
     const handleDeleteWrapper = async (id: number) => {
         handleDelete(id, deleteCharacter, fetchCharacters, setErrorState);
     };
-
 
     const handleShuffleWrapper = async () => {
         handleShuffle(createdCharacter, setCreatedCharacter, setErrorState);
@@ -96,15 +96,16 @@ const EventView: React.FC = () => {
         handleClearEvent(setErrorState);
     };
 
-
     const handleCharacterDeletionWrapper = (deletedId: number) => {
         handleCharacterDeletion(deletedId, setCharacters);
     };
 
+    // Load parties on component mount
     useEffect(() => {
         fetchPartiesWrapper();
     }, []);
 
+    // Filter characters by role
     const tanks = characters.filter((character) => character.role === 'TANK');
     const heals = characters.filter((character) => character.role === 'HEAL');
     const melees = characters.filter((character) => character.role === 'CAC');
@@ -124,6 +125,7 @@ const EventView: React.FC = () => {
                 setIsEditing={setIsEditing}
                 eventCode={eventCode ?? ''}
             />
+            {/* Event running section - shows parties when event is active */}
             {parties.length > 0 && (isAuthenticated || arePartiesVisible) && (
                 <div>
                     <div className="title-container">
@@ -135,7 +137,6 @@ const EventView: React.FC = () => {
                                 <ClearButton onClear={handleClearEventWrapper} />
                                 <button className="eye-button" onClick={togglePartiesVisibility}>
                                     {!arePartiesVisible ? <FontAwesomeIcon icon={faEyeSlash} className="role-icon-hidden" /> : <FontAwesomeIcon icon={faEye} />}
-
                                 </button>
                             </div>
                         )}
@@ -147,25 +148,31 @@ const EventView: React.FC = () => {
                         swapCharacters={swapCharacters}
                         isAdmin={isAuthenticated as boolean}
                     />
-
                 </div>
             )}
+            {/* Waiting room section */}
             <div className="title-container">
                 <div className="title-clear-container">
                     <h1 className="title">Waiting Room ({characters.length} participants)</h1>
                     {isAuthenticated && <ClearButton onClear={handleClearWrapper} />}
                 </div>
             </div>
+            
+            {/* Waiting message when no parties or parties not visible */}
             {parties.length === 0 || !arePartiesVisible &&
                 <div className="title-container">
                     <p><b>Waiting for the event to launch...</b></p>
                 </div>
             }
+            
+            {/* Shuffle button for authenticated users */}
             {isAuthenticated &&
                 <div className="title-container">
                     <ShuffleButton onShuffle={handleShuffleWrapper} />
                 </div>
             }
+            
+            {/* Character tables by role */}
             <div className="table-container">
                 <div className="table-wrapper">
                     <div className="icon-text-container">
