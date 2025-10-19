@@ -10,6 +10,7 @@ import {
 } from '../../services/api';
 import CreatedCharacter from './CreatedCharacter/CreatedCharacterView';
 import './EventView.css';
+import './EventHeader/EventHeader.css';
 import ClearButton from './ClearButton/ClearButton';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEye, faEyeSlash, faShield, faHeart, faGavel, faHatWizard } from '@fortawesome/free-solid-svg-icons';
@@ -115,17 +116,19 @@ const EventView: React.FC = () => {
             {parties.length > 0 && (isAuthenticated || arePartiesVisible) && (
                 <div>
                     <div className="title-container">
-                        <h2 className="subtitle">
-                            Event running... ({parties.reduce((acc, party) => acc + party.members.length, 0)} participants)
-                        </h2>
-                        {isAuthenticated && (
-                            <div className="party-button-container">
-                                <ClearButton onClear={handleClearEventWrapper} />
-                                <button className="eye-button" onClick={togglePartiesVisibility}>
-                                    {!arePartiesVisible ? <FontAwesomeIcon icon={faEyeSlash} className="role-icon-hidden" /> : <FontAwesomeIcon icon={faEye} />}
-                                </button>
-                            </div>
-                        )}
+                        <div className="event-header-content">
+                            <h2 className="subtitle">
+                                Event running... ({parties.reduce((acc, party) => acc + party.members.length, 0)} participants)
+                            </h2>
+                            {isAuthenticated && (
+                                <div className="button-container">
+                                    <ClearButton onClear={handleClearEvent} />
+                                    <button className="eye-button" onClick={togglePartiesVisibility}>
+                                        {!arePartiesVisible ? <FontAwesomeIcon icon={faEyeSlash} className="role-icon-hidden" /> : <FontAwesomeIcon icon={faEye} />}
+                                    </button>
+                                </div>
+                            )}
+                        </div>
                     </div>
 
                     <PartyTable

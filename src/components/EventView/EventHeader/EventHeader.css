@@ -1,0 +1,30 @@
+/* EventHeader specific styles - inherits from parent EventView.css */
+.party-button-container {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.eye-button {
+    background-color: #007bff; /* Fond bleu comme avant */
+    border: 1px solid #007bff; /* Bordure bleue */
+    color: white; /* Texte blanc */
+    cursor: pointer;
+    padding: 8px 16px; /* Même padding que ClearButton */
+    border-radius: 4px;
+    transition: background-color 0.2s;
+    height: 32px; /* Hauteur fixe identique à ClearButton */
+    width: auto; /* Largeur automatique basée sur le contenu */
+    min-width: 60px; /* Largeur minimale pour correspondre à ClearButton */
+    max-width: 80px; /* Largeur maximale pour correspondre à ClearButton */
+    font-size: 14px; /* Même taille de police que ClearButton */
+    display: inline-flex; /* Alignement en ligne avec ClearButton */
+    align-items: center;
+    justify-content: center;
+    vertical-align: top; /* Alignement vertical avec ClearButton */
+}
+
+.eye-button:hover {
+    background-color: #0056b3; /* Bleu plus foncé au survol */
+    border-color: #0056b3;
+}
