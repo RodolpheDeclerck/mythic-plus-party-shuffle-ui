@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Party } from '../types/Party';
 import { fetchParties as fetchPartiesApi, deleteParties } from '../services/api';
+import apiUrl from '../config/apiConfig';
 
 export const usePartyManagement = (eventCode: string) => {
     const [parties, setParties] = useState<Party[]>([]);
@@ -33,10 +34,30 @@ export const usePartyManagement = (eventCode: string) => {
         }
     };
     
+    const updatePartiesInBackend = async (updatedParties: Party[]) => {
+        try {
+            const response = await fetch(`${apiUrl}/api/events/${eventCode}/parties`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(updatedParties),
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to update parties');
+            }
+            console.log('Parties updated in Redis');
+        } catch (error) {
+            console.error('Error updating parties in Redis:', error);
+        }
+    };
+    
     return { 
         parties, 
         setParties,
         fetchParties,
-        handleClearEvent
+        handleClearEvent,
+        updatePartiesInBackend
     };
 };

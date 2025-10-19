@@ -35,7 +35,7 @@ const EventView: React.FC = () => {
     const { isAuthenticated, isAuthChecked } = useAuthCheck();
     const { characters, loading, error, setCharacters } = useFetchCharacters(eventCode || '');
     // Hook personnalisé pour la gestion des groupes
-    const { parties, setParties, fetchParties, handleClearEvent } = usePartyManagement(eventCode || '');
+    const { parties, setParties, fetchParties, handleClearEvent, updatePartiesInBackend } = usePartyManagement(eventCode || '');
     const [errorState, setErrorState] = useState<string | null>(null);
     // Hook personnalisé pour la gestion des personnages
     const { createdCharacter, setCreatedCharacter, isEditing, setIsEditing, handleSaveCharacter, handleUpdate, handleDelete, handleClear, handleCharacterDeletion } = useCharacterManagement();
@@ -207,24 +207,6 @@ const EventView: React.FC = () => {
         });
     };
 
-    const updatePartiesInBackend = async (updatedParties: Party[]) => {
-        try {
-            const response = await fetch(`${apiUrl}/api/events/${eventCode}/parties`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(updatedParties),
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to update parties');
-            }
-            console.log('Parties updated in Redis');
-        } catch (error) {
-            console.error('Error updating parties in Redis:', error);
-        }
-    };
 
     useEffect(() => {
         fetchPartiesWrapper();
