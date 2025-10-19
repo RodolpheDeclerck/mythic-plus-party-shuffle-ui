@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import PartyTable from './PartyTable/PartyTable';
-import CharacterTable from './CharacterTable/CharacterTable';
 import ShuffleButton from './ShuffleButton/ShuffleButton';
 import Loading from '../Loading';
 import useFetchCharacters from '../../hooks/useFetchCharacters';
@@ -13,7 +12,8 @@ import CreatedCharacter from './CreatedCharacter/CreatedCharacterView';
 import './EventView.css';
 import ClearButton from './ClearButton/ClearButton';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faShield, faHeart, faGavel, faHatWizard, faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
+import { faEye, faEyeSlash, faShield, faHeart, faGavel, faHatWizard } from '@fortawesome/free-solid-svg-icons';
+import RoleSection from './RoleSection/RoleSection';
 import useAuthCheck from '../../hooks/useAuthCheck';
 import { useEventData } from '../../hooks/useEventData';
 import { useCharacterManagement } from '../../hooks/useCharacterManagement';
@@ -160,54 +160,42 @@ const EventView: React.FC = () => {
             
             {/* Character tables by role */}
             <div className="table-container">
-                <div className="table-wrapper">
-                    <div className="icon-text-container">
-                        <FontAwesomeIcon icon={faShield} className="role-icon role-icon-tank" />
-                        <h2>Tanks ({tanks.length})</h2>
-                    </div>
-                    <CharacterTable
-                        characters={tanks}
-                        onDelete={isAuthenticated ? handleDelete : undefined}
-                        onUpdate={isAuthenticated ? handleUpdate : undefined}
-                        highlightedId={createdCharacter?.id}
-                    />
-                </div>
-                <div className="table-wrapper">
-                    <div className="icon-text-container">
-                        <FontAwesomeIcon icon={faHeart} className="role-icon role-icon-heal" />
-                        <h2>Heals ({heals.length})</h2>
-                    </div>
-                    <CharacterTable
-                        characters={heals}
-                        onDelete={isAuthenticated ? handleDelete : undefined}
-                        onUpdate={isAuthenticated ? handleUpdate : undefined}
-                        highlightedId={createdCharacter?.id}
-                    />
-                </div>
-                <div className="table-wrapper">
-                    <div className="icon-text-container">
-                        <FontAwesomeIcon icon={faGavel} className="role-icon role-icon-melee" />
-                        <h2>Melees ({melees.length})</h2>
-                    </div>
-                    <CharacterTable
-                        characters={melees}
-                        onDelete={isAuthenticated ? handleDelete : undefined}
-                        onUpdate={isAuthenticated ? handleUpdate : undefined}
-                        highlightedId={createdCharacter?.id}
-                    />
-                </div>
-                <div className="table-wrapper">
-                    <div className="icon-text-container">
-                        <FontAwesomeIcon icon={faHatWizard} className="role-icon role-icon-dist" />
-                        <h2>Dist ({dist.length})</h2>
-                    </div>
-                    <CharacterTable
-                        characters={dist}
-                        onDelete={isAuthenticated ? handleDelete : undefined}
-                        onUpdate={isAuthenticated ? handleUpdate : undefined}
-                        highlightedId={createdCharacter?.id}
-                    />
-                </div>
+                <RoleSection
+                    icon={faShield}
+                    title="Tanks"
+                    characters={tanks}
+                    onDelete={isAuthenticated ? handleDelete : undefined}
+                    onUpdate={isAuthenticated ? handleUpdate : undefined}
+                    highlightedId={createdCharacter?.id}
+                    className="role-icon-tank"
+                />
+                <RoleSection
+                    icon={faHeart}
+                    title="Heals"
+                    characters={heals}
+                    onDelete={isAuthenticated ? handleDelete : undefined}
+                    onUpdate={isAuthenticated ? handleUpdate : undefined}
+                    highlightedId={createdCharacter?.id}
+                    className="role-icon-heal"
+                />
+                <RoleSection
+                    icon={faGavel}
+                    title="Melees"
+                    characters={melees}
+                    onDelete={isAuthenticated ? handleDelete : undefined}
+                    onUpdate={isAuthenticated ? handleUpdate : undefined}
+                    highlightedId={createdCharacter?.id}
+                    className="role-icon-melee"
+                />
+                <RoleSection
+                    icon={faHatWizard}
+                    title="Dist"
+                    characters={dist}
+                    onDelete={isAuthenticated ? handleDelete : undefined}
+                    onUpdate={isAuthenticated ? handleUpdate : undefined}
+                    highlightedId={createdCharacter?.id}
+                    className="role-icon-dist"
+                />
             </div>
         </div>
     );
