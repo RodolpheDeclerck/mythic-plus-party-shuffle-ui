@@ -1,44 +1,48 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import PartyTable from './PartyTable/PartyTable';
 import ShuffleButton from './ShuffleButton/ShuffleButton';
 import Loading from '../Loading';
 import useFetchCharacters from '../../hooks/useFetchCharacters';
 import useWebSocket from '../../hooks/useWebSocket';
-import {
-    fetchCharacters as fetchCharactersApi,
-} from '../../services/api';
+import { fetchCharacters as fetchCharactersApi } from '../../services/api';
 import CreatedCharacter from './CreatedCharacter/CreatedCharacterView';
-import './EventView.css';
-import './EventHeader/EventHeader.css';
-import ClearButton from './ClearButton/ClearButton';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 import WaitingRoomHeader from './WaitingRoomHeader/WaitingRoomHeader';
 import WaitingRoom from './WaitingRoom/WaitingRoom';
 import useAuthCheck from '../../hooks/useAuthCheck';
 import { useEventData } from '../../hooks/useEventData';
 import { useCharacterManagement } from '../../hooks/useCharacterManagement';
 import { usePartyManagement } from '../../hooks/usePartyManagement';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
+import ClearButton from './ClearButton/ClearButton';
+import './EventView.css';
+import './EventHeader/EventHeader.css';
 
 const EventView: React.FC = () => {
+    // Router and navigation
     const location = useLocation();
     const navigate = useNavigate();
     const eventCode = new URLSearchParams(location.search).get('code');
+    
+    // Authentication
     const { isAuthenticated, isAuthChecked } = useAuthCheck();
+    
+    // Character data and management
     const { characters, loading, error, setCharacters } = useFetchCharacters(eventCode || '');
-    // Custom hook for party management
+    
+    // Party management
     const { parties, error: partyError, fetchParties, handleClearEvent, swapCharacters, moveCharacter, handleShuffle } = usePartyManagement(eventCode || '');
-    const [errorState, setErrorState] = useState<string | null>(null);
     
-    // Custom hook for character management
-    const { createdCharacter, setCreatedCharacter, isEditing, setIsEditing, error: characterError, handleSaveCharacter, handleUpdate, handleDelete, handleClear, handleCharacterDeletion } = useCharacterManagement(eventCode || '');
-    
-    // Custom hook for event data
+    // Event data and visibility
     const { arePartiesVisible, isVerifying, setIsVerifying, checkEventExistence, fetchEvent, togglePartiesVisibility } = useEventData(eventCode || '');
+    
+    // Local state
+    const [errorState, setErrorState] = useState<string | null>(null);
 
 
-    // Check event existence on component mount
+    // ===== INITIALIZATION =====
+    // Check event existence and handle initial setup
     useEffect(() => {
         const verifyAndRedirect = async () => {
             const eventExists = await checkEventExistence();
@@ -58,7 +62,8 @@ const EventView: React.FC = () => {
         verifyAndRedirect();
     }, [eventCode, isAuthChecked, isAuthenticated, navigate]);
 
-    const fetchCharacters = async () => {
+    // ===== API FUNCTIONS =====
+    const fetchCharacters = useCallback(async () => {
         if (eventCode) {
             try {
                 const updatedCharacters = await fetchCharactersApi(eventCode);
@@ -70,40 +75,47 @@ const EventView: React.FC = () => {
         } else {
             console.error('Event code is null');
         }
-    };
+    }, [eventCode, setCharacters]);
 
-    const fetchPartiesWrapper = async () => {
+    // Character management with refetch callback
+    const { createdCharacter, setCreatedCharacter, isEditing, setIsEditing, error: characterError, handleSaveCharacter, handleUpdate, handleDelete, handleClear, handleCharacterDeletion } = useCharacterManagement(eventCode || '', fetchCharacters);
+
+    const fetchPartiesWrapper = useCallback(async () => {
         fetchParties();
-    };
+    }, [fetchParties]);
 
+    const fetchEventWrapper = useCallback(async () => {
+        fetchEvent();
+    }, [fetchEvent]);
+
+    // ===== WEBSOCKET & EFFECTS =====
     // Initialize WebSocket connection
-    useWebSocket(fetchCharacters, fetchPartiesWrapper, fetchEvent);
-
-    // Wrapper functions to pass dependencies to hooks
-    const handleShuffleWrapper = async () => {
-        handleShuffle(createdCharacter, setCreatedCharacter);
-    };
-
-    const handleClearEventWrapper = async () => {
-        handleClearEvent();
-    };
+    useWebSocket(fetchCharacters, fetchPartiesWrapper, fetchEventWrapper);
 
     // Load parties on component mount
     useEffect(() => {
         fetchPartiesWrapper();
-    }, []);
+    }, [fetchPartiesWrapper]);
 
+    // ===== HELPER FUNCTIONS =====
+    const handleShuffleWrapper = () => {
+        handleShuffle(createdCharacter, setCreatedCharacter);
+    };
+
+    // ===== DATA PROCESSING =====
     // Filter characters by role
     const tanks = characters.filter((character) => character.role === 'TANK');
     const heals = characters.filter((character) => character.role === 'HEAL');
     const melees = characters.filter((character) => character.role === 'CAC');
     const dist = characters.filter((character) => character.role === 'DIST');
 
+    // ===== LOADING & ERROR STATES =====
     if (isVerifying || loading || !isAuthChecked) return <Loading />;
     if (error || errorState || characterError || partyError) return <div>{error || errorState || characterError || partyError}</div>;
 
     return (
         <div>
+            {/* ===== CHARACTER CREATION ===== */}
             <CreatedCharacter
                 character={isAuthenticated && !isEditing ? undefined : createdCharacter}
                 onSave={handleSaveCharacter}
@@ -113,22 +125,23 @@ const EventView: React.FC = () => {
                 setIsEditing={setIsEditing}
                 eventCode={eventCode ?? ''}
             />
-            {/* Event running section - shows parties when event is active */}
+            
+            {/* ===== EVENT RUNNING SECTION ===== */}
             {parties.length > 0 && (isAuthenticated || arePartiesVisible) && (
                 <div>
                     <div className="title-container">
                         <div className="event-header-content">
-                            <h2 className="subtitle">
-                                Event running... ({parties.reduce((acc, party) => acc + party.members.length, 0)} participants)
-                            </h2>
-                            {isAuthenticated && (
+                        <h2 className="subtitle">
+                            Event running... ({parties.reduce((acc, party) => acc + party.members.length, 0)} participants)
+                        </h2>
+                        {isAuthenticated && (
                                 <div className="button-container">
-                                    <ClearButton onClear={handleClearEvent} />
+                                <ClearButton onClear={handleClearEvent} />
                                     <button className="eye-button" onClick={togglePartiesVisibility}>
                                         {!arePartiesVisible ? <FontAwesomeIcon icon={faEyeSlash} className="role-icon-hidden" /> : <FontAwesomeIcon icon={faEye} />}
-                                    </button>
-                                </div>
-                            )}
+                                </button>
+                            </div>
+                        )}
                         </div>
                     </div>
 
@@ -140,28 +153,29 @@ const EventView: React.FC = () => {
                     />
                 </div>
             )}
-            {/* Waiting room section */}
+            
+            {/* ===== WAITING ROOM SECTION ===== */}
             <WaitingRoomHeader
                 characters={characters}
                 isAuthenticated={isAuthenticated ?? false}
                 onClear={handleClear}
             />
             
-            {/* Waiting message when no parties or parties not visible */}
+            {/* ===== WAITING MESSAGE ===== */}
             {parties.length === 0 || !arePartiesVisible &&
                 <div className="title-container">
                     <p><b>Waiting for the event to launch...</b></p>
                 </div>
             }
             
-            {/* Shuffle button for authenticated users */}
+            {/* ===== SHUFFLE BUTTON ===== */}
             {isAuthenticated &&
                 <div className="title-container">
                     <ShuffleButton onShuffle={handleShuffleWrapper} />
                 </div>
             }
             
-            {/* Character tables by role */}
+            {/* ===== CHARACTER TABLES BY ROLE ===== */}
             <WaitingRoom
                 tanks={tanks}
                 heals={heals}
@@ -170,8 +184,8 @@ const EventView: React.FC = () => {
                 isAuthenticated={isAuthenticated ?? false}
                 onDelete={handleDelete}
                 onUpdate={handleUpdate}
-                highlightedId={createdCharacter?.id}
-            />
+                        highlightedId={createdCharacter?.id}
+                    />
         </div>
     );
 };

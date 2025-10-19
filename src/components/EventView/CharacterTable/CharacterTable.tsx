@@ -76,7 +76,7 @@ const CharacterTable: React.FC<CharacterTableProps> = ({ characters, onDelete, o
                                 <button
                                     className="delete-button"
                                     onClick={(e) => {
-                                        e.stopPropagation(); // Empêche onClick de la ligne de se déclencher
+                                        e.stopPropagation(); // Prevents row onClick from triggering
                                         onDelete(character.id);
                                     }}
                                 >

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { deleteCharacter, deleteCharacters, fetchCharacters as fetchCharactersApi } from '../services/api';
 
-export const useCharacterManagement = (eventCode: string) => {
+export const useCharacterManagement = (eventCode: string, refetchCharacters?: () => void) => {
     const [createdCharacter, setCreatedCharacter] = useState<any | null>(null);
     const [isEditing, setIsEditing] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -9,6 +9,10 @@ export const useCharacterManagement = (eventCode: string) => {
     const handleSaveCharacter = (updatedCharacter: any) => {
         setCreatedCharacter({ ...updatedCharacter });
         localStorage.setItem('createdCharacter', JSON.stringify(updatedCharacter));
+        // Trigger refetch if callback provided
+        if (refetchCharacters) {
+            refetchCharacters();
+        }
     };
     
     const handleUpdate = (character: any) => {
@@ -19,7 +23,10 @@ export const useCharacterManagement = (eventCode: string) => {
     const handleDelete = async (id: number) => {
         try {
             await deleteCharacter(id);
-            // Characters will be refetched via WebSocket
+            // Trigger refetch if callback provided
+            if (refetchCharacters) {
+                refetchCharacters();
+            }
         } catch (error) {
             console.error(`Error deleting character with ID ${id}:`, error);
             setError('Failed to delete character');
@@ -30,7 +37,10 @@ export const useCharacterManagement = (eventCode: string) => {
         try {
             const ids = characters.map((character) => character.id);
             await deleteCharacters(ids);
-            // Characters will be refetched via WebSocket
+            // Trigger refetch if callback provided
+            if (refetchCharacters) {
+                refetchCharacters();
+            }
         } catch (error) {
             console.error('Error deleting characters:', error);
             setError('Failed to delete characters');

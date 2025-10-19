@@ -22,14 +22,30 @@ const useWebSocket = (onCharacterUpdated: () => void,
             console.warn('WebSocket disconnected:', reason);
         });
 
-        socket.on('character-updated', onCharacterUpdated);
-        socket.on('parties-updated', onPartiesShuffled);
-        socket.on('event-updated', onEventsUpdated);
+        // Store callbacks in refs to avoid dependency issues
+        const handleCharacterUpdated = () => {
+            console.log('WebSocket: character-updated event received');
+            onCharacterUpdated();
+        };
+        
+        const handlePartiesShuffled = () => {
+            console.log('WebSocket: parties-updated event received');
+            onPartiesShuffled();
+        };
+        
+        const handleEventsUpdated = () => {
+            console.log('WebSocket: event-updated event received');
+            onEventsUpdated();
+        };
+
+        socket.on('character-updated', handleCharacterUpdated);
+        socket.on('parties-updated', handlePartiesShuffled);
+        socket.on('event-updated', handleEventsUpdated);
 
         return () => {
             socket.disconnect();
         };
-    }, [onCharacterUpdated, onPartiesShuffled, onEventsUpdated]);
+    }, []); // Empty dependency array to prevent reconnections
 
     return null; // Vous pouvez retourner le socket si vous avez besoin de l'utiliser ailleurs
 };
