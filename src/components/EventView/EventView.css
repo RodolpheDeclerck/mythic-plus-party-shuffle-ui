@@ -167,3 +167,14 @@ td.new-column {
     align-items: center; /* Centrer verticalement le contenu */
     justify-content: center; /* Centrer horizontalement le contenu */
 }
+
+/* Classes pour les icônes de rôle */
+.role-icon {
+    margin-right: 8px;
+}
+
+.role-icon-tank { color: black; }
+.role-icon-heal { color: green; }
+.role-icon-melee { color: red; }
+.role-icon-dist { color: blue; }
+.role-icon-hidden { color: red; }

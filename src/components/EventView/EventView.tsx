@@ -352,7 +352,7 @@ const EventView: React.FC = () => {
                             <div className="party-button-container">
                                 <ClearButton onClear={handleClearEvent} />
                                 <button className="eye-button" onClick={handleEyeButtonClick}>
-                                    {!arePartiesVisible ? <FontAwesomeIcon icon={faEyeSlash}  style={{ color: 'red' }} /> : <FontAwesomeIcon icon={faEye} />}
+                                    {!arePartiesVisible ? <FontAwesomeIcon icon={faEyeSlash} className="role-icon-hidden" /> : <FontAwesomeIcon icon={faEye} />}
 
                                 </button>
                             </div>
@@ -387,7 +387,7 @@ const EventView: React.FC = () => {
             <div className="table-container">
                 <div className="table-wrapper">
                     <div className="icon-text-container">
-                        <FontAwesomeIcon icon={faShield} style={{ color: 'black', marginRight: '8px' }} />
+                        <FontAwesomeIcon icon={faShield} className="role-icon role-icon-tank" />
                         <h2>Tanks ({tanks.length})</h2>
                     </div>
                     <CharacterTable
@@ -399,7 +399,7 @@ const EventView: React.FC = () => {
                 </div>
                 <div className="table-wrapper">
                     <div className="icon-text-container">
-                        <FontAwesomeIcon icon={faHeart} style={{ color: 'green', marginRight: '8px' }} />
+                        <FontAwesomeIcon icon={faHeart} className="role-icon role-icon-heal" />
                         <h2>Heals ({heals.length})</h2>
                     </div>
                     <CharacterTable
@@ -411,7 +411,7 @@ const EventView: React.FC = () => {
                 </div>
                 <div className="table-wrapper">
                     <div className="icon-text-container">
-                        <FontAwesomeIcon icon={faGavel} style={{ color: 'red', marginRight: '8px' }} />
+                        <FontAwesomeIcon icon={faGavel} className="role-icon role-icon-melee" />
                         <h2>Melees ({melees.length})</h2>
                     </div>
                     <CharacterTable
@@ -423,7 +423,7 @@ const EventView: React.FC = () => {
                 </div>
                 <div className="table-wrapper">
                     <div className="icon-text-container">
-                        <FontAwesomeIcon icon={faHatWizard} style={{ color: 'blue', marginRight: '8px' }} />
+                        <FontAwesomeIcon icon={faHatWizard} className="role-icon role-icon-dist" />
                         <h2>Dist ({dist.length})</h2>
                     </div>
                     <CharacterTable
