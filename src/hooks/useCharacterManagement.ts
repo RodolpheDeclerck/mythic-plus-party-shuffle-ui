@@ -35,6 +35,10 @@ export const useCharacterManagement = () => {
         }
     };
     
+    const handleCharacterDeletion = (deletedId: number, setCharacters: (updater: (prevCharacters: any[]) => any[]) => void) => {
+        setCharacters((prevCharacters) => prevCharacters.filter((character) => character.id !== deletedId));
+    };
+    
     return { 
         createdCharacter, 
         setCreatedCharacter, 
@@ -43,6 +47,7 @@ export const useCharacterManagement = () => {
         handleSaveCharacter,
         handleUpdate,
         handleDelete,
-        handleClear
+        handleClear,
+        handleCharacterDeletion
     };
 };

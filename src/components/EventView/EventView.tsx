@@ -36,7 +36,7 @@ const EventView: React.FC = () => {
     const [parties, setParties] = useState<Party[]>([]);
     const [errorState, setErrorState] = useState<string | null>(null);
     // Hook personnalisé pour la gestion des personnages
-    const { createdCharacter, setCreatedCharacter, isEditing, setIsEditing, handleSaveCharacter, handleUpdate, handleDelete, handleClear } = useCharacterManagement();
+    const { createdCharacter, setCreatedCharacter, isEditing, setIsEditing, handleSaveCharacter, handleUpdate, handleDelete, handleClear, handleCharacterDeletion } = useCharacterManagement();
     
     // Hook personnalisé pour les données d'événement
     const { arePartiesVisible, setArePartiesVisible, isVerifying, setIsVerifying, checkEventExistence, fetchEvent, togglePartiesVisibility } = useEventData(eventCode || '');
@@ -155,8 +155,8 @@ const EventView: React.FC = () => {
     };
 
 
-    const handleCharacterDeletion = (deletedId: number) => {
-        setCharacters((prevCharacters) => prevCharacters.filter((character) => character.id !== deletedId));
+    const handleCharacterDeletionWrapper = (deletedId: number) => {
+        handleCharacterDeletion(deletedId, setCharacters);
     };
 
 
@@ -261,7 +261,7 @@ const EventView: React.FC = () => {
             <CreatedCharacter
                 character={isAuthenticated && !isEditing ? undefined : createdCharacter}
                 onSave={handleSaveCharacter}
-                onDelete={handleCharacterDeletion}
+                onDelete={handleCharacterDeletionWrapper}
                 isAdmin={isAuthenticated ?? false}
                 isEditing={isEditing}
                 setIsEditing={setIsEditing}
