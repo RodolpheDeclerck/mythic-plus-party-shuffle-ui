@@ -35,7 +35,7 @@ const EventView: React.FC = () => {
     const { isAuthenticated, isAuthChecked } = useAuthCheck();
     const { characters, loading, error, setCharacters } = useFetchCharacters(eventCode || '');
     // Hook personnalisé pour la gestion des groupes
-    const { parties, setParties, fetchParties, handleClearEvent, updatePartiesInBackend } = usePartyManagement(eventCode || '');
+    const { parties, setParties, fetchParties, handleClearEvent, updatePartiesInBackend, swapCharacters } = usePartyManagement(eventCode || '');
     const [errorState, setErrorState] = useState<string | null>(null);
     // Hook personnalisé pour la gestion des personnages
     const { createdCharacter, setCreatedCharacter, isEditing, setIsEditing, handleSaveCharacter, handleUpdate, handleDelete, handleClear, handleCharacterDeletion } = useCharacterManagement();
@@ -142,34 +142,6 @@ const EventView: React.FC = () => {
     };
 
 
-    const swapCharacters = (fromPartyIndex: number, toPartyIndex: number, sourceId: number, targetId: number) => {
-        setParties((prevParties) => {
-            const updatedParties = prevParties.map((party) => ({
-                ...party,
-                members: [...party.members],
-            }));
-
-            const sourceParty = updatedParties[fromPartyIndex];
-            const targetParty = updatedParties[toPartyIndex];
-
-            // Find the members by their IDs
-            const sourceMemberIndex = sourceParty.members.findIndex(m => m.id === sourceId);
-            const targetMemberIndex = targetParty.members.findIndex(m => m.id === targetId);
-
-            if (sourceMemberIndex === -1 || targetMemberIndex === -1) {
-                console.error("Members not found");
-                return prevParties;
-            }
-
-            // Perform the swap using the found indices
-            [sourceParty.members[sourceMemberIndex], targetParty.members[targetMemberIndex]] =
-                [targetParty.members[targetMemberIndex], sourceParty.members[sourceMemberIndex]];
-
-            updatePartiesInBackend(updatedParties);
-
-            return updatedParties;
-        });
-    };
 
     const moveCharacter = (fromPartyIndex: number, toPartyIndex: number, memberId: number, toIndex: number) => {
         setParties((prevParties) => {
