@@ -87,16 +87,16 @@ const CreatedCharacterView: React.FC<CreatedCharacterProps> = ({
     const handleILevelChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const inputValue = event.target.value;
         
-        // Si c'est la première saisie après le focus, on remplace complètement la valeur
+        // If it's the first input after focus, replace the entire value
         if (isFirstInputAfterFocus) {
             setIsFirstInputAfterFocus(false);
-            // On prend uniquement le dernier caractère saisi
+            // Take only the last character entered
             const lastChar = inputValue.slice(-1);
             setILevel(lastChar);
             return;
         }
 
-        // Si la valeur dépasse 3 chiffres (4 ou plus), on prend le dernier chiffre saisi
+        // If value exceeds 3 digits (4 or more), take the last digit entered
         if (inputValue.length > 3) {
             const lastChar = inputValue.slice(-1);
             setILevel(lastChar);
@@ -130,16 +130,16 @@ const CreatedCharacterView: React.FC<CreatedCharacterProps> = ({
     const handleKeystoneMinLevelChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const inputValue = event.target.value;
         
-        // Si c'est la première saisie après le focus, on remplace complètement la valeur
+        // If it's the first input after focus, replace the entire value
         if (isFirstInputAfterFocusKeyMin) {
             setIsFirstInputAfterFocusKeyMin(false);
-            // On prend uniquement le dernier caractère saisi
+            // Take only the last character entered
             const lastChar = inputValue.slice(-1);
             setKeystoneMinLevel(lastChar);
             return;
         }
 
-        // Si la valeur dépasse 2 chiffres (3 ou plus), on prend le dernier chiffre saisi
+        // If value exceeds 2 digits (3 or more), take the last digit entered
         if (inputValue.length > 2) {
             const lastChar = inputValue.slice(-1);
             setKeystoneMinLevel(lastChar);
@@ -153,16 +153,16 @@ const CreatedCharacterView: React.FC<CreatedCharacterProps> = ({
     const handleKeystoneMaxLevelChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const inputValue = event.target.value;
         
-        // Si c'est la première saisie après le focus, on remplace complètement la valeur
+        // If it's the first input after focus, replace the entire value
         if (isFirstInputAfterFocusKeyMax) {
             setIsFirstInputAfterFocusKeyMax(false);
-            // On prend uniquement le dernier caractère saisi
+            // Take only the last character entered
             const lastChar = inputValue.slice(-1);
             setKeystoneMaxLevel(lastChar);
             return;
         }
 
-        // Si la valeur dépasse 2 chiffres (3 ou plus), on prend le dernier chiffre saisi
+        // If value exceeds 2 digits (3 or more), take the last digit entered
         if (inputValue.length > 2) {
             const lastChar = inputValue.slice(-1);
             setKeystoneMaxLevel(lastChar);

@@ -13,17 +13,17 @@ export const ClassesProvider: React.FC<{ children: ReactNode }> = ({ children })
   const [classes, setClasses] = useState<string[]>([]);
 
   useEffect(() => {
-    // Vérifier si les classes sont déjà stockées dans le localStorage
+    // Check if classes are already stored in localStorage
     const storedClasses = localStorage.getItem('classes');
     if (storedClasses) {
       setClasses(JSON.parse(storedClasses));
     } else {
-      // Sinon, appeler l'API pour les récupérer
+      // Otherwise, call the API to retrieve them
       const fetchClasses = async () => {
         try {
           const response = await axios.get<string[]>(`${apiUrl}/api/classes`);
           setClasses(response.data);
-          // Stocker les données récupérées dans le localStorage
+          // Store retrieved data in localStorage
           localStorage.setItem('classes', JSON.stringify(response.data));
         } catch (error) {
           console.error('Error fetching classes:', error);
@@ -41,7 +41,7 @@ export const ClassesProvider: React.FC<{ children: ReactNode }> = ({ children })
   );
 };
 
-// Hook personnalisé pour utiliser le contexte des classes
+// Custom hook to use the classes context
 export const useClasses = () => {
   const context = useContext(ClassesContext);
   if (!context) {

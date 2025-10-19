@@ -3,8 +3,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import InputField from '../InputFieldProps';
 import SelectField from '../SelectField';
 import { useTranslation } from 'react-i18next';
-import { useClasses } from '../../context/ClassesContext'; // Importer le hook personnalisé pour les classes
-import { useSpecializations } from '../../context/SpecializationsContext'; // Importer le hook personnalisé pour les spécialisations
+import { useClasses } from '../../context/ClassesContext'; // Import custom hook for classes
+import { useSpecializations } from '../../context/SpecializationsContext'; // Import custom hook for specializations
 import axios from 'axios';
 import apiUrl from '../../config/apiConfig';
 import './EventRegisterForm.css';
@@ -27,16 +27,16 @@ const EventRegisterForm: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
 
-  const { classes } = useClasses(); // Utiliser le contexte pour les classes
-  const { specializations, fetchSpecializations } = useSpecializations(); // Utiliser le contexte pour les spécialisations
+  const { classes } = useClasses(); // Use context for classes
+  const { specializations, fetchSpecializations } = useSpecializations(); // Use context for specializations
 
-  const location = useLocation(); // Utiliser useLocation pour obtenir l'objet location
-  const eventCode = new URLSearchParams(location.search).get('code'); // Extraire le code depuis location.search
+  const location = useLocation(); // Use useLocation to get location object
+  const eventCode = new URLSearchParams(location.search).get('code'); // Extract code from location.search
 
-  // Vérifier si un personnage existe déjà dans le localStorage
+  // Check if a character already exists in localStorage
   useEffect(() => {
     const storedCharacter = localStorage.getItem('createdCharacter');
-    if (storedCharacter && eventCode) { // Vérifie également que eventCode est défini
+    if (storedCharacter && eventCode) { // Also check that eventCode is defined
       navigate('/event?code=' + eventCode);
     }
   }, [navigate, eventCode]);
@@ -54,16 +54,16 @@ const EventRegisterForm: React.FC = () => {
   const handleILevelChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const inputValue = event.target.value;
     
-    // Si c'est la première saisie après le focus, on remplace complètement la valeur
+    // If it's the first input after focus, replace the entire value
     if (isFirstInputAfterFocus) {
       setIsFirstInputAfterFocus(false);
-      // On prend uniquement le dernier caractère saisi
+      // Take only the last character entered
       const lastChar = inputValue.slice(-1);
       setILevel(lastChar);
       return;
     }
 
-    // Si la valeur dépasse 3 chiffres (4 ou plus), on prend le dernier chiffre saisi
+    // If value exceeds 3 digits (4 or more), take the last digit entered
     if (inputValue.length > 3) {
       const lastChar = inputValue.slice(-1);
       setILevel(lastChar);
@@ -97,16 +97,16 @@ const EventRegisterForm: React.FC = () => {
   const handleKeystoneMinChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const inputValue = event.target.value;
     
-    // Si c'est la première saisie après le focus, on remplace complètement la valeur
+    // If it's the first input after focus, replace the entire value
     if (isFirstInputAfterFocusKeyMin) {
       setIsFirstInputAfterFocusKeyMin(false);
-      // On prend uniquement le dernier caractère saisi
+      // Take only the last character entered
       const lastChar = inputValue.slice(-1);
       setKStoneMin(lastChar);
       return;
     }
 
-    // Si la valeur dépasse 2 chiffres (3 ou plus), on prend le dernier chiffre saisi
+    // If value exceeds 2 digits (3 or more), take the last digit entered
     if (inputValue.length > 2) {
       const lastChar = inputValue.slice(-1);
       setKStoneMin(lastChar);
@@ -120,16 +120,16 @@ const EventRegisterForm: React.FC = () => {
   const handleKeystoneMaxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const inputValue = event.target.value;
     
-    // Si c'est la première saisie après le focus, on remplace complètement la valeur
+    // If it's the first input after focus, replace the entire value
     if (isFirstInputAfterFocusKeyMax) {
       setIsFirstInputAfterFocusKeyMax(false);
-      // On prend uniquement le dernier caractère saisi
+      // Take only the last character entered
       const lastChar = inputValue.slice(-1);
       setKStoneMax(lastChar);
       return;
     }
 
-    // Si la valeur dépasse 2 chiffres (3 ou plus), on prend le dernier chiffre saisi
+    // If value exceeds 2 digits (3 or more), take the last digit entered
     if (inputValue.length > 2) {
       const lastChar = inputValue.slice(-1);
       setKStoneMax(lastChar);

@@ -30,9 +30,9 @@ const DraggableCharacter: React.FC<DraggableCharacterProps> = ({
         drop: (item: { fromPartyIndex: number; memberId: number }) => {
             if (isAdmin) {
                 if (item.fromPartyIndex === partyIndex && item.memberId === member.id) {
-                    return; // Ne rien faire si on drop sur le même personnage
+                    return; // Do nothing if dropping on the same character
                 }
-                // Si on drop sur un autre personnage, échanger les personnages
+                // If dropping on another character, swap characters
                 swapCharacters(item.fromPartyIndex, partyIndex, item.memberId, member.id);
             }
         },

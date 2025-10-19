@@ -23,7 +23,7 @@ const useAuthCheck = () => {
         }
     };
 
-    // Exécute `checkAuth` au montage, si `isAuthChecked` n'est pas défini
+    // Execute `checkAuth` on mount, if `isAuthChecked` is not defined
     useEffect(() => {
         if (!authContext?.isAuthChecked) {
             checkAuth();

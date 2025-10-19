@@ -5,10 +5,10 @@ const SignIn = () => {
     const location = useLocation();
 
     const handleSignIn = () => {
-        // Stocke l'URL complète (path + search) dans le localStorage avant de rediriger vers la page de connexion
+        // Store complete URL (path + search) in localStorage before redirecting to login page
         const redirectUrl = location.pathname + location.search;
         localStorage.setItem('redirectAfterLogin', redirectUrl);
-        window.location.href = '/login'; // Redirection vers la page de connexion
+        window.location.href = '/login'; // Redirect to login page
     };
 
     return (

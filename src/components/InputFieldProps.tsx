@@ -2,7 +2,7 @@ import React from 'react';
 
 export interface InputFieldProps {
   label: string;
-  type?: string; // Ajout d'un prop type pour définir le type d'input
+  type?: string; // Add a type prop to define input type
   value: string | number;
   onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onBlur?: (event: React.FocusEvent<HTMLInputElement>) => void;

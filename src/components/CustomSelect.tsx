@@ -43,7 +43,7 @@ const customStyles = {
 
 interface CustomSelectProps {
     options: { value: string; label: string }[];
-    value: { value: string; label: string } | null; // Ajout de la prop value
+    value: { value: string; label: string } | null; // Add value prop
     placeholder?: string;
     onChange: (selectedOption: SingleValue<{ value: string; label: string }>) => void;
 }
@@ -53,7 +53,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({ options, value, placeholder
         <Select
             styles={customStyles}
             options={options}
-            value={value} // Définit la valeur sélectionnée
+            value={value} // Set selected value
             placeholder={placeholder}
             onChange={onChange}
         />
