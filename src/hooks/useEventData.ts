@@ -13,19 +13,18 @@ export const useEventData = (eventCode: string) => {
                 const response = await axios.get<Event>(`${apiUrl}/api/events?code=${eventCode}`, { withCredentials: true });
                 const event = response.data;
                 if (event) {
-                    setArePartiesVisible(event.arePartiesVisible); // Stockez la valeur dans l'état
+                    setArePartiesVisible(event.arePartiesVisible);
                 }
-                setArePartiesVisible(event.arePartiesVisible); // Stockez la valeur dans l'état
-                return true; // L'événement existe
+                return true;
             } catch (error: any) {
                 if (error.response && error.response.status === 404) {
-                    return false; // L'événement n'existe pas
+                    return false;
                 } else {
-                    console.error('Erreur lors de la vérification de l\'événement:', error);
+                    console.error('Error checking event existence:', error);
                 }
             }
         }
-        return false; // Aucun eventCode ou autre erreur
+        return false;
     };
 
     const fetchEvent = async () => {
@@ -34,12 +33,11 @@ export const useEventData = (eventCode: string) => {
                 const response = await axios.get<Event>(`${apiUrl}/api/events?code=${eventCode}`, { withCredentials: true });
                 const event = response.data;
                 if (event) {
-                    setArePartiesVisible(event.arePartiesVisible); // Stockez la valeur dans l'état
+                    setArePartiesVisible(event.arePartiesVisible);
                 }
             } catch (error: any) {
                 if (error.response && error.response.status === 404) {
                     console.error('Error fetching event:', error);
-                    // Note: setErrorState n'est pas disponible dans ce hook
                 } else {
                     console.error('Error fetching event:', error);
                 }
@@ -54,11 +52,10 @@ export const useEventData = (eventCode: string) => {
         }
 
         try {
-            // Envoyer une requête PATCH pour mettre à jour la visibilité
             await axios.patch(
                 `${apiUrl}/api/events/${eventCode}/setPartiesVisibility`,
-                { visible: !arePartiesVisible }, // Corps de la requête
-                { withCredentials: true } // Inclure les cookies si nécessaires
+                { visible: !arePartiesVisible },
+                { withCredentials: true }
             );
 
         } catch (error) {
