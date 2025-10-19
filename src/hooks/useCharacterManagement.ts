@@ -9,11 +9,17 @@ export const useCharacterManagement = () => {
         localStorage.setItem('createdCharacter', JSON.stringify(updatedCharacter));
     };
     
+    const handleUpdate = (character: any) => {
+        setCreatedCharacter(character);
+        setIsEditing(true);
+    };
+    
     return { 
         createdCharacter, 
         setCreatedCharacter, 
         isEditing, 
         setIsEditing,
-        handleSaveCharacter
+        handleSaveCharacter,
+        handleUpdate
     };
 };

@@ -36,7 +36,7 @@ const EventView: React.FC = () => {
     const [parties, setParties] = useState<Party[]>([]);
     const [errorState, setErrorState] = useState<string | null>(null);
     // Hook personnalisé pour la gestion des personnages
-    const { createdCharacter, setCreatedCharacter, isEditing, setIsEditing, handleSaveCharacter } = useCharacterManagement();
+    const { createdCharacter, setCreatedCharacter, isEditing, setIsEditing, handleSaveCharacter, handleUpdate } = useCharacterManagement();
     
     // Hook personnalisé pour les données d'événement
     const { arePartiesVisible, setArePartiesVisible, isVerifying, setIsVerifying, checkEventExistence, fetchEvent, togglePartiesVisibility } = useEventData(eventCode || '');
@@ -104,10 +104,6 @@ const EventView: React.FC = () => {
         }
     };
 
-    const handleUpdate = (character: any) => {
-        setCreatedCharacter(character);
-        setIsEditing(true);
-    };
 
     const handleShuffle = async () => {
         if (eventCode) {
