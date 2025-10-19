@@ -39,7 +39,7 @@ const EventView: React.FC = () => {
     const [isVerifying, setIsVerifying] = useState(true); // État pour suivre la vérification
     
     // Hook personnalisé pour les données d'événement
-    const { arePartiesVisible, setArePartiesVisible, checkEventExistence } = useEventData(eventCode || '');
+    const { arePartiesVisible, setArePartiesVisible, checkEventExistence, fetchEvent, togglePartiesVisibility } = useEventData(eventCode || '');
 
 
     // useEffect pour vérifier l'existence de l'événement au montage
@@ -90,24 +90,6 @@ const EventView: React.FC = () => {
         }
     };
 
-    const fetchEvent = async () => {
-        if (eventCode) {
-            try {
-                const response = await axios.get<Event>(`${apiUrl}/api/events?code=${eventCode}`, { withCredentials: true });
-                const event = response.data;
-                if (event) {
-                    setArePartiesVisible(event.arePartiesVisible); // Stockez la valeur dans l'état
-                }
-            } catch (error: any) {
-                if (error.response && error.response.status === 404) {
-                    console.error('Error fetching event:', error);
-                    setErrorState('Failed to fetch event');
-                } else {
-                    console.error('Error fetching event:', error);
-                }
-            }
-        }
-    }
 
 
     useWebSocket(fetchCharacters, fetchParties, fetchEvent);
@@ -198,24 +180,6 @@ const EventView: React.FC = () => {
         setCharacters((prevCharacters) => prevCharacters.filter((character) => character.id !== deletedId));
     };
 
-    const handleEyeButtonClick = async () => {
-        if (!eventCode) {
-            console.error('Event code is missing.');
-            return;
-        }
-
-        try {
-            // Envoyer une requête PATCH pour mettre à jour la visibilité
-            await axios.patch(
-                `${apiUrl}/api/events/${eventCode}/setPartiesVisibility`,
-                { visible: !arePartiesVisible }, // Corps de la requête
-                { withCredentials: true } // Inclure les cookies si nécessaires
-            );
-
-        } catch (error) {
-            console.error('Failed to update parties visibility:', error);
-        }
-    };
 
     const swapCharacters = (fromPartyIndex: number, toPartyIndex: number, sourceId: number, targetId: number) => {
         setParties((prevParties) => {
@@ -333,7 +297,7 @@ const EventView: React.FC = () => {
                         {isAuthenticated && (
                             <div className="party-button-container">
                                 <ClearButton onClear={handleClearEvent} />
-                                <button className="eye-button" onClick={handleEyeButtonClick}>
+                                <button className="eye-button" onClick={togglePartiesVisibility}>
                                     {!arePartiesVisible ? <FontAwesomeIcon icon={faEyeSlash} className="role-icon-hidden" /> : <FontAwesomeIcon icon={faEye} />}
 
                                 </button>
