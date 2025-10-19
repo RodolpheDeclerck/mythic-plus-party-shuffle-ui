@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 
 interface DraggableCharacterProps {
@@ -18,7 +18,7 @@ const DraggableCharacter: React.FC<DraggableCharacterProps> = ({
 }) => {
     const ref = useRef<HTMLTableRowElement>(null);
 
-    const [, drag] = useDrag({
+    const [{ isDragging }, drag] = useDrag({
         type: 'CHARACTER',
         item: { 
             fromPartyIndex: partyIndex,
@@ -27,7 +27,54 @@ const DraggableCharacter: React.FC<DraggableCharacterProps> = ({
             member: sourceType === 'pending' ? member : undefined // Pass full member if from pending
         },
         canDrag: () => isAdmin,
+        collect: (monitor) => ({
+            isDragging: monitor.isDragging()
+        })
     });
+
+    // Auto-scroll effect during drag
+    useEffect(() => {
+        if (!isDragging) return;
+
+        let intervalId: NodeJS.Timeout;
+        let mouseY = window.innerHeight / 2; // Default to center
+
+        const handleMouseMove = (e: MouseEvent) => {
+            mouseY = e.clientY;
+        };
+
+        const autoScroll = () => {
+            const scrollZone = 150; // 150px from edges (more sensitive)
+            const maxSpeed = 25; // Faster scroll speed
+            const windowHeight = window.innerHeight;
+            
+            let scrollAmount = 0;
+            
+            // Scroll up if mouse is near top
+            if (mouseY < scrollZone) {
+                const ratio = 1 - (mouseY / scrollZone);
+                scrollAmount = -Math.ceil(ratio * maxSpeed);
+            }
+            // Scroll down if mouse is near bottom
+            else if (mouseY > windowHeight - scrollZone) {
+                const ratio = (mouseY - (windowHeight - scrollZone)) / scrollZone;
+                scrollAmount = Math.ceil(ratio * maxSpeed);
+            }
+            
+            if (scrollAmount !== 0) {
+                window.scrollBy(0, scrollAmount);
+            }
+        };
+
+        // Add event listener for mouse movement
+        document.addEventListener('mousemove', handleMouseMove, { passive: true });
+        intervalId = setInterval(autoScroll, 16); // ~60fps
+
+        return () => {
+            document.removeEventListener('mousemove', handleMouseMove);
+            clearInterval(intervalId);
+        };
+    }, [isDragging]);
 
     const [, drop] = useDrop({
         accept: 'CHARACTER',
