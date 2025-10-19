@@ -5,6 +5,7 @@ import { Event } from '../types/Event';
 
 export const useEventData = (eventCode: string) => {
     const [arePartiesVisible, setArePartiesVisible] = useState(false);
+    const [isVerifying, setIsVerifying] = useState(true);
     
     const checkEventExistence = async (): Promise<boolean> => {
         if (eventCode) {
@@ -68,6 +69,8 @@ export const useEventData = (eventCode: string) => {
     return { 
         arePartiesVisible, 
         setArePartiesVisible,
+        isVerifying,
+        setIsVerifying,
         checkEventExistence,
         fetchEvent,
         togglePartiesVisibility

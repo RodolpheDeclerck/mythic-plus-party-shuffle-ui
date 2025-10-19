@@ -36,10 +36,9 @@ const EventView: React.FC = () => {
     const [errorState, setErrorState] = useState<string | null>(null);
     const [createdCharacter, setCreatedCharacter] = useState<any | null>(null);
     const [isEditing, setIsEditing] = useState(false);
-    const [isVerifying, setIsVerifying] = useState(true); // État pour suivre la vérification
     
     // Hook personnalisé pour les données d'événement
-    const { arePartiesVisible, setArePartiesVisible, checkEventExistence, fetchEvent, togglePartiesVisibility } = useEventData(eventCode || '');
+    const { arePartiesVisible, setArePartiesVisible, isVerifying, setIsVerifying, checkEventExistence, fetchEvent, togglePartiesVisibility } = useEventData(eventCode || '');
 
 
     // useEffect pour vérifier l'existence de l'événement au montage
