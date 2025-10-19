@@ -36,7 +36,7 @@ const EventView: React.FC = () => {
     const [parties, setParties] = useState<Party[]>([]);
     const [errorState, setErrorState] = useState<string | null>(null);
     // Hook personnalisé pour la gestion des personnages
-    const { createdCharacter, setCreatedCharacter, isEditing, setIsEditing, handleSaveCharacter, handleUpdate } = useCharacterManagement();
+    const { createdCharacter, setCreatedCharacter, isEditing, setIsEditing, handleSaveCharacter, handleUpdate, handleDelete } = useCharacterManagement();
     
     // Hook personnalisé pour les données d'événement
     const { arePartiesVisible, setArePartiesVisible, isVerifying, setIsVerifying, checkEventExistence, fetchEvent, togglePartiesVisibility } = useEventData(eventCode || '');
@@ -94,14 +94,8 @@ const EventView: React.FC = () => {
 
     useWebSocket(fetchCharacters, fetchParties, fetchEvent);
 
-    const handleDelete = async (id: number) => {
-        try {
-            await deleteCharacter(id);
-            fetchCharacters();
-        } catch (error) {
-            console.error(`Error deleting character with ID ${id}:`, error);
-            setErrorState('Failed to delete character');
-        }
+    const handleDeleteWrapper = async (id: number) => {
+        handleDelete(id, deleteCharacter, fetchCharacters, setErrorState);
     };
 
 
@@ -330,7 +324,7 @@ const EventView: React.FC = () => {
                     </div>
                     <CharacterTable
                         characters={tanks}
-                        onDelete={isAuthenticated ? handleDelete : undefined}
+                        onDelete={isAuthenticated ? handleDeleteWrapper : undefined}
                         onUpdate={isAuthenticated ? handleUpdate : undefined}
                         highlightedId={createdCharacter?.id}
                     />
@@ -342,7 +336,7 @@ const EventView: React.FC = () => {
                     </div>
                     <CharacterTable
                         characters={heals}
-                        onDelete={isAuthenticated ? handleDelete : undefined}
+                        onDelete={isAuthenticated ? handleDeleteWrapper : undefined}
                         onUpdate={isAuthenticated ? handleUpdate : undefined}
                         highlightedId={createdCharacter?.id}
                     />
@@ -354,7 +348,7 @@ const EventView: React.FC = () => {
                     </div>
                     <CharacterTable
                         characters={melees}
-                        onDelete={isAuthenticated ? handleDelete : undefined}
+                        onDelete={isAuthenticated ? handleDeleteWrapper : undefined}
                         onUpdate={isAuthenticated ? handleUpdate : undefined}
                         highlightedId={createdCharacter?.id}
                     />
@@ -366,7 +360,7 @@ const EventView: React.FC = () => {
                     </div>
                     <CharacterTable
                         characters={dist}
-                        onDelete={isAuthenticated ? handleDelete : undefined}
+                        onDelete={isAuthenticated ? handleDeleteWrapper : undefined}
                         onUpdate={isAuthenticated ? handleUpdate : undefined}
                         highlightedId={createdCharacter?.id}
                     />

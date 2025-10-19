@@ -14,12 +14,23 @@ export const useCharacterManagement = () => {
         setIsEditing(true);
     };
     
+    const handleDelete = async (id: number, deleteCharacterApi: (id: number) => Promise<void>, fetchCharacters: () => Promise<void>, setErrorState: (error: string) => void) => {
+        try {
+            await deleteCharacterApi(id);
+            fetchCharacters();
+        } catch (error) {
+            console.error(`Error deleting character with ID ${id}:`, error);
+            setErrorState('Failed to delete character');
+        }
+    };
+    
     return { 
         createdCharacter, 
         setCreatedCharacter, 
         isEditing, 
         setIsEditing,
         handleSaveCharacter,
-        handleUpdate
+        handleUpdate,
+        handleDelete
     };
 };
