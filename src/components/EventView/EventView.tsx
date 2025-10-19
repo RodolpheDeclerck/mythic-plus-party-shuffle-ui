@@ -35,7 +35,7 @@ const EventView: React.FC = () => {
     const { isAuthenticated, isAuthChecked } = useAuthCheck();
     const { characters, loading, error, setCharacters } = useFetchCharacters(eventCode || '');
     // Hook personnalisé pour la gestion des groupes
-    const { parties, setParties } = usePartyManagement(eventCode || '');
+    const { parties, setParties, fetchParties } = usePartyManagement(eventCode || '');
     const [errorState, setErrorState] = useState<string | null>(null);
     // Hook personnalisé pour la gestion des personnages
     const { createdCharacter, setCreatedCharacter, isEditing, setIsEditing, handleSaveCharacter, handleUpdate, handleDelete, handleClear, handleCharacterDeletion } = useCharacterManagement();
@@ -78,23 +78,13 @@ const EventView: React.FC = () => {
         }
     };
 
-    const fetchParties = async () => {
-        if (eventCode) {
-            try {
-                const updatedParties = await fetchPartiesApi(eventCode);
-                setParties([...updatedParties]);
-            } catch (error) {
-                console.error('Error fetching parties:', error);
-                setErrorState('Failed to fetch parties');
-            }
-        } else {
-            console.error('Event code is null');
-        }
+    const fetchPartiesWrapper = async () => {
+        fetchParties(setErrorState);
     };
 
 
 
-    useWebSocket(fetchCharacters, fetchParties, fetchEvent);
+    useWebSocket(fetchCharacters, fetchPartiesWrapper, fetchEvent);
 
     const handleDeleteWrapper = async (id: number) => {
         handleDelete(id, deleteCharacter, fetchCharacters, setErrorState);
@@ -247,7 +237,7 @@ const EventView: React.FC = () => {
     };
 
     useEffect(() => {
-        fetchParties();
+        fetchPartiesWrapper();
     }, []);
 
     const tanks = characters.filter((character) => character.role === 'TANK');
