@@ -1,0 +1,19 @@
+/* ValidatedNumberInput component styles */
+.validated-number-input {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.input-label {
+    font-weight: 600;
+    color: #fff; /* Texte blanc pour maintenir la cohérence */
+    font-size: 14px;
+}
+
+/* Styles pour les inputs dans le contexte du character */
+.validated-number-input input {
+    color: #fff; /* Texte blanc pour les inputs */
+    background: transparent;
+    border: none;
+}
