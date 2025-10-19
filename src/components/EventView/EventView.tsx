@@ -15,6 +15,7 @@ import ClearButton from './ClearButton/ClearButton';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEye, faEyeSlash, faShield, faHeart, faGavel, faHatWizard } from '@fortawesome/free-solid-svg-icons';
 import RoleSection from './RoleSection/RoleSection';
+import WaitingRoomHeader from './WaitingRoomHeader/WaitingRoomHeader';
 import useAuthCheck from '../../hooks/useAuthCheck';
 import { useEventData } from '../../hooks/useEventData';
 import { useCharacterManagement } from '../../hooks/useCharacterManagement';
@@ -140,12 +141,11 @@ const EventView: React.FC = () => {
                 </div>
             )}
             {/* Waiting room section */}
-            <div className="title-container">
-                <div className="title-clear-container">
-                    <h1 className="title">Waiting Room ({characters.length} participants)</h1>
-                    {isAuthenticated && <ClearButton onClear={() => handleClear(characters)} />}
-                </div>
-            </div>
+            <WaitingRoomHeader
+                characters={characters}
+                isAuthenticated={isAuthenticated ?? false}
+                onClear={handleClear}
+            />
             
             {/* Waiting message when no parties or parties not visible */}
             {parties.length === 0 || !arePartiesVisible &&
