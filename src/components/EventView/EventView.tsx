@@ -9,6 +9,7 @@ import { fetchCharacters as fetchCharactersApi } from '../../services/api';
 import CreatedCharacter from './CreatedCharacter/CreatedCharacterView';
 import WaitingRoomHeader from './WaitingRoomHeader/WaitingRoomHeader';
 import WaitingRoom from './WaitingRoom/WaitingRoom';
+import PendingPlayersTable from './PendingPlayersTable/PendingPlayersTable';
 import useAuthCheck from '../../hooks/useAuthCheck';
 import { useEventData } from '../../hooks/useEventData';
 import { useCharacterManagement } from '../../hooks/useCharacterManagement';
@@ -32,7 +33,7 @@ const EventView: React.FC = () => {
     const { characters, loading, error, setCharacters } = useFetchCharacters(eventCode || '');
     
     // Party management
-    const { parties, error: partyError, fetchParties, handleClearEvent, swapCharacters, moveCharacter, handleShuffle } = usePartyManagement(eventCode || '');
+    const { parties, setParties, error: partyError, fetchParties, handleClearEvent, swapCharacters, moveCharacter, handleShuffle, updatePartiesInBackend } = usePartyManagement(eventCode || '');
     
     // Event data and visibility
     const { arePartiesVisible, isVerifying, setIsVerifying, checkEventExistence, fetchEvent, togglePartiesVisibility } = useEventData(eventCode || '');
@@ -101,6 +102,52 @@ const EventView: React.FC = () => {
     const handleShuffleWrapper = () => {
         handleShuffle(createdCharacter, setCreatedCharacter);
     };
+    
+    // Wrapper function to handle moving from pending players to party
+    const handleMoveFromPendingToParty = (fromPartyIndex: number, toPartyIndex: number, memberId: number, toIndex: number) => {
+        console.log('🔄 handleMoveFromPendingToParty called:', { fromPartyIndex, toPartyIndex, memberId, toIndex });
+        
+        // Find the character from pending players
+        const character = pendingPlayers.find(c => c.id === memberId);
+        if (!character) {
+            console.error('❌ Character not found in pending players:', memberId);
+            console.log('Available pending players:', pendingPlayers.map(p => ({ id: p.id, name: p.name })));
+            return;
+        }
+        
+        console.log('✅ Found character:', character.name);
+        
+        // Add character to the target party
+        const updatedParties = [...parties];
+        const targetParty = updatedParties[toPartyIndex];
+        
+        if (!targetParty) {
+            console.error('❌ Target party not found:', toPartyIndex);
+            return;
+        }
+        
+        if (targetParty.members.length >= 5) {
+            console.error('❌ Target party is full:', targetParty.members.length);
+            return;
+        }
+        
+        console.log('✅ Adding character to party:', { 
+            partyIndex: toPartyIndex, 
+            currentMembers: targetParty.members.length,
+            insertAt: toIndex 
+        });
+        
+        // Insert character at the specified position
+        targetParty.members.splice(toIndex, 0, character);
+        
+        console.log('✅ Character added to party. New party size:', targetParty.members.length);
+        
+        // Update backend and local state
+        setParties(updatedParties);
+        updatePartiesInBackend(updatedParties);
+        
+        console.log('✅ Party state updated');
+    };
 
     // ===== DATA PROCESSING =====
     // Filter characters by role
@@ -108,6 +155,13 @@ const EventView: React.FC = () => {
     const heals = characters.filter((character) => character.role === 'HEAL');
     const melees = characters.filter((character) => character.role === 'CAC');
     const dist = characters.filter((character) => character.role === 'DIST');
+    
+    // Filter pending players (in waiting room but not in any party)
+    const pendingPlayers = characters.filter(character => 
+        !parties.some(party => 
+            party.members.some(member => member.id === character.id)
+        )
+    );
 
     // ===== LOADING & ERROR STATES =====
     if (isVerifying || loading || !isAuthChecked) return <Loading />;
@@ -150,8 +204,18 @@ const EventView: React.FC = () => {
                         moveCharacter={moveCharacter}
                         swapCharacters={swapCharacters}
                         isAdmin={isAuthenticated as boolean}
+                        moveFromPendingToParty={handleMoveFromPendingToParty}
                     />
                 </div>
+            )}
+            
+            {/* ===== PENDING PLAYERS SECTION ===== */}
+            {isAuthenticated && parties.length > 0 && pendingPlayers.length > 0 && (
+                <PendingPlayersTable 
+                    pendingPlayers={pendingPlayers}
+                    moveFromPendingToParty={handleMoveFromPendingToParty}
+                    isAdmin={isAuthenticated as boolean}
+                />
             )}
             
             {/* ===== WAITING ROOM SECTION ===== */}

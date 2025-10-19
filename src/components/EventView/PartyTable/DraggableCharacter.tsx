@@ -9,10 +9,12 @@ interface DraggableCharacterProps {
     swapCharacters: (fromPartyIndex: number, toPartyIndex: number, sourceId: number, targetId: number) => void;
     children: React.ReactNode;
     isAdmin: boolean;
+    sourceType?: 'party' | 'pending'; // Optional: default is 'party'
+    moveFromPendingToParty?: (fromPartyIndex: number, toPartyIndex: number, memberId: number, toIndex: number) => void; // Optional function for pending players
 }
 
 const DraggableCharacter: React.FC<DraggableCharacterProps> = ({
-    member, partyIndex, index, moveCharacter, swapCharacters, children, isAdmin
+    member, partyIndex, index, moveCharacter, swapCharacters, children, isAdmin, sourceType = 'party', moveFromPendingToParty
 }) => {
     const ref = useRef<HTMLTableRowElement>(null);
 
@@ -20,20 +22,29 @@ const DraggableCharacter: React.FC<DraggableCharacterProps> = ({
         type: 'CHARACTER',
         item: { 
             fromPartyIndex: partyIndex,
-            memberId: member.id
+            memberId: member.id,
+            sourceType: sourceType,
+            member: sourceType === 'pending' ? member : undefined // Pass full member if from pending
         },
         canDrag: () => isAdmin,
     });
 
     const [, drop] = useDrop({
         accept: 'CHARACTER',
-        drop: (item: { fromPartyIndex: number; memberId: number }) => {
+        drop: (item: { fromPartyIndex: number; memberId: number; sourceType?: string; member?: any }) => {
             if (isAdmin) {
                 if (item.fromPartyIndex === partyIndex && item.memberId === member.id) {
                     return; // Do nothing if dropping on the same character
                 }
-                // If dropping on another character, swap characters
-                swapCharacters(item.fromPartyIndex, partyIndex, item.memberId, member.id);
+                
+                // If dropping from pending players
+                if (item.sourceType === 'pending' && item.member && moveFromPendingToParty) {
+                    // Move from pending to this party position
+                    moveFromPendingToParty(item.fromPartyIndex, partyIndex, item.memberId, index);
+                } else {
+                    // Normal party-to-party swap
+                    swapCharacters(item.fromPartyIndex, partyIndex, item.memberId, member.id);
+                }
             }
         },
         canDrop: () => isAdmin,

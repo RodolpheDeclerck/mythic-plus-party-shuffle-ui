@@ -13,9 +13,10 @@ interface PartyTableProps {
     moveCharacter: (fromPartyIndex: number, toPartyIndex: number, memberId: number, toIndex: number) => void;
     swapCharacters: (fromPartyIndex: number, toPartyIndex: number, sourceId: number, targetId: number) => void;
     isAdmin: boolean;
+    moveFromPendingToParty?: (fromPartyIndex: number, toPartyIndex: number, memberId: number, toIndex: number) => void;
 }
 
-const PartyTable: React.FC<PartyTableProps> = ({ parties, moveCharacter, swapCharacters, isAdmin }) => {
+const PartyTable: React.FC<PartyTableProps> = ({ parties, moveCharacter, swapCharacters, isAdmin, moveFromPendingToParty }) => {
     const { t } = useTranslation();
 
     // Function to calculate average iLevel of the group
@@ -144,6 +145,7 @@ const PartyTable: React.FC<PartyTableProps> = ({ parties, moveCharacter, swapCha
                                     moveCharacter={moveCharacter}
                                     currentMembersCount={party.members.length}
                                     isAdmin={isAdmin}
+                                    moveFromPendingToParty={moveFromPendingToParty}
                                 />
                             )}
                         </tbody>
