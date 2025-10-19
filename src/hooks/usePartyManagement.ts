@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Party } from '../types/Party';
-import { fetchParties as fetchPartiesApi } from '../services/api';
+import { fetchParties as fetchPartiesApi, deleteParties } from '../services/api';
 
 export const usePartyManagement = (eventCode: string) => {
     const [parties, setParties] = useState<Party[]>([]);
@@ -19,9 +19,24 @@ export const usePartyManagement = (eventCode: string) => {
         }
     };
     
+    const handleClearEvent = async (setErrorState: (error: string) => void) => {
+        if (eventCode) {
+            try {
+                await deleteParties(eventCode);
+                setParties([]);
+            } catch (error) {
+                console.error('Error deleting parties:', error);
+                setErrorState('Failed to delete parties');
+            }
+        } else {
+            console.error('Event code is null');
+        }
+    };
+    
     return { 
         parties, 
         setParties,
-        fetchParties
+        fetchParties,
+        handleClearEvent
     };
 };

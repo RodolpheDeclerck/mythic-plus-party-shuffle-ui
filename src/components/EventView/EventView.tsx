@@ -35,7 +35,7 @@ const EventView: React.FC = () => {
     const { isAuthenticated, isAuthChecked } = useAuthCheck();
     const { characters, loading, error, setCharacters } = useFetchCharacters(eventCode || '');
     // Hook personnalisé pour la gestion des groupes
-    const { parties, setParties, fetchParties } = usePartyManagement(eventCode || '');
+    const { parties, setParties, fetchParties, handleClearEvent } = usePartyManagement(eventCode || '');
     const [errorState, setErrorState] = useState<string | null>(null);
     // Hook personnalisé pour la gestion des personnages
     const { createdCharacter, setCreatedCharacter, isEditing, setIsEditing, handleSaveCharacter, handleUpdate, handleDelete, handleClear, handleCharacterDeletion } = useCharacterManagement();
@@ -132,18 +132,8 @@ const EventView: React.FC = () => {
         handleClear(characters, deleteCharacters, fetchCharacters, setErrorState);
     };
 
-    const handleClearEvent = async () => {
-        if (eventCode) {
-            try {
-                await deleteParties(eventCode);
-                setParties([]);
-            } catch (error) {
-                console.error('Error deleting parties:', error);
-                setErrorState('Failed to delete parties');
-            }
-        } else {
-            console.error('Event code is null');
-        }
+    const handleClearEventWrapper = async () => {
+        handleClearEvent(setErrorState);
     };
 
 
@@ -267,7 +257,7 @@ const EventView: React.FC = () => {
                         </h2>
                         {isAuthenticated && (
                             <div className="party-button-container">
-                                <ClearButton onClear={handleClearEvent} />
+                                <ClearButton onClear={handleClearEventWrapper} />
                                 <button className="eye-button" onClick={togglePartiesVisibility}>
                                     {!arePartiesVisible ? <FontAwesomeIcon icon={faEyeSlash} className="role-icon-hidden" /> : <FontAwesomeIcon icon={faEye} />}
 
