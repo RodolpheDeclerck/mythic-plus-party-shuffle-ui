@@ -3,7 +3,7 @@ import React from 'react';
 
 const SignUp = () => {
     const handleSignUp = () => {
-        window.location.href = '/register'; // Redirection vers la page d'inscription
+        window.location.href = '/register'; // Redirect to registration page
     };
 
     return (

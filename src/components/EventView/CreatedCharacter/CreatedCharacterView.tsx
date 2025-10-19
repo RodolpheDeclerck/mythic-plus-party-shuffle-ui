@@ -103,7 +103,7 @@ const CreatedCharacterView: React.FC<CreatedCharacterProps> = ({
             return;
         }
 
-        // Sinon on accepte la valeur saisie (y compris vide)
+        // Otherwise accept the entered value (including empty)
         setILevel(inputValue);
     };
 
@@ -146,7 +146,7 @@ const CreatedCharacterView: React.FC<CreatedCharacterProps> = ({
             return;
         }
 
-        // Sinon on accepte la valeur saisie (y compris vide)
+        // Otherwise accept the entered value (including empty)
         setKeystoneMinLevel(inputValue);
     };
 
@@ -169,7 +169,7 @@ const CreatedCharacterView: React.FC<CreatedCharacterProps> = ({
             return;
         }
 
-        // Sinon on accepte la valeur saisie (y compris vide)
+        // Otherwise accept the entered value (including empty)
         setKeystoneMaxLevel(inputValue);
     };
 
@@ -217,7 +217,7 @@ const CreatedCharacterView: React.FC<CreatedCharacterProps> = ({
         const minLevel = Math.max(KEYSTONE_MIN_LEVEL, parseInt(keystoneMinLevel) || KEYSTONE_MIN_LEVEL);
         const maxLevel = Math.min(KEYSTONE_MAX_LEVEL, Math.max(minLevel, parseInt(keystoneMaxLevel) || KEYSTONE_MAX_LEVEL));
         
-        // On applique les limites uniquement lors de la sauvegarde
+        // Apply limits only when saving
         const itemLevel = Math.max(ITEM_LEVEL_MIN, Math.min(parseInt(editILevel) || ITEM_LEVEL_MIN, ITEM_LEVEL_MAX));
         
         const updatedCharacter = {

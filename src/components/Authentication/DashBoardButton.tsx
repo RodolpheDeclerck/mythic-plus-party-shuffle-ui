@@ -3,7 +3,7 @@ import React from 'react';
 
 const DashBoardButton = () => {
     const handleSignUp = () => {
-        window.location.href = '/dashboard'; // Redirection vers la page d'inscription
+        window.location.href = '/dashboard'; // Redirect to dashboard page
     };
 
     return (

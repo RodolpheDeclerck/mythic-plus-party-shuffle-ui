@@ -7,7 +7,7 @@ const useWebSocket = (onCharacterUpdated: () => void,
     onEventsUpdated: () => void  = () => {}): Socket | null => {
     useEffect(() => {
         const socket = io(apiUrl, {
-            transports: ['websocket'], // Forcer le transport WebSocket
+            transports: ['websocket'], // Force WebSocket transport
         });
 
         socket.on('connect', () => {
@@ -47,7 +47,7 @@ const useWebSocket = (onCharacterUpdated: () => void,
         };
     }, []); // Empty dependency array to prevent reconnections
 
-    return null; // Vous pouvez retourner le socket si vous avez besoin de l'utiliser ailleurs
+    return null; // You can return the socket if you need to use it elsewhere
 };
 
 export default useWebSocket;

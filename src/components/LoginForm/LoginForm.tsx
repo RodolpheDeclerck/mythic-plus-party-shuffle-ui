@@ -27,7 +27,7 @@ const LoginForm = () => {
                 if (response.status === 200) {
                     console.log('Login successful, status:', response.status);
 
-                    // TypeScript sait maintenant que response.data contient un token
+                    // TypeScript now knows that response.data contains a token
                     localStorage.setItem('authToken', response.data.token);
 
                     // Check if redirect is defined in localStorage

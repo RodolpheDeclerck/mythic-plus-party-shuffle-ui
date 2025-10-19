@@ -9,7 +9,7 @@ import { getCharacterCellClass } from '../../../utils/classNameHelper';
 interface CharacterTableProps {
     characters: Character[];
     onDelete?: (id: number) => void;
-    onUpdate?: (character: Character) => void; // Nouvelle prop pour Update
+    onUpdate?: (character: Character) => void; // New prop for Update
     highlightedId?: number; // Add this prop for row highlighting
 }
 
@@ -37,7 +37,7 @@ const CharacterTable: React.FC<CharacterTableProps> = ({ characters, onDelete, o
                     <tr
                         key={character.id}
                         className={character.id === highlightedId ? 'highlight' : ''}
-                        onClick={() => onUpdate && onUpdate(character)} // Appel de onUpdate lors du clic sur la ligne
+                        onClick={() => onUpdate && onUpdate(character)} // Call onUpdate when clicking on the row
                     >
                         <td className={getCharacterCellClass(character.characterClass)}>
                             <b>{character.id}</b>

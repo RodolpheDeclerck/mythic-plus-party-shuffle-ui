@@ -18,7 +18,7 @@ interface PartyTableProps {
 const PartyTable: React.FC<PartyTableProps> = ({ parties, moveCharacter, swapCharacters, isAdmin }) => {
     const { t } = useTranslation();
 
-    // Fonction pour calculer l'iLevel moyen du groupe
+    // Function to calculate average iLevel of the group
     const calculateAverageIlevel = (party: Party) => {
         if (party.members.length === 0) return 0;
         const totalIlevel = party.members.reduce((sum, member) => sum + member.iLevel, 0);
@@ -45,7 +45,7 @@ const PartyTable: React.FC<PartyTableProps> = ({ parties, moveCharacter, swapCha
         return Math.min(...party.members.map(member => member.keystoneMaxLevel));
     };
 
-    // Tri des membres uniquement pour l'affichage
+    // Sort members only for display
     const getSortedMembers = (party: Party) => {
         const rolePriority: Record<string, number> = { TANK: 1, HEAL: 2, CAC: 3, DIST: 4 };
         return [...party.members].sort((a, b) => {

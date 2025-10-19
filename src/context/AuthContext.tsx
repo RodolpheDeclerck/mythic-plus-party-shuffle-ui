@@ -29,7 +29,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             console.error('Error checking authentication', error);
             setIsAuthenticated(false);
         } finally {
-            setIsAuthChecked(true); // Utilisation de setIsAuthChecked
+            setIsAuthChecked(true); // Use setIsAuthChecked
         }
     };
 

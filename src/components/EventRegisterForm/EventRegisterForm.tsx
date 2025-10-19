@@ -70,7 +70,7 @@ const EventRegisterForm: React.FC = () => {
       return;
     }
 
-    // Sinon on accepte la valeur saisie (y compris vide)
+    // Otherwise accept the entered value (including empty)
     setILevel(inputValue);
   };
 
@@ -113,7 +113,7 @@ const EventRegisterForm: React.FC = () => {
       return;
     }
 
-    // Sinon on accepte la valeur saisie (y compris vide)
+    // Otherwise accept the entered value (including empty)
     setKStoneMin(inputValue);
   };
 
@@ -136,7 +136,7 @@ const EventRegisterForm: React.FC = () => {
       return;
     }
 
-    // Sinon on accepte la valeur saisie (y compris vide)
+    // Otherwise accept the entered value (including empty)
     setKStoneMax(inputValue);
   };
 
@@ -190,7 +190,7 @@ const EventRegisterForm: React.FC = () => {
   const handleSave = async () => {
     if (!eventCode) {
       console.error('Event code is missing');
-      return; // Stoppe la fonction si eventCode est manquant
+      return; // Stop function if eventCode is missing
     }
 
     try {

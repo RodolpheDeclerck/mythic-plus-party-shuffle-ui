@@ -17,7 +17,7 @@ const InputField: React.FC<InputFieldProps> = ({ label, type = 'text', value, on
   <div className="input-box">
     <label>{label}</label>
     <input
-      type={type} // Utilisation du type dynamique
+      type={type} // Use dynamic type
       value={value}
       onChange={onChange}
       onBlur={onBlur}
@@ -26,7 +26,7 @@ const InputField: React.FC<InputFieldProps> = ({ label, type = 'text', value, on
       min={min}
       max={max}
       maxLength={maxLength}
-      className="input-field" // Ajout d'une classe pour le style
+      className="input-field" // Add class for styling
     />
   </div>
 );
