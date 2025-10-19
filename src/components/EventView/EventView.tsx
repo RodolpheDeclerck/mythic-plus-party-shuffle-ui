@@ -7,23 +7,16 @@ import Loading from '../Loading';
 import useFetchCharacters from '../../hooks/useFetchCharacters';
 import useWebSocket from '../../hooks/useWebSocket';
 import {
-    deleteParties,
     fetchCharacters as fetchCharactersApi,
     deleteCharacter,
-    shuffleParties,
-    fetchParties as fetchPartiesApi,
     deleteCharacters,
 } from '../../services/api';
-import { Party } from '../../types/Party';
-import { Event } from '../../types/Event';
 import CreatedCharacter from './CreatedCharacter/CreatedCharacterView';
 import './EventView.css';
 import ClearButton from './ClearButton/ClearButton';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faShield, faHeart, faGavel, faHatWizard, faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 import useAuthCheck from '../../hooks/useAuthCheck';
-import apiUrl from '../../config/apiConfig';
-import axios from 'axios';
 import { useEventData } from '../../hooks/useEventData';
 import { useCharacterManagement } from '../../hooks/useCharacterManagement';
 import { usePartyManagement } from '../../hooks/usePartyManagement';
@@ -35,13 +28,13 @@ const EventView: React.FC = () => {
     const { isAuthenticated, isAuthChecked } = useAuthCheck();
     const { characters, loading, error, setCharacters } = useFetchCharacters(eventCode || '');
     // Hook personnalisé pour la gestion des groupes
-    const { parties, setParties, fetchParties, handleClearEvent, updatePartiesInBackend, swapCharacters, moveCharacter, handleShuffle } = usePartyManagement(eventCode || '');
+    const { parties, fetchParties, handleClearEvent, swapCharacters, moveCharacter, handleShuffle } = usePartyManagement(eventCode || '');
     const [errorState, setErrorState] = useState<string | null>(null);
     // Hook personnalisé pour la gestion des personnages
     const { createdCharacter, setCreatedCharacter, isEditing, setIsEditing, handleSaveCharacter, handleUpdate, handleDelete, handleClear, handleCharacterDeletion } = useCharacterManagement();
     
     // Hook personnalisé pour les données d'événement
-    const { arePartiesVisible, setArePartiesVisible, isVerifying, setIsVerifying, checkEventExistence, fetchEvent, togglePartiesVisibility } = useEventData(eventCode || '');
+    const { arePartiesVisible, isVerifying, setIsVerifying, checkEventExistence, fetchEvent, togglePartiesVisibility } = useEventData(eventCode || '');
 
 
     // useEffect pour vérifier l'existence de l'événement au montage
@@ -107,10 +100,6 @@ const EventView: React.FC = () => {
     const handleCharacterDeletionWrapper = (deletedId: number) => {
         handleCharacterDeletion(deletedId, setCharacters);
     };
-
-
-
-
 
     useEffect(() => {
         fetchPartiesWrapper();
