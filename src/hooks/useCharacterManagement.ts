@@ -1,8 +1,10 @@
 import { useState } from 'react';
+import { deleteCharacter, deleteCharacters, fetchCharacters as fetchCharactersApi } from '../services/api';
 
-export const useCharacterManagement = () => {
+export const useCharacterManagement = (eventCode: string) => {
     const [createdCharacter, setCreatedCharacter] = useState<any | null>(null);
     const [isEditing, setIsEditing] = useState(false);
+    const [error, setError] = useState<string | null>(null);
     
     const handleSaveCharacter = (updatedCharacter: any) => {
         setCreatedCharacter({ ...updatedCharacter });
@@ -14,29 +16,30 @@ export const useCharacterManagement = () => {
         setIsEditing(true);
     };
     
-    const handleDelete = async (id: number, deleteCharacterApi: (id: number) => Promise<void>, fetchCharacters: () => Promise<void>, setErrorState: (error: string) => void) => {
+    const handleDelete = async (id: number) => {
         try {
-            await deleteCharacterApi(id);
-            fetchCharacters();
+            await deleteCharacter(id);
+            // Characters will be refetched via WebSocket
         } catch (error) {
             console.error(`Error deleting character with ID ${id}:`, error);
-            setErrorState('Failed to delete character');
+            setError('Failed to delete character');
         }
     };
     
-    const handleClear = async (characters: any[], deleteCharactersApi: (ids: number[]) => Promise<void>, fetchCharacters: () => Promise<void>, setErrorState: (error: string) => void) => {
+    const handleClear = async (characters: any[]) => {
         try {
             const ids = characters.map((character) => character.id);
-            await deleteCharactersApi(ids);
-            fetchCharacters();
+            await deleteCharacters(ids);
+            // Characters will be refetched via WebSocket
         } catch (error) {
             console.error('Error deleting characters:', error);
-            setErrorState('Failed to delete characters');
+            setError('Failed to delete characters');
         }
     };
     
-    const handleCharacterDeletion = (deletedId: number, setCharacters: (updater: (prevCharacters: any[]) => any[]) => void) => {
-        setCharacters((prevCharacters) => prevCharacters.filter((character) => character.id !== deletedId));
+    const handleCharacterDeletion = (deletedId: number) => {
+        // This function is now handled by the parent component's state management
+        // Characters will be updated via WebSocket
     };
     
     return { 
@@ -44,6 +47,7 @@ export const useCharacterManagement = () => {
         setCreatedCharacter, 
         isEditing, 
         setIsEditing,
+        error,
         handleSaveCharacter,
         handleUpdate,
         handleDelete,

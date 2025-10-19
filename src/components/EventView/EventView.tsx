@@ -8,8 +8,6 @@ import useFetchCharacters from '../../hooks/useFetchCharacters';
 import useWebSocket from '../../hooks/useWebSocket';
 import {
     fetchCharacters as fetchCharactersApi,
-    deleteCharacter,
-    deleteCharacters,
 } from '../../services/api';
 import CreatedCharacter from './CreatedCharacter/CreatedCharacterView';
 import './EventView.css';
@@ -32,7 +30,7 @@ const EventView: React.FC = () => {
     const [errorState, setErrorState] = useState<string | null>(null);
     
     // Custom hook for character management
-    const { createdCharacter, setCreatedCharacter, isEditing, setIsEditing, handleSaveCharacter, handleUpdate, handleDelete, handleClear, handleCharacterDeletion } = useCharacterManagement();
+    const { createdCharacter, setCreatedCharacter, isEditing, setIsEditing, error: characterError, handleSaveCharacter, handleUpdate, handleDelete, handleClear, handleCharacterDeletion } = useCharacterManagement(eventCode || '');
     
     // Custom hook for event data
     const { arePartiesVisible, isVerifying, setIsVerifying, checkEventExistence, fetchEvent, togglePartiesVisibility } = useEventData(eventCode || '');
@@ -80,24 +78,12 @@ const EventView: React.FC = () => {
     useWebSocket(fetchCharacters, fetchPartiesWrapper, fetchEvent);
 
     // Wrapper functions to pass dependencies to hooks
-    const handleDeleteWrapper = async (id: number) => {
-        handleDelete(id, deleteCharacter, fetchCharacters, setErrorState);
-    };
-
     const handleShuffleWrapper = async () => {
         handleShuffle(createdCharacter, setCreatedCharacter, setErrorState);
     };
 
-    const handleClearWrapper = async () => {
-        handleClear(characters, deleteCharacters, fetchCharacters, setErrorState);
-    };
-
     const handleClearEventWrapper = async () => {
         handleClearEvent(setErrorState);
-    };
-
-    const handleCharacterDeletionWrapper = (deletedId: number) => {
-        handleCharacterDeletion(deletedId, setCharacters);
     };
 
     // Load parties on component mount
@@ -112,14 +98,14 @@ const EventView: React.FC = () => {
     const dist = characters.filter((character) => character.role === 'DIST');
 
     if (isVerifying || loading || !isAuthChecked) return <Loading />;
-    if (error || errorState) return <div>{error || errorState}</div>;
+    if (error || errorState || characterError) return <div>{error || errorState || characterError}</div>;
 
     return (
         <div>
             <CreatedCharacter
                 character={isAuthenticated && !isEditing ? undefined : createdCharacter}
                 onSave={handleSaveCharacter}
-                onDelete={handleCharacterDeletionWrapper}
+                onDelete={handleCharacterDeletion}
                 isAdmin={isAuthenticated ?? false}
                 isEditing={isEditing}
                 setIsEditing={setIsEditing}
@@ -154,7 +140,7 @@ const EventView: React.FC = () => {
             <div className="title-container">
                 <div className="title-clear-container">
                     <h1 className="title">Waiting Room ({characters.length} participants)</h1>
-                    {isAuthenticated && <ClearButton onClear={handleClearWrapper} />}
+                    {isAuthenticated && <ClearButton onClear={() => handleClear(characters)} />}
                 </div>
             </div>
             
@@ -181,7 +167,7 @@ const EventView: React.FC = () => {
                     </div>
                     <CharacterTable
                         characters={tanks}
-                        onDelete={isAuthenticated ? handleDeleteWrapper : undefined}
+                        onDelete={isAuthenticated ? handleDelete : undefined}
                         onUpdate={isAuthenticated ? handleUpdate : undefined}
                         highlightedId={createdCharacter?.id}
                     />
@@ -193,7 +179,7 @@ const EventView: React.FC = () => {
                     </div>
                     <CharacterTable
                         characters={heals}
-                        onDelete={isAuthenticated ? handleDeleteWrapper : undefined}
+                        onDelete={isAuthenticated ? handleDelete : undefined}
                         onUpdate={isAuthenticated ? handleUpdate : undefined}
                         highlightedId={createdCharacter?.id}
                     />
@@ -205,7 +191,7 @@ const EventView: React.FC = () => {
                     </div>
                     <CharacterTable
                         characters={melees}
-                        onDelete={isAuthenticated ? handleDeleteWrapper : undefined}
+                        onDelete={isAuthenticated ? handleDelete : undefined}
                         onUpdate={isAuthenticated ? handleUpdate : undefined}
                         highlightedId={createdCharacter?.id}
                     />
@@ -217,7 +203,7 @@ const EventView: React.FC = () => {
                     </div>
                     <CharacterTable
                         characters={dist}
-                        onDelete={isAuthenticated ? handleDeleteWrapper : undefined}
+                        onDelete={isAuthenticated ? handleDelete : undefined}
                         onUpdate={isAuthenticated ? handleUpdate : undefined}
                         highlightedId={createdCharacter?.id}
                     />
