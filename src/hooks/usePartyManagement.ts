@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Party } from '../types/Party';
-import { fetchParties as fetchPartiesApi, deleteParties } from '../services/api';
+import { fetchParties as fetchPartiesApi, deleteParties, shuffleParties } from '../services/api';
 import apiUrl from '../config/apiConfig';
+import axios from 'axios';
 
 export const usePartyManagement = (eventCode: string) => {
     const [parties, setParties] = useState<Party[]>([]);
@@ -118,6 +119,43 @@ export const usePartyManagement = (eventCode: string) => {
         });
     };
     
+    const handleShuffle = async (createdCharacter: any, setCreatedCharacter: (character: any) => void, setErrorState: (error: string) => void) => {
+        if (eventCode) {
+            try {
+                await axios.patch(
+                    `${apiUrl}/api/events/${eventCode}/setPartiesVisibility`,
+                    { visible: false },
+                    { withCredentials: true }
+                );
+
+                const shuffledParties = await shuffleParties(eventCode);
+                let updatedCharacter = null;
+
+                if (createdCharacter) {
+                    updatedCharacter = shuffledParties
+                        .flatMap((party) => party.members)
+                        .find((member) => member.id === createdCharacter.id);
+                }
+
+                if (updatedCharacter) {
+                    setCreatedCharacter({ ...updatedCharacter });
+                    localStorage.setItem('createdCharacter', JSON.stringify(updatedCharacter));
+                } else {
+                    setCreatedCharacter(null);
+                    localStorage.removeItem('createdCharacter');
+                }
+
+                setParties([...shuffledParties]);
+
+            } catch (error) {
+                console.error('Error shuffling parties:', error);
+                setErrorState('Failed to shuffle parties');
+            }
+        } else {
+            console.error('Event code is null');
+        }
+    };
+    
     return { 
         parties, 
         setParties,
@@ -125,6 +163,7 @@ export const usePartyManagement = (eventCode: string) => {
         handleClearEvent,
         updatePartiesInBackend,
         swapCharacters,
-        moveCharacter
+        moveCharacter,
+        handleShuffle
     };
 };

@@ -35,7 +35,7 @@ const EventView: React.FC = () => {
     const { isAuthenticated, isAuthChecked } = useAuthCheck();
     const { characters, loading, error, setCharacters } = useFetchCharacters(eventCode || '');
     // Hook personnalisé pour la gestion des groupes
-    const { parties, setParties, fetchParties, handleClearEvent, updatePartiesInBackend, swapCharacters, moveCharacter } = usePartyManagement(eventCode || '');
+    const { parties, setParties, fetchParties, handleClearEvent, updatePartiesInBackend, swapCharacters, moveCharacter, handleShuffle } = usePartyManagement(eventCode || '');
     const [errorState, setErrorState] = useState<string | null>(null);
     // Hook personnalisé pour la gestion des personnages
     const { createdCharacter, setCreatedCharacter, isEditing, setIsEditing, handleSaveCharacter, handleUpdate, handleDelete, handleClear, handleCharacterDeletion } = useCharacterManagement();
@@ -91,41 +91,8 @@ const EventView: React.FC = () => {
     };
 
 
-    const handleShuffle = async () => {
-        if (eventCode) {
-            try {
-                await axios.patch(
-                    `${apiUrl}/api/events/${eventCode}/setPartiesVisibility`,
-                    { visible: false },
-                    { withCredentials: true }
-                );
-
-                const shuffledParties = await shuffleParties(eventCode);
-                let updatedCharacter = null;
-
-                if (createdCharacter) {
-                    updatedCharacter = shuffledParties
-                        .flatMap((party) => party.members)
-                        .find((member) => member.id === createdCharacter.id);
-                }
-
-                if (updatedCharacter) {
-                    setCreatedCharacter({ ...updatedCharacter });
-                    localStorage.setItem('createdCharacter', JSON.stringify(updatedCharacter));
-                } else {
-                    setCreatedCharacter(null);
-                    localStorage.removeItem('createdCharacter');
-                }
-
-                setParties([...shuffledParties]);
-
-            } catch (error) {
-                console.error('Error shuffling parties:', error);
-                setErrorState('Failed to shuffle parties');
-            }
-        } else {
-            console.error('Event code is null');
-        }
+    const handleShuffleWrapper = async () => {
+        handleShuffle(createdCharacter, setCreatedCharacter, setErrorState);
     };
 
     const handleClearWrapper = async () => {
@@ -207,7 +174,7 @@ const EventView: React.FC = () => {
             }
             {isAuthenticated &&
                 <div className="title-container">
-                    <ShuffleButton onShuffle={handleShuffle} />
+                    <ShuffleButton onShuffle={handleShuffleWrapper} />
                 </div>
             }
             <div className="table-container">
