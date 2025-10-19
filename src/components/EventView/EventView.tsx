@@ -24,6 +24,7 @@ import { faShield, faHeart, faGavel, faHatWizard, faEye, faEyeSlash } from '@for
 import useAuthCheck from '../../hooks/useAuthCheck';
 import apiUrl from '../../config/apiConfig';
 import axios from 'axios';
+import { useEventData } from '../../hooks/useEventData';
 
 const EventView: React.FC = () => {
     const location = useLocation();
@@ -36,29 +37,10 @@ const EventView: React.FC = () => {
     const [createdCharacter, setCreatedCharacter] = useState<any | null>(null);
     const [isEditing, setIsEditing] = useState(false);
     const [isVerifying, setIsVerifying] = useState(true); // État pour suivre la vérification
-    const [arePartiesVisible, setArePartiesVisible] = useState(false);
+    
+    // Hook personnalisé pour les données d'événement
+    const { arePartiesVisible, setArePartiesVisible, checkEventExistence } = useEventData(eventCode || '');
 
-    // Fonction pour vérifier l'existence de l'événement
-    const checkEventExistence = async (): Promise<boolean> => {
-        if (eventCode) {
-            try {
-                const response = await axios.get<Event>(`${apiUrl}/api/events?code=${eventCode}`, { withCredentials: true });
-                const event = response.data;
-                if (event) {
-                    setArePartiesVisible(event.arePartiesVisible); // Stockez la valeur dans l'état
-                }
-                setArePartiesVisible(event.arePartiesVisible); // Stockez la valeur dans l'état
-                return true; // L'événement existe
-            } catch (error: any) {
-                if (error.response && error.response.status === 404) {
-                    return false; // L'événement n'existe pas
-                } else {
-                    console.error('Erreur lors de la vérification de l\'événement:', error);
-                }
-            }
-        }
-        return false; // Aucun eventCode ou autre erreur
-    };
 
     // useEffect pour vérifier l'existence de l'événement au montage
     useEffect(() => {
