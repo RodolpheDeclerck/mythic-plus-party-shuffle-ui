@@ -24,6 +24,17 @@ export const useCharacterManagement = () => {
         }
     };
     
+    const handleClear = async (characters: any[], deleteCharactersApi: (ids: number[]) => Promise<void>, fetchCharacters: () => Promise<void>, setErrorState: (error: string) => void) => {
+        try {
+            const ids = characters.map((character) => character.id);
+            await deleteCharactersApi(ids);
+            fetchCharacters();
+        } catch (error) {
+            console.error('Error deleting characters:', error);
+            setErrorState('Failed to delete characters');
+        }
+    };
+    
     return { 
         createdCharacter, 
         setCreatedCharacter, 
@@ -31,6 +42,7 @@ export const useCharacterManagement = () => {
         setIsEditing,
         handleSaveCharacter,
         handleUpdate,
-        handleDelete
+        handleDelete,
+        handleClear
     };
 };

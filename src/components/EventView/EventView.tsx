@@ -36,7 +36,7 @@ const EventView: React.FC = () => {
     const [parties, setParties] = useState<Party[]>([]);
     const [errorState, setErrorState] = useState<string | null>(null);
     // Hook personnalisé pour la gestion des personnages
-    const { createdCharacter, setCreatedCharacter, isEditing, setIsEditing, handleSaveCharacter, handleUpdate, handleDelete } = useCharacterManagement();
+    const { createdCharacter, setCreatedCharacter, isEditing, setIsEditing, handleSaveCharacter, handleUpdate, handleDelete, handleClear } = useCharacterManagement();
     
     // Hook personnalisé pour les données d'événement
     const { arePartiesVisible, setArePartiesVisible, isVerifying, setIsVerifying, checkEventExistence, fetchEvent, togglePartiesVisibility } = useEventData(eventCode || '');
@@ -136,15 +136,8 @@ const EventView: React.FC = () => {
         }
     };
 
-    const handleClear = async () => {
-        try {
-            const ids = characters.map((character) => character.id);
-            await deleteCharacters(ids);
-            fetchCharacters();
-        } catch (error) {
-            console.error('Error deleting characters:', error);
-            setErrorState('Failed to delete characters');
-        }
+    const handleClearWrapper = async () => {
+        handleClear(characters, deleteCharacters, fetchCharacters, setErrorState);
     };
 
     const handleClearEvent = async () => {
@@ -303,7 +296,7 @@ const EventView: React.FC = () => {
             <div className="title-container">
                 <div className="title-clear-container">
                     <h1 className="title">Waiting Room ({characters.length} participants)</h1>
-                    {isAuthenticated && <ClearButton onClear={handleClear} />}
+                    {isAuthenticated && <ClearButton onClear={handleClearWrapper} />}
                 </div>
             </div>
             {parties.length === 0 || !arePartiesVisible &&
