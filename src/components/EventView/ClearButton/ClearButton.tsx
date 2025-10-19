@@ -7,7 +7,7 @@ interface ClearButtonProps {
 
 const ClearButton: React.FC<ClearButtonProps> = ({ onClear }) => {
     return (
-        <button className="clear-button" onClick={onClear} style={{ marginTop: '20px' }}>
+        <button className="clear-button" onClick={onClear}>
             Clear
         </button>
     );
