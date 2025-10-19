@@ -35,7 +35,7 @@ const EventView: React.FC = () => {
     const { isAuthenticated, isAuthChecked } = useAuthCheck();
     const { characters, loading, error, setCharacters } = useFetchCharacters(eventCode || '');
     // Hook personnalisé pour la gestion des groupes
-    const { parties, setParties, fetchParties, handleClearEvent, updatePartiesInBackend, swapCharacters } = usePartyManagement(eventCode || '');
+    const { parties, setParties, fetchParties, handleClearEvent, updatePartiesInBackend, swapCharacters, moveCharacter } = usePartyManagement(eventCode || '');
     const [errorState, setErrorState] = useState<string | null>(null);
     // Hook personnalisé pour la gestion des personnages
     const { createdCharacter, setCreatedCharacter, isEditing, setIsEditing, handleSaveCharacter, handleUpdate, handleDelete, handleClear, handleCharacterDeletion } = useCharacterManagement();
@@ -143,41 +143,6 @@ const EventView: React.FC = () => {
 
 
 
-    const moveCharacter = (fromPartyIndex: number, toPartyIndex: number, memberId: number, toIndex: number) => {
-        setParties((prevParties) => {
-            const updatedParties = [...prevParties];
-            const sourceParty = updatedParties[fromPartyIndex];
-            const targetParty = updatedParties[toPartyIndex];
-
-            if (!sourceParty || !targetParty) {
-                console.error("Invalid party indices");
-                return prevParties;
-            }
-
-            // Find the member by ID
-            const memberIndex = sourceParty.members.findIndex(m => m.id === memberId);
-            if (memberIndex === -1) {
-                console.error("Member not found");
-                return prevParties;
-            }
-
-            // Remove the member from the source party
-            const [movedCharacter] = sourceParty.members.splice(memberIndex, 1);
-
-            if (targetParty.members.length < 5) {
-                // Insert at the specified target index
-                targetParty.members.splice(toIndex, 0, movedCharacter);
-            } else {
-                console.error("Target party is full. Move not allowed.");
-                // Put the character back in the source party
-                sourceParty.members.splice(memberIndex, 0, movedCharacter);
-            }
-
-            updatePartiesInBackend(updatedParties);
-
-            return updatedParties;
-        });
-    };
 
 
     useEffect(() => {

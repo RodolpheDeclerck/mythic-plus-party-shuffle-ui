@@ -82,12 +82,49 @@ export const usePartyManagement = (eventCode: string) => {
         });
     };
     
+    const moveCharacter = (fromPartyIndex: number, toPartyIndex: number, memberId: number, toIndex: number) => {
+        setParties((prevParties) => {
+            const updatedParties = [...prevParties];
+            const sourceParty = updatedParties[fromPartyIndex];
+            const targetParty = updatedParties[toPartyIndex];
+
+            if (!sourceParty || !targetParty) {
+                console.error("Invalid party indices");
+                return prevParties;
+            }
+
+            // Find the member by ID
+            const memberIndex = sourceParty.members.findIndex(m => m.id === memberId);
+            if (memberIndex === -1) {
+                console.error("Member not found");
+                return prevParties;
+            }
+
+            // Remove the member from the source party
+            const [movedCharacter] = sourceParty.members.splice(memberIndex, 1);
+
+            if (targetParty.members.length < 5) {
+                // Insert at the specified target index
+                targetParty.members.splice(toIndex, 0, movedCharacter);
+            } else {
+                console.error("Target party is full. Move not allowed.");
+                // Put the character back in the source party
+                sourceParty.members.splice(memberIndex, 0, movedCharacter);
+            }
+
+            updatePartiesInBackend(updatedParties);
+
+            return updatedParties;
+        });
+    };
+    
     return { 
         parties, 
         setParties,
         fetchParties,
         handleClearEvent,
         updatePartiesInBackend,
-        swapCharacters
+        swapCharacters,
+        moveCharacter
     };
 };
