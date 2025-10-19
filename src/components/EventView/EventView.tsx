@@ -26,6 +26,7 @@ import apiUrl from '../../config/apiConfig';
 import axios from 'axios';
 import { useEventData } from '../../hooks/useEventData';
 import { useCharacterManagement } from '../../hooks/useCharacterManagement';
+import { usePartyManagement } from '../../hooks/usePartyManagement';
 
 const EventView: React.FC = () => {
     const location = useLocation();
@@ -33,7 +34,8 @@ const EventView: React.FC = () => {
     const eventCode = new URLSearchParams(location.search).get('code');
     const { isAuthenticated, isAuthChecked } = useAuthCheck();
     const { characters, loading, error, setCharacters } = useFetchCharacters(eventCode || '');
-    const [parties, setParties] = useState<Party[]>([]);
+    // Hook personnalisé pour la gestion des groupes
+    const { parties, setParties } = usePartyManagement(eventCode || '');
     const [errorState, setErrorState] = useState<string | null>(null);
     // Hook personnalisé pour la gestion des personnages
     const { createdCharacter, setCreatedCharacter, isEditing, setIsEditing, handleSaveCharacter, handleUpdate, handleDelete, handleClear, handleCharacterDeletion } = useCharacterManagement();
