@@ -11,6 +11,7 @@ import WaitingRoomHeader from './WaitingRoomHeader/WaitingRoomHeader';
 import WaitingRoom from './WaitingRoom/WaitingRoom';
 import PendingPlayersTable from './PendingPlayersTable/PendingPlayersTable';
 import EventInProgressMessage from './EventInProgressMessage/EventInProgressMessage';
+import EventGroupsMessage from './EventGroupsMessage/EventGroupsMessage';
 import useAuthCheck from '../../hooks/useAuthCheck';
 import { useEventData } from '../../hooks/useEventData';
 import { useCharacterManagement } from '../../hooks/useCharacterManagement';
@@ -166,6 +167,14 @@ const EventView: React.FC = () => {
     
     // Show event in progress message for non-admin users when event is running and there are pending players
     const showEventInProgressMessage = !isAuthenticated && parties.length > 0 && pendingPlayers.length > 0;
+    
+    // Show event groups message for non-admin users when groups are visible AND they are in a group
+    const isPlayerInGroup = createdCharacter && parties.some(party => 
+        party.members.some(member => member.id === createdCharacter.id)
+    );
+    const showEventGroupsMessage = !isAuthenticated && parties.length > 0 && arePartiesVisible && isPlayerInGroup;
+    const totalParticipants = parties.reduce((acc, party) => acc + party.members.length, 0);
+    const numberOfGroups = parties.length;
 
     // ===== LOADING & ERROR STATES =====
     if (isVerifying || loading || !isAuthChecked) return <Loading />;
@@ -186,6 +195,15 @@ const EventView: React.FC = () => {
             
             {/* ===== EVENT IN PROGRESS MESSAGE ===== */}
             <EventInProgressMessage isVisible={showEventInProgressMessage} />
+            
+            {/* ===== EVENT GROUPS MESSAGE ===== */}
+            <EventGroupsMessage 
+                isVisible={showEventGroupsMessage}
+                totalParticipants={totalParticipants}
+                numberOfGroups={numberOfGroups}
+                parties={parties}
+                currentPlayerId={createdCharacter?.id}
+            />
             
             {/* ===== PENDING PLAYERS SECTION ===== */}
             {isAuthenticated && parties.length > 0 && pendingPlayers.length > 0 && (
