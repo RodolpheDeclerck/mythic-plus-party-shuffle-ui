@@ -25,6 +25,7 @@ import useAuthCheck from '../../hooks/useAuthCheck';
 import apiUrl from '../../config/apiConfig';
 import axios from 'axios';
 import { useEventData } from '../../hooks/useEventData';
+import { useCharacterManagement } from '../../hooks/useCharacterManagement';
 
 const EventView: React.FC = () => {
     const location = useLocation();
@@ -34,8 +35,8 @@ const EventView: React.FC = () => {
     const { characters, loading, error, setCharacters } = useFetchCharacters(eventCode || '');
     const [parties, setParties] = useState<Party[]>([]);
     const [errorState, setErrorState] = useState<string | null>(null);
-    const [createdCharacter, setCreatedCharacter] = useState<any | null>(null);
-    const [isEditing, setIsEditing] = useState(false);
+    // Hook personnalisé pour la gestion des personnages
+    const { createdCharacter, setCreatedCharacter, isEditing, setIsEditing } = useCharacterManagement();
     
     // Hook personnalisé pour les données d'événement
     const { arePartiesVisible, setArePartiesVisible, isVerifying, setIsVerifying, checkEventExistence, fetchEvent, togglePartiesVisibility } = useEventData(eventCode || '');
