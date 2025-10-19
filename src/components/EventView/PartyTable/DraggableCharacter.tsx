@@ -39,11 +39,13 @@ const DraggableCharacter: React.FC<DraggableCharacterProps> = ({
                 
                 // If dropping from pending players
                 if (item.sourceType === 'pending' && item.member && moveFromPendingToParty) {
-                    // Move from pending to this party position
+                    // Move from pending to this party position (insert at current position)
                     moveFromPendingToParty(item.fromPartyIndex, partyIndex, item.memberId, index);
                 } else {
-                    // Normal party-to-party swap
-                    swapCharacters(item.fromPartyIndex, partyIndex, item.memberId, member.id);
+                    // Normal party-to-party swap (only if both are from parties)
+                    if (item.sourceType !== 'pending') {
+                        swapCharacters(item.fromPartyIndex, partyIndex, item.memberId, member.id);
+                    }
                 }
             }
         },

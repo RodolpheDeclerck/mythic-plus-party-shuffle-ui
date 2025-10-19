@@ -10,6 +10,7 @@ import CreatedCharacter from './CreatedCharacter/CreatedCharacterView';
 import WaitingRoomHeader from './WaitingRoomHeader/WaitingRoomHeader';
 import WaitingRoom from './WaitingRoom/WaitingRoom';
 import PendingPlayersTable from './PendingPlayersTable/PendingPlayersTable';
+import EventInProgressMessage from './EventInProgressMessage/EventInProgressMessage';
 import useAuthCheck from '../../hooks/useAuthCheck';
 import { useEventData } from '../../hooks/useEventData';
 import { useCharacterManagement } from '../../hooks/useCharacterManagement';
@@ -162,6 +163,9 @@ const EventView: React.FC = () => {
             party.members.some(member => member.id === character.id)
         )
     );
+    
+    // Show event in progress message for non-admin users when event is running and there are pending players
+    const showEventInProgressMessage = !isAuthenticated && parties.length > 0 && pendingPlayers.length > 0;
 
     // ===== LOADING & ERROR STATES =====
     if (isVerifying || loading || !isAuthChecked) return <Loading />;
@@ -179,6 +183,18 @@ const EventView: React.FC = () => {
                 setIsEditing={setIsEditing}
                 eventCode={eventCode ?? ''}
             />
+            
+            {/* ===== EVENT IN PROGRESS MESSAGE ===== */}
+            <EventInProgressMessage isVisible={showEventInProgressMessage} />
+            
+            {/* ===== PENDING PLAYERS SECTION ===== */}
+            {isAuthenticated && parties.length > 0 && pendingPlayers.length > 0 && (
+                <PendingPlayersTable 
+                    pendingPlayers={pendingPlayers}
+                    moveFromPendingToParty={handleMoveFromPendingToParty}
+                    isAdmin={isAuthenticated as boolean}
+                />
+            )}
             
             {/* ===== EVENT RUNNING SECTION ===== */}
             {parties.length > 0 && (isAuthenticated || arePartiesVisible) && (
@@ -207,15 +223,6 @@ const EventView: React.FC = () => {
                         moveFromPendingToParty={handleMoveFromPendingToParty}
                     />
                 </div>
-            )}
-            
-            {/* ===== PENDING PLAYERS SECTION ===== */}
-            {isAuthenticated && parties.length > 0 && pendingPlayers.length > 0 && (
-                <PendingPlayersTable 
-                    pendingPlayers={pendingPlayers}
-                    moveFromPendingToParty={handleMoveFromPendingToParty}
-                    isAdmin={isAuthenticated as boolean}
-                />
             )}
             
             {/* ===== WAITING ROOM SECTION ===== */}
