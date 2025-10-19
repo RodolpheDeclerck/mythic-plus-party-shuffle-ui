@@ -1,10 +1,29 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 import apiUrl from '../config/apiConfig';
 
 const useWebSocket = (onCharacterUpdated: () => void,
     onPartiesShuffled: () => void,
     onEventsUpdated: () => void  = () => {}): Socket | null => {
+    
+    // Use refs to store the latest callbacks without causing reconnections
+    const onCharacterUpdatedRef = useRef(onCharacterUpdated);
+    const onPartiesShuffledRef = useRef(onPartiesShuffled);
+    const onEventsUpdatedRef = useRef(onEventsUpdated);
+
+    // Update refs when callbacks change
+    useEffect(() => {
+        onCharacterUpdatedRef.current = onCharacterUpdated;
+    }, [onCharacterUpdated]);
+
+    useEffect(() => {
+        onPartiesShuffledRef.current = onPartiesShuffled;
+    }, [onPartiesShuffled]);
+
+    useEffect(() => {
+        onEventsUpdatedRef.current = onEventsUpdated;
+    }, [onEventsUpdated]);
+
     useEffect(() => {
         const socket = io(apiUrl, {
             transports: ['websocket'], // Force WebSocket transport
@@ -22,20 +41,20 @@ const useWebSocket = (onCharacterUpdated: () => void,
             console.warn('WebSocket disconnected:', reason);
         });
 
-        // Store callbacks in refs to avoid dependency issues
+        // Use refs to avoid dependency issues
         const handleCharacterUpdated = () => {
             console.log('WebSocket: character-updated event received');
-            onCharacterUpdated();
+            onCharacterUpdatedRef.current();
         };
         
         const handlePartiesShuffled = () => {
             console.log('WebSocket: parties-updated event received');
-            onPartiesShuffled();
+            onPartiesShuffledRef.current();
         };
         
         const handleEventsUpdated = () => {
             console.log('WebSocket: event-updated event received');
-            onEventsUpdated();
+            onEventsUpdatedRef.current();
         };
 
         socket.on('character-updated', handleCharacterUpdated);

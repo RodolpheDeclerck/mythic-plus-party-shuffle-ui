@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import axios from 'axios';
 import apiUrl from '../config/apiConfig';
 import { Event } from '../types/Event';
@@ -27,7 +27,7 @@ export const useEventData = (eventCode: string) => {
         return false;
     };
 
-    const fetchEvent = async () => {
+    const fetchEvent = useCallback(async () => {
         if (eventCode) {
             try {
                 const response = await axios.get<Event>(`${apiUrl}/api/events?code=${eventCode}`, { withCredentials: true });
@@ -43,7 +43,7 @@ export const useEventData = (eventCode: string) => {
                 }
             }
         }
-    };
+    }, [eventCode]);
 
     const togglePartiesVisibility = async () => {
         if (!eventCode) {

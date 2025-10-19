@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Party } from '../types/Party';
 import { fetchParties as fetchPartiesApi, deleteParties, shuffleParties } from '../services/api';
 import apiUrl from '../config/apiConfig';
@@ -8,7 +8,7 @@ export const usePartyManagement = (eventCode: string) => {
     const [parties, setParties] = useState<Party[]>([]);
     const [error, setError] = useState<string | null>(null);
     
-    const fetchParties = async () => {
+    const fetchParties = useCallback(async () => {
         if (eventCode) {
             try {
                 const updatedParties = await fetchPartiesApi(eventCode);
@@ -20,7 +20,7 @@ export const usePartyManagement = (eventCode: string) => {
         } else {
             console.error('Event code is null');
         }
-    };
+    }, [eventCode]);
     
     const handleClearEvent = async () => {
         if (eventCode) {
