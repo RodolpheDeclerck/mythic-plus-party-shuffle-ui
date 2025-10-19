@@ -18,3 +18,26 @@
     max-width: none; /* Enlève la limite de largeur */
     margin: 20px 0; /* Espacement vertical pour centrer */
 }
+
+/* Classes pour les cellules de personnage */
+.character-cell {
+    color: black;
+}
+
+.character-cell b {
+    font-weight: bold;
+}
+
+.character-cell-warrior { background-color: #C79C6E; }
+.character-cell-deathknight { background-color: #C41E3A; }
+.character-cell-paladin { background-color: #F58CBA; }
+.character-cell-monk { background-color: #00FF96; }
+.character-cell-priest { background-color: #FFFFFF; }
+.character-cell-mage { background-color: #40C7EB; }
+.character-cell-druid { background-color: #FF7D0A; }
+.character-cell-rogue { background-color: #FFF569; }
+.character-cell-hunter { background-color: #A9D271; }
+.character-cell-demonhunter { background-color: #A330C9; }
+.character-cell-warlock { background-color: #8787ED; }
+.character-cell-evoker { background-color: #33937F; }
+.character-cell-shaman { background-color: #0070DE; }

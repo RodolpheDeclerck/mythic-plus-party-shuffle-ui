@@ -6,8 +6,7 @@ import './PartyTable.css';
 import { useTranslation } from 'react-i18next';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheck, faTimes, faShield, faHeart, faGavel, faHatWizard } from '@fortawesome/free-solid-svg-icons';
-import { CharacterClassColors } from '../../../enums/CharacterClassColours';
-import { CharacterClass } from '../../../enums/CharacterClass';
+import { getCharacterCellClass } from '../../../utils/classNameHelper';
 
 interface PartyTableProps {
     parties: Party[];
@@ -91,23 +90,23 @@ const PartyTable: React.FC<PartyTableProps> = ({ parties, moveCharacter, swapCha
                                         swapCharacters={swapCharacters}
                                         isAdmin={isAdmin}
                                     >
-                                        <td style={{ color: 'black', backgroundColor: CharacterClassColors[member.characterClass as CharacterClass] }}>
+                                        <td className={getCharacterCellClass(member.characterClass)}>
                                             <b>{originalIndex + 1}</b>
                                         </td>
-                                        <td style={{ color: 'black', backgroundColor: CharacterClassColors[member.characterClass as CharacterClass] }}>
+                                        <td className={getCharacterCellClass(member.characterClass)}>
                                             <b>{member.name}</b>
                                         </td>
-                                        <td style={{ color: 'black', backgroundColor: CharacterClassColors[member.characterClass as CharacterClass] }}>
+                                        <td className={getCharacterCellClass(member.characterClass)}>
                                             <b>{member.characterClass}</b>
                                         </td>
-                                        <td style={{ color: 'black', backgroundColor: CharacterClassColors[member.characterClass as CharacterClass] }}>
+                                        <td className={getCharacterCellClass(member.characterClass)}>
                                             <b>{t(`specializations.${member.specialization}`)}</b>
                                         </td>
-                                        <td style={{ color: 'black', backgroundColor: CharacterClassColors[member.characterClass as CharacterClass] }}>
+                                        <td className={getCharacterCellClass(member.characterClass)}>
                                             <b>{member.iLevel}</b> <br />
                                             ({member.keystoneMinLevel}-{member.keystoneMaxLevel})
                                         </td>
-                                        <td style={{ color: 'black', backgroundColor: CharacterClassColors[member.characterClass as CharacterClass] }}>
+                                        <td className={getCharacterCellClass(member.characterClass)}>
                                             {member.role === 'TANK' ? (
                                                 <FontAwesomeIcon icon={faShield} style={{ color: 'black' }} />
                                             ) : member.role === 'HEAL' ? (
@@ -120,7 +119,7 @@ const PartyTable: React.FC<PartyTableProps> = ({ parties, moveCharacter, swapCha
                                                 member.role
                                             )}
                                         </td>
-                                        <td style={{ color: 'black', backgroundColor: CharacterClassColors[member.characterClass as CharacterClass] }}>
+                                        <td className={getCharacterCellClass(member.characterClass)}>
                                             {member.bloodLust && (
                                                 <FontAwesomeIcon
                                                     icon={faCheck}
@@ -128,7 +127,7 @@ const PartyTable: React.FC<PartyTableProps> = ({ parties, moveCharacter, swapCha
                                                 />
                                             )}
                                         </td>
-                                        <td style={{ color: 'black', backgroundColor: CharacterClassColors[member.characterClass as CharacterClass] }}>
+                                        <td className={getCharacterCellClass(member.characterClass)}>
                                             {member.battleRez && (
                                                 <FontAwesomeIcon
                                                     icon={faCheck}
