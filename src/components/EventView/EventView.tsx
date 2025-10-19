@@ -13,9 +13,9 @@ import './EventView.css';
 import './EventHeader/EventHeader.css';
 import ClearButton from './ClearButton/ClearButton';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEye, faEyeSlash, faShield, faHeart, faGavel, faHatWizard } from '@fortawesome/free-solid-svg-icons';
-import RoleSection from './RoleSection/RoleSection';
+import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 import WaitingRoomHeader from './WaitingRoomHeader/WaitingRoomHeader';
+import WaitingRoom from './WaitingRoom/WaitingRoom';
 import useAuthCheck from '../../hooks/useAuthCheck';
 import { useEventData } from '../../hooks/useEventData';
 import { useCharacterManagement } from '../../hooks/useCharacterManagement';
@@ -162,44 +162,16 @@ const EventView: React.FC = () => {
             }
             
             {/* Character tables by role */}
-            <div className="table-container">
-                <RoleSection
-                    icon={faShield}
-                    title="Tanks"
-                    characters={tanks}
-                    onDelete={isAuthenticated ? handleDelete : undefined}
-                    onUpdate={isAuthenticated ? handleUpdate : undefined}
-                    highlightedId={createdCharacter?.id}
-                    className="role-icon-tank"
-                />
-                <RoleSection
-                    icon={faHeart}
-                    title="Heals"
-                    characters={heals}
-                    onDelete={isAuthenticated ? handleDelete : undefined}
-                    onUpdate={isAuthenticated ? handleUpdate : undefined}
-                    highlightedId={createdCharacter?.id}
-                    className="role-icon-heal"
-                />
-                <RoleSection
-                    icon={faGavel}
-                    title="Melees"
-                    characters={melees}
-                    onDelete={isAuthenticated ? handleDelete : undefined}
-                    onUpdate={isAuthenticated ? handleUpdate : undefined}
-                    highlightedId={createdCharacter?.id}
-                    className="role-icon-melee"
-                />
-                <RoleSection
-                    icon={faHatWizard}
-                    title="Dist"
-                    characters={dist}
-                    onDelete={isAuthenticated ? handleDelete : undefined}
-                    onUpdate={isAuthenticated ? handleUpdate : undefined}
-                    highlightedId={createdCharacter?.id}
-                    className="role-icon-dist"
-                />
-            </div>
+            <WaitingRoom
+                tanks={tanks}
+                heals={heals}
+                melees={melees}
+                dist={dist}
+                isAuthenticated={isAuthenticated ?? false}
+                onDelete={handleDelete}
+                onUpdate={handleUpdate}
+                highlightedId={createdCharacter?.id}
+            />
         </div>
     );
 };
