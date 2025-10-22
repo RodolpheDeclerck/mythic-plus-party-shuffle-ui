@@ -6,20 +6,20 @@ import './PartyTable.css';
 import { useTranslation } from 'react-i18next';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheck, faTimes, faShield, faHeart, faGavel, faHatWizard } from '@fortawesome/free-solid-svg-icons';
-import { CharacterClassColors } from '../../../enums/CharacterClassColours';
-import { CharacterClass } from '../../../enums/CharacterClass';
+import { getCharacterCellClass } from '../../../utils/classNameHelper';
 
 interface PartyTableProps {
     parties: Party[];
     moveCharacter: (fromPartyIndex: number, toPartyIndex: number, memberId: number, toIndex: number) => void;
     swapCharacters: (fromPartyIndex: number, toPartyIndex: number, sourceId: number, targetId: number) => void;
     isAdmin: boolean;
+    moveFromPendingToParty?: (fromPartyIndex: number, toPartyIndex: number, memberId: number, toIndex: number) => void;
 }
 
-const PartyTable: React.FC<PartyTableProps> = ({ parties, moveCharacter, swapCharacters, isAdmin }) => {
+const PartyTable: React.FC<PartyTableProps> = ({ parties, moveCharacter, swapCharacters, isAdmin, moveFromPendingToParty }) => {
     const { t } = useTranslation();
 
-    // Fonction pour calculer l'iLevel moyen du groupe
+    // Function to calculate average iLevel of the group
     const calculateAverageIlevel = (party: Party) => {
         if (party.members.length === 0) return 0;
         const totalIlevel = party.members.reduce((sum, member) => sum + member.iLevel, 0);
@@ -46,7 +46,7 @@ const PartyTable: React.FC<PartyTableProps> = ({ parties, moveCharacter, swapCha
         return Math.min(...party.members.map(member => member.keystoneMaxLevel));
     };
 
-    // Tri des membres uniquement pour l'affichage
+    // Sort members only for display
     const getSortedMembers = (party: Party) => {
         const rolePriority: Record<string, number> = { TANK: 1, HEAL: 2, CAC: 3, DIST: 4 };
         return [...party.members].sort((a, b) => {
@@ -91,23 +91,23 @@ const PartyTable: React.FC<PartyTableProps> = ({ parties, moveCharacter, swapCha
                                         swapCharacters={swapCharacters}
                                         isAdmin={isAdmin}
                                     >
-                                        <td style={{ color: 'black', backgroundColor: CharacterClassColors[member.characterClass as CharacterClass] }}>
+                                        <td className={getCharacterCellClass(member.characterClass)}>
                                             <b>{originalIndex + 1}</b>
                                         </td>
-                                        <td style={{ color: 'black', backgroundColor: CharacterClassColors[member.characterClass as CharacterClass] }}>
+                                        <td className={getCharacterCellClass(member.characterClass)}>
                                             <b>{member.name}</b>
                                         </td>
-                                        <td style={{ color: 'black', backgroundColor: CharacterClassColors[member.characterClass as CharacterClass] }}>
+                                        <td className={getCharacterCellClass(member.characterClass)}>
                                             <b>{member.characterClass}</b>
                                         </td>
-                                        <td style={{ color: 'black', backgroundColor: CharacterClassColors[member.characterClass as CharacterClass] }}>
+                                        <td className={getCharacterCellClass(member.characterClass)}>
                                             <b>{t(`specializations.${member.specialization}`)}</b>
                                         </td>
-                                        <td style={{ color: 'black', backgroundColor: CharacterClassColors[member.characterClass as CharacterClass] }}>
+                                        <td className={getCharacterCellClass(member.characterClass)}>
                                             <b>{member.iLevel}</b> <br />
                                             ({member.keystoneMinLevel}-{member.keystoneMaxLevel})
                                         </td>
-                                        <td style={{ color: 'black', backgroundColor: CharacterClassColors[member.characterClass as CharacterClass] }}>
+                                        <td className={getCharacterCellClass(member.characterClass)}>
                                             {member.role === 'TANK' ? (
                                                 <FontAwesomeIcon icon={faShield} style={{ color: 'black' }} />
                                             ) : member.role === 'HEAL' ? (
@@ -120,7 +120,7 @@ const PartyTable: React.FC<PartyTableProps> = ({ parties, moveCharacter, swapCha
                                                 member.role
                                             )}
                                         </td>
-                                        <td style={{ color: 'black', backgroundColor: CharacterClassColors[member.characterClass as CharacterClass] }}>
+                                        <td className={getCharacterCellClass(member.characterClass)}>
                                             {member.bloodLust && (
                                                 <FontAwesomeIcon
                                                     icon={faCheck}
@@ -128,7 +128,7 @@ const PartyTable: React.FC<PartyTableProps> = ({ parties, moveCharacter, swapCha
                                                 />
                                             )}
                                         </td>
-                                        <td style={{ color: 'black', backgroundColor: CharacterClassColors[member.characterClass as CharacterClass] }}>
+                                        <td className={getCharacterCellClass(member.characterClass)}>
                                             {member.battleRez && (
                                                 <FontAwesomeIcon
                                                     icon={faCheck}
@@ -145,6 +145,7 @@ const PartyTable: React.FC<PartyTableProps> = ({ parties, moveCharacter, swapCha
                                     moveCharacter={moveCharacter}
                                     currentMembersCount={party.members.length}
                                     isAdmin={isAdmin}
+                                    moveFromPendingToParty={moveFromPendingToParty}
                                 />
                             )}
                         </tbody>

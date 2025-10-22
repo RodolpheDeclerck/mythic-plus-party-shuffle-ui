@@ -7,9 +7,9 @@ import apiUrl from '../../config/apiConfig';
 const JoinEventForm = () => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [eventCode, setEventCode] = useState('');
-    const [errorMessage, setErrorMessage] = useState<string | null>(null); // État pour gérer le message d'erreur
+    const [errorMessage, setErrorMessage] = useState<string | null>(null); // State to manage error message
 
-    // Vérifier l'authentification en regardant le cookie JWT
+    // Check authentication by looking at JWT cookie
     useEffect(() => {
         const token = Cookies.get('authToken');
         setIsAuthenticated(!!token);
@@ -29,7 +29,7 @@ const JoinEventForm = () => {
                 window.location.href = `/event/register?code=${eventCode}`;
             }
         } catch (error: any) {
-            console.error('Error fetching event:', error);  // Ajoutez ce log pour vérifier l'erreur
+            console.error('Error fetching event:', error);  // Add this log to check the error
     
             if (error.response) {
                 if (error.response.status === 404) {

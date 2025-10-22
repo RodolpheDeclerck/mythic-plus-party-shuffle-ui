@@ -1,0 +1,150 @@
+/* Pending Players Container */
+.pending-players-container {
+    margin: 20px 0;
+    padding: 20px;
+    background: rgba(255, 200, 100, 0.1); /* Orange/yellow tint */
+    border: 2px solid rgba(255, 200, 100, 0.3);
+    border-radius: 10px;
+    backdrop-filter: blur(10px);
+}
+
+/* Header Styling */
+.pending-players-header {
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.pending-players-header h2 {
+    color: #ffa500; /* Orange color for header */
+    margin: 0 0 5px 0;
+    font-size: 1.5rem;
+}
+
+.pending-players-subtitle {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.9rem;
+    margin: 0;
+    font-style: italic;
+}
+
+/* Table Wrapper - Horizontal Scroll if Needed */
+.pending-players-container .table-wrapper {
+    overflow-x: auto;
+    border-radius: 8px;
+}
+
+/* Table Styling */
+.pending-players-container table {
+    width: 100%;
+    border-collapse: collapse;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.pending-players-container thead {
+    background: rgba(255, 165, 0, 0.3); /* Orange header */
+}
+
+.pending-players-container th {
+    padding: 10px;
+    text-align: center;
+    color: #fff;
+    font-weight: bold;
+    border-bottom: 2px solid rgba(255, 165, 0, 0.5);
+}
+
+.pending-players-container tbody tr {
+    cursor: grab;
+    transition: background-color 0.2s;
+}
+
+.pending-players-container tbody tr:hover {
+    background: rgba(255, 165, 0, 0.2);
+}
+
+.pending-players-container tbody tr:active {
+    cursor: grabbing;
+}
+
+.pending-players-container td {
+    padding: 8px;
+    text-align: center;
+    color: #fff;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Character Class Colors */
+.pending-players-container .death-knight {
+    background-color: rgba(196, 30, 58, 0.3);
+}
+
+.pending-players-container .demon-hunter {
+    background-color: rgba(163, 48, 201, 0.3);
+}
+
+.pending-players-container .druid {
+    background-color: rgba(255, 124, 10, 0.3);
+}
+
+.pending-players-container .evoker {
+    background-color: rgba(51, 147, 127, 0.3);
+}
+
+.pending-players-container .hunter {
+    background-color: rgba(170, 211, 114, 0.3);
+}
+
+.pending-players-container .mage {
+    background-color: rgba(63, 199, 235, 0.3);
+}
+
+.pending-players-container .monk {
+    background-color: rgba(0, 255, 152, 0.3);
+}
+
+.pending-players-container .paladin {
+    background-color: rgba(244, 140, 186, 0.3);
+}
+
+.pending-players-container .priest {
+    background-color: rgba(255, 255, 255, 0.3);
+}
+
+.pending-players-container .rogue {
+    background-color: rgba(255, 244, 104, 0.3);
+}
+
+.pending-players-container .shaman {
+    background-color: rgba(0, 112, 221, 0.3);
+}
+
+.pending-players-container .warlock {
+    background-color: rgba(135, 136, 238, 0.3);
+}
+
+.pending-players-container .warrior {
+    background-color: rgba(198, 155, 109, 0.3);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .pending-players-container {
+        padding: 10px;
+    }
+
+    .pending-players-header h2 {
+        font-size: 1.2rem;
+    }
+
+    .pending-players-subtitle {
+        font-size: 0.8rem;
+    }
+
+    .pending-players-container th,
+    .pending-players-container td {
+        padding: 6px 4px;
+        font-size: 0.85rem;
+    }
+}
+

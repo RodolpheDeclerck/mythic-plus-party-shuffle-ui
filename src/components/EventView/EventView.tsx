@@ -1,71 +1,56 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import PartyTable from './PartyTable/PartyTable';
-import CharacterTable from './CharacterTable/CharacterTable';
 import ShuffleButton from './ShuffleButton/ShuffleButton';
 import Loading from '../Loading';
 import useFetchCharacters from '../../hooks/useFetchCharacters';
 import useWebSocket from '../../hooks/useWebSocket';
-import {
-    deleteParties,
-    fetchCharacters as fetchCharactersApi,
-    deleteCharacter,
-    shuffleParties,
-    fetchParties as fetchPartiesApi,
-    deleteCharacters,
-} from '../../services/api';
-import { Party } from '../../types/Party';
-import { Event } from '../../types/Event';
+import { fetchCharacters as fetchCharactersApi } from '../../services/api';
 import CreatedCharacter from './CreatedCharacter/CreatedCharacterView';
-import './EventView.css';
-import ClearButton from './ClearButton/ClearButton';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faShield, faHeart, faGavel, faHatWizard, faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
+import WaitingRoomHeader from './WaitingRoomHeader/WaitingRoomHeader';
+import WaitingRoom from './WaitingRoom/WaitingRoom';
+import PendingPlayersTable from './PendingPlayersTable/PendingPlayersTable';
+import EventInProgressMessage from './EventInProgressMessage/EventInProgressMessage';
+import EventGroupsMessage from './EventGroupsMessage/EventGroupsMessage';
 import useAuthCheck from '../../hooks/useAuthCheck';
-import apiUrl from '../../config/apiConfig';
-import axios from 'axios';
+import { useEventData } from '../../hooks/useEventData';
+import { useCharacterManagement } from '../../hooks/useCharacterManagement';
+import { usePartyManagement } from '../../hooks/usePartyManagement';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
+import ClearButton from './ClearButton/ClearButton';
+import './EventView.css';
+import './EventHeader/EventHeader.css';
 
 const EventView: React.FC = () => {
+    // Router and navigation
     const location = useLocation();
     const navigate = useNavigate();
     const eventCode = new URLSearchParams(location.search).get('code');
+    
+    // Authentication
     const { isAuthenticated, isAuthChecked } = useAuthCheck();
+    
+    // Character data and management
     const { characters, loading, error, setCharacters } = useFetchCharacters(eventCode || '');
-    const [parties, setParties] = useState<Party[]>([]);
+    
+    // Party management
+    const { parties, setParties, error: partyError, fetchParties, handleClearEvent, swapCharacters, moveCharacter, handleShuffle, updatePartiesInBackend } = usePartyManagement(eventCode || '');
+    
+    // Event data and visibility
+    const { arePartiesVisible, isVerifying, setIsVerifying, checkEventExistence, fetchEvent, togglePartiesVisibility } = useEventData(eventCode || '');
+    
+    // Local state
     const [errorState, setErrorState] = useState<string | null>(null);
-    const [createdCharacter, setCreatedCharacter] = useState<any | null>(null);
-    const [isEditing, setIsEditing] = useState(false);
-    const [isVerifying, setIsVerifying] = useState(true); // État pour suivre la vérification
-    const [arePartiesVisible, setArePartiesVisible] = useState(false);
 
-    // Fonction pour vérifier l'existence de l'événement
-    const checkEventExistence = async (): Promise<boolean> => {
-        if (eventCode) {
-            try {
-                const response = await axios.get<Event>(`${apiUrl}/api/events?code=${eventCode}`, { withCredentials: true });
-                const event = response.data;
-                if (event) {
-                    setArePartiesVisible(event.arePartiesVisible); // Stockez la valeur dans l'état
-                }
-                setArePartiesVisible(event.arePartiesVisible); // Stockez la valeur dans l'état
-                return true; // L'événement existe
-            } catch (error: any) {
-                if (error.response && error.response.status === 404) {
-                    return false; // L'événement n'existe pas
-                } else {
-                    console.error('Erreur lors de la vérification de l\'événement:', error);
-                }
-            }
-        }
-        return false; // Aucun eventCode ou autre erreur
-    };
 
-    // useEffect pour vérifier l'existence de l'événement au montage
+    // ===== INITIALIZATION =====
+    // Check event existence and handle initial setup
     useEffect(() => {
         const verifyAndRedirect = async () => {
             const eventExists = await checkEventExistence();
             if (!eventExists) {
-                navigate('/'); // Redirection vers la page d'accueil si l'événement n'existe pas
+                navigate('/'); // Redirect to home if event doesn't exist
             } else {
                 const characterData = localStorage.getItem('createdCharacter');
                 if (characterData) {
@@ -74,13 +59,14 @@ const EventView: React.FC = () => {
                     navigate('/event/register?code=' + eventCode);
                 }
             }
-            setIsVerifying(false); // Fin de la vérification
+            setIsVerifying(false); // End verification
         };
 
         verifyAndRedirect();
     }, [eventCode, isAuthChecked, isAuthenticated, navigate]);
 
-    const fetchCharacters = async () => {
+    // ===== API FUNCTIONS =====
+    const fetchCharacters = useCallback(async () => {
         if (eventCode) {
             try {
                 const updatedCharacters = await fetchCharactersApi(eventCode);
@@ -92,247 +78,111 @@ const EventView: React.FC = () => {
         } else {
             console.error('Event code is null');
         }
+    }, [eventCode, setCharacters]);
+
+    // Character management with refetch callback
+    const { createdCharacter, setCreatedCharacter, isEditing, setIsEditing, error: characterError, handleSaveCharacter, handleUpdate, handleDelete, handleClear, handleCharacterDeletion } = useCharacterManagement(eventCode || '', fetchCharacters);
+
+    const fetchPartiesWrapper = useCallback(async () => {
+        fetchParties();
+    }, [fetchParties]);
+
+    const fetchEventWrapper = useCallback(async () => {
+        fetchEvent();
+    }, [fetchEvent]);
+
+    // ===== WEBSOCKET & EFFECTS =====
+    // Initialize WebSocket connection
+    useWebSocket(fetchCharacters, fetchPartiesWrapper, fetchEventWrapper);
+
+    // Load parties on component mount
+    useEffect(() => {
+        fetchPartiesWrapper();
+    }, [fetchPartiesWrapper]);
+
+    // ===== HELPER FUNCTIONS =====
+    const handleShuffleWrapper = () => {
+        handleShuffle(createdCharacter, setCreatedCharacter);
     };
-
-    const fetchParties = async () => {
-        if (eventCode) {
-            try {
-                const updatedParties = await fetchPartiesApi(eventCode);
-                setParties([...updatedParties]);
-            } catch (error) {
-                console.error('Error fetching parties:', error);
-                setErrorState('Failed to fetch parties');
-            }
-        } else {
-            console.error('Event code is null');
-        }
-    };
-
-    const fetchEvent = async () => {
-        if (eventCode) {
-            try {
-                const response = await axios.get<Event>(`${apiUrl}/api/events?code=${eventCode}`, { withCredentials: true });
-                const event = response.data;
-                if (event) {
-                    setArePartiesVisible(event.arePartiesVisible); // Stockez la valeur dans l'état
-                }
-            } catch (error: any) {
-                if (error.response && error.response.status === 404) {
-                    console.error('Error fetching event:', error);
-                    setErrorState('Failed to fetch event');
-                } else {
-                    console.error('Error fetching event:', error);
-                }
-            }
-        }
-    }
-
-
-    useWebSocket(fetchCharacters, fetchParties, fetchEvent);
-
-    const handleDelete = async (id: number) => {
-        try {
-            await deleteCharacter(id);
-            fetchCharacters();
-        } catch (error) {
-            console.error(`Error deleting character with ID ${id}:`, error);
-            setErrorState('Failed to delete character');
-        }
-    };
-
-    const handleUpdate = (character: any) => {
-        setCreatedCharacter(character);
-        setIsEditing(true);
-    };
-
-    const handleShuffle = async () => {
-        if (eventCode) {
-            try {
-                await axios.patch(
-                    `${apiUrl}/api/events/${eventCode}/setPartiesVisibility`,
-                    { visible: false },
-                    { withCredentials: true }
-                );
-
-                const shuffledParties = await shuffleParties(eventCode);
-                let updatedCharacter = null;
-
-                if (createdCharacter) {
-                    updatedCharacter = shuffledParties
-                        .flatMap((party) => party.members)
-                        .find((member) => member.id === createdCharacter.id);
-                }
-
-                if (updatedCharacter) {
-                    setCreatedCharacter({ ...updatedCharacter });
-                    localStorage.setItem('createdCharacter', JSON.stringify(updatedCharacter));
-                } else {
-                    setCreatedCharacter(null);
-                    localStorage.removeItem('createdCharacter');
-                }
-
-                setParties([...shuffledParties]);
-
-            } catch (error) {
-                console.error('Error shuffling parties:', error);
-                setErrorState('Failed to shuffle parties');
-            }
-        } else {
-            console.error('Event code is null');
-        }
-    };
-
-    const handleClear = async () => {
-        try {
-            const ids = characters.map((character) => character.id);
-            await deleteCharacters(ids);
-            fetchCharacters();
-        } catch (error) {
-            console.error('Error deleting characters:', error);
-            setErrorState('Failed to delete characters');
-        }
-    };
-
-    const handleClearEvent = async () => {
-        if (eventCode) {
-            try {
-                await deleteParties(eventCode);
-                setParties([]);
-            } catch (error) {
-                console.error('Error deleting parties:', error);
-                setErrorState('Failed to delete parties');
-            }
-        } else {
-            console.error('Event code is null');
-        }
-    };
-
-    const handleSaveCharacter = (updatedCharacter: any) => {
-        setCreatedCharacter({ ...updatedCharacter });
-        localStorage.setItem('createdCharacter', JSON.stringify(updatedCharacter));
-    };
-
-    const handleCharacterDeletion = (deletedId: number) => {
-        setCharacters((prevCharacters) => prevCharacters.filter((character) => character.id !== deletedId));
-    };
-
-    const handleEyeButtonClick = async () => {
-        if (!eventCode) {
-            console.error('Event code is missing.');
+    
+    // Wrapper function to handle moving from pending players to party
+    const handleMoveFromPendingToParty = (fromPartyIndex: number, toPartyIndex: number, memberId: number, toIndex: number) => {
+        console.log('🔄 handleMoveFromPendingToParty called:', { fromPartyIndex, toPartyIndex, memberId, toIndex });
+        
+        // Find the character from pending players
+        const character = pendingPlayers.find(c => c.id === memberId);
+        if (!character) {
+            console.error('❌ Character not found in pending players:', memberId);
+            console.log('Available pending players:', pendingPlayers.map(p => ({ id: p.id, name: p.name })));
             return;
         }
-
-        try {
-            // Envoyer une requête PATCH pour mettre à jour la visibilité
-            await axios.patch(
-                `${apiUrl}/api/events/${eventCode}/setPartiesVisibility`,
-                { visible: !arePartiesVisible }, // Corps de la requête
-                { withCredentials: true } // Inclure les cookies si nécessaires
-            );
-
-        } catch (error) {
-            console.error('Failed to update parties visibility:', error);
+        
+        console.log('✅ Found character:', character.name);
+        
+        // Add character to the target party
+        const updatedParties = [...parties];
+        const targetParty = updatedParties[toPartyIndex];
+        
+        if (!targetParty) {
+            console.error('❌ Target party not found:', toPartyIndex);
+            return;
         }
-    };
-
-    const swapCharacters = (fromPartyIndex: number, toPartyIndex: number, sourceId: number, targetId: number) => {
-        setParties((prevParties) => {
-            const updatedParties = prevParties.map((party) => ({
-                ...party,
-                members: [...party.members],
-            }));
-
-            const sourceParty = updatedParties[fromPartyIndex];
-            const targetParty = updatedParties[toPartyIndex];
-
-            // Find the members by their IDs
-            const sourceMemberIndex = sourceParty.members.findIndex(m => m.id === sourceId);
-            const targetMemberIndex = targetParty.members.findIndex(m => m.id === targetId);
-
-            if (sourceMemberIndex === -1 || targetMemberIndex === -1) {
-                console.error("Members not found");
-                return prevParties;
-            }
-
-            // Perform the swap using the found indices
-            [sourceParty.members[sourceMemberIndex], targetParty.members[targetMemberIndex]] =
-                [targetParty.members[targetMemberIndex], sourceParty.members[sourceMemberIndex]];
-
-            updatePartiesInBackend(updatedParties);
-
-            return updatedParties;
-        });
-    };
-
-    const moveCharacter = (fromPartyIndex: number, toPartyIndex: number, memberId: number, toIndex: number) => {
-        setParties((prevParties) => {
-            const updatedParties = [...prevParties];
-            const sourceParty = updatedParties[fromPartyIndex];
-            const targetParty = updatedParties[toPartyIndex];
-
-            if (!sourceParty || !targetParty) {
-                console.error("Invalid party indices");
-                return prevParties;
-            }
-
-            // Find the member by ID
-            const memberIndex = sourceParty.members.findIndex(m => m.id === memberId);
-            if (memberIndex === -1) {
-                console.error("Member not found");
-                return prevParties;
-            }
-
-            // Remove the member from the source party
-            const [movedCharacter] = sourceParty.members.splice(memberIndex, 1);
-
-            if (targetParty.members.length < 5) {
-                // Insert at the specified target index
-                targetParty.members.splice(toIndex, 0, movedCharacter);
-            } else {
-                console.error("Target party is full. Move not allowed.");
-                // Put the character back in the source party
-                sourceParty.members.splice(memberIndex, 0, movedCharacter);
-            }
-
-            updatePartiesInBackend(updatedParties);
-
-            return updatedParties;
-        });
-    };
-
-    const updatePartiesInBackend = async (updatedParties: Party[]) => {
-        try {
-            const response = await fetch(`${apiUrl}/api/events/${eventCode}/parties`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(updatedParties),
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to update parties');
-            }
-            console.log('Parties updated in Redis');
-        } catch (error) {
-            console.error('Error updating parties in Redis:', error);
+        
+        if (targetParty.members.length >= 5) {
+            console.error('❌ Target party is full:', targetParty.members.length);
+            return;
         }
+        
+        console.log('✅ Adding character to party:', { 
+            partyIndex: toPartyIndex, 
+            currentMembers: targetParty.members.length,
+            insertAt: toIndex 
+        });
+        
+        // Insert character at the specified position
+        targetParty.members.splice(toIndex, 0, character);
+        
+        console.log('✅ Character added to party. New party size:', targetParty.members.length);
+        
+        // Update backend and local state
+        setParties(updatedParties);
+        updatePartiesInBackend(updatedParties);
+        
+        console.log('✅ Party state updated');
     };
 
-    useEffect(() => {
-        fetchParties();
-    }, []);
-
+    // ===== DATA PROCESSING =====
+    // Filter characters by role
     const tanks = characters.filter((character) => character.role === 'TANK');
     const heals = characters.filter((character) => character.role === 'HEAL');
     const melees = characters.filter((character) => character.role === 'CAC');
     const dist = characters.filter((character) => character.role === 'DIST');
+    
+    // Filter pending players (in waiting room but not in any party)
+    const pendingPlayers = characters.filter(character => 
+        !parties.some(party => 
+            party.members.some(member => member.id === character.id)
+        )
+    );
+    
+    // Show event in progress message for non-admin users when event is running and there are pending players
+    const showEventInProgressMessage = !isAuthenticated && parties.length > 0 && pendingPlayers.length > 0;
+    
+    // Show event groups message for non-admin users when groups are visible AND they are in a group
+    const isPlayerInGroup = createdCharacter && parties.some(party => 
+        party.members.some(member => member.id === createdCharacter.id)
+    );
+    const showEventGroupsMessage = !isAuthenticated && parties.length > 0 && arePartiesVisible && isPlayerInGroup;
+    const totalParticipants = parties.reduce((acc, party) => acc + party.members.length, 0);
+    const numberOfGroups = parties.length;
 
+    // ===== LOADING & ERROR STATES =====
     if (isVerifying || loading || !isAuthChecked) return <Loading />;
-    if (error || errorState) return <div>{error || errorState}</div>;
+    if (error || errorState || characterError || partyError) return <div>{error || errorState || characterError || partyError}</div>;
 
     return (
         <div>
+            {/* ===== CHARACTER CREATION ===== */}
             <CreatedCharacter
                 character={isAuthenticated && !isEditing ? undefined : createdCharacter}
                 onSave={handleSaveCharacter}
@@ -342,21 +192,45 @@ const EventView: React.FC = () => {
                 setIsEditing={setIsEditing}
                 eventCode={eventCode ?? ''}
             />
+            
+            {/* ===== EVENT IN PROGRESS MESSAGE ===== */}
+            <EventInProgressMessage isVisible={showEventInProgressMessage} />
+            
+            {/* ===== EVENT GROUPS MESSAGE ===== */}
+            <EventGroupsMessage 
+                isVisible={showEventGroupsMessage}
+                totalParticipants={totalParticipants}
+                numberOfGroups={numberOfGroups}
+                parties={parties}
+                currentPlayerId={createdCharacter?.id}
+            />
+            
+            {/* ===== PENDING PLAYERS SECTION ===== */}
+            {isAuthenticated && parties.length > 0 && pendingPlayers.length > 0 && (
+                <PendingPlayersTable 
+                    pendingPlayers={pendingPlayers}
+                    moveFromPendingToParty={handleMoveFromPendingToParty}
+                    isAdmin={isAuthenticated as boolean}
+                />
+            )}
+            
+            {/* ===== EVENT RUNNING SECTION ===== */}
             {parties.length > 0 && (isAuthenticated || arePartiesVisible) && (
                 <div>
                     <div className="title-container">
+                        <div className="event-header-content">
                         <h2 className="subtitle">
                             Event running... ({parties.reduce((acc, party) => acc + party.members.length, 0)} participants)
                         </h2>
                         {isAuthenticated && (
-                            <div className="party-button-container">
+                                <div className="button-container">
                                 <ClearButton onClear={handleClearEvent} />
-                                <button className="eye-button" onClick={handleEyeButtonClick}>
-                                    {!arePartiesVisible ? <FontAwesomeIcon icon={faEyeSlash}  style={{ color: 'red' }} /> : <FontAwesomeIcon icon={faEye} />}
-
+                                    <button className="eye-button" onClick={togglePartiesVisibility}>
+                                        {!arePartiesVisible ? <FontAwesomeIcon icon={faEyeSlash} className="role-icon-hidden" /> : <FontAwesomeIcon icon={faEye} />}
                                 </button>
                             </div>
                         )}
+                        </div>
                     </div>
 
                     <PartyTable
@@ -364,76 +238,43 @@ const EventView: React.FC = () => {
                         moveCharacter={moveCharacter}
                         swapCharacters={swapCharacters}
                         isAdmin={isAuthenticated as boolean}
+                        moveFromPendingToParty={handleMoveFromPendingToParty}
                     />
-
                 </div>
             )}
-            <div className="title-container">
-                <div className="title-clear-container">
-                    <h1 className="title">Waiting Room ({characters.length} participants)</h1>
-                    {isAuthenticated && <ClearButton onClear={handleClear} />}
-                </div>
-            </div>
+            
+            {/* ===== WAITING ROOM SECTION ===== */}
+            <WaitingRoomHeader
+                characters={characters}
+                isAuthenticated={isAuthenticated ?? false}
+                onClear={handleClear}
+            />
+            
+            {/* ===== WAITING MESSAGE ===== */}
             {parties.length === 0 || !arePartiesVisible &&
                 <div className="title-container">
                     <p><b>Waiting for the event to launch...</b></p>
                 </div>
             }
+            
+            {/* ===== SHUFFLE BUTTON ===== */}
             {isAuthenticated &&
                 <div className="title-container">
-                    <ShuffleButton onShuffle={handleShuffle} />
+                    <ShuffleButton onShuffle={handleShuffleWrapper} />
                 </div>
             }
-            <div className="table-container">
-                <div className="table-wrapper">
-                    <div className="icon-text-container">
-                        <FontAwesomeIcon icon={faShield} style={{ color: 'black', marginRight: '8px' }} />
-                        <h2>Tanks ({tanks.length})</h2>
-                    </div>
-                    <CharacterTable
-                        characters={tanks}
-                        onDelete={isAuthenticated ? handleDelete : undefined}
-                        onUpdate={isAuthenticated ? handleUpdate : undefined}
+            
+            {/* ===== CHARACTER TABLES BY ROLE ===== */}
+            <WaitingRoom
+                tanks={tanks}
+                heals={heals}
+                melees={melees}
+                dist={dist}
+                isAuthenticated={isAuthenticated ?? false}
+                onDelete={handleDelete}
+                onUpdate={handleUpdate}
                         highlightedId={createdCharacter?.id}
                     />
-                </div>
-                <div className="table-wrapper">
-                    <div className="icon-text-container">
-                        <FontAwesomeIcon icon={faHeart} style={{ color: 'green', marginRight: '8px' }} />
-                        <h2>Heals ({heals.length})</h2>
-                    </div>
-                    <CharacterTable
-                        characters={heals}
-                        onDelete={isAuthenticated ? handleDelete : undefined}
-                        onUpdate={isAuthenticated ? handleUpdate : undefined}
-                        highlightedId={createdCharacter?.id}
-                    />
-                </div>
-                <div className="table-wrapper">
-                    <div className="icon-text-container">
-                        <FontAwesomeIcon icon={faGavel} style={{ color: 'red', marginRight: '8px' }} />
-                        <h2>Melees ({melees.length})</h2>
-                    </div>
-                    <CharacterTable
-                        characters={melees}
-                        onDelete={isAuthenticated ? handleDelete : undefined}
-                        onUpdate={isAuthenticated ? handleUpdate : undefined}
-                        highlightedId={createdCharacter?.id}
-                    />
-                </div>
-                <div className="table-wrapper">
-                    <div className="icon-text-container">
-                        <FontAwesomeIcon icon={faHatWizard} style={{ color: 'blue', marginRight: '8px' }} />
-                        <h2>Dist ({dist.length})</h2>
-                    </div>
-                    <CharacterTable
-                        characters={dist}
-                        onDelete={isAuthenticated ? handleDelete : undefined}
-                        onUpdate={isAuthenticated ? handleUpdate : undefined}
-                        highlightedId={createdCharacter?.id}
-                    />
-                </div>
-            </div>
         </div>
     );
 };

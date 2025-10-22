@@ -142,6 +142,39 @@ tbody tr:hover {
     justify-content: center; /* Centre horizontalement le contenu */
 }
 
+/* UNIQUEMENT pour EventHeader - ne touche pas au reste */
+.event-header-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    white-space: nowrap;
+    width: 100%;
+}
+
+.event-header-content h2 {
+    white-space: nowrap;
+    margin: 0;
+}
+
+/* Conteneur pour aligner les boutons */
+.button-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 32px; /* Hauteur fixe pour le conteneur */
+}
+
+/* Alignement des boutons dans le conteneur */
+.button-container .clear-button,
+.button-container .eye-button {
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0; /* Supprimer les marges du ClearButton */
+}
+
 /* Styles spécifiques pour ajuster la largeur des nouvelles colonnes */
 th.new-column,
 td.new-column {
@@ -167,3 +200,14 @@ td.new-column {
     align-items: center; /* Centrer verticalement le contenu */
     justify-content: center; /* Centrer horizontalement le contenu */
 }
+
+/* Classes pour les icônes de rôle */
+.role-icon {
+    margin-right: 8px;
+}
+
+.role-icon-tank { color: black; }
+.role-icon-heal { color: green; }
+.role-icon-melee { color: red; }
+.role-icon-dist { color: blue; }
+.role-icon-hidden { color: red; }

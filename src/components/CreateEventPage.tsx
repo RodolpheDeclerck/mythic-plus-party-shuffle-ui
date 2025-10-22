@@ -6,45 +6,45 @@ import InputField from './InputFieldProps';
 import apiUrl from '../config/apiConfig';
 
 const CreateEventPage: React.FC = () => {
-  const [eventName, setEventName] = useState<string>(''); // Nom de l'événement
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(true); // On part du principe que l'utilisateur est authentifié via cookie
-  const [isCreating, setIsCreating] = useState<boolean>(false); // État pour savoir si l'événement est en cours de création
+  const [eventName, setEventName] = useState<string>(''); // Event name
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(true); // Assume user is authenticated via cookie
+  const [isCreating, setIsCreating] = useState<boolean>(false); // State to know if event is being created
   const navigate = useNavigate();
 
   interface EventResponse {
     code: string;
   }
 
-  // Vérification de l'authentification non nécessaire via localStorage
+  // Authentication verification not necessary via localStorage
   useEffect(() => {
-    // L'utilisateur est supposé être authentifié si le cookie JWT est présent.
-    // Cette partie peut être enrichie en envoyant une requête au serveur pour valider l'authentification si nécessaire.
+    // User is assumed to be authenticated if JWT cookie is present.
+    // This part can be enhanced by sending a request to the server to validate authentication if necessary.
   }, [navigate]);
 
-  // Fonction pour créer l'événement
+  // Function to create the event
   const handleCreateEvent = async () => {
     if (!eventName) return;
 
-    setIsCreating(true); // Définir l'état en mode création
+    setIsCreating(true); // Set state to creation mode
 
     try {
-      // Envoie la requête pour créer un événement avec les cookies inclus
+      // Send request to create event with cookies included
       const response = await axios.post<EventResponse>(
         `${apiUrl}/api/events`,
-        { name: eventName }, // Données envoyées dans le corps de la requête
+        { name: eventName }, // Data sent in request body
         {
-          withCredentials: true, // Envoie automatiquement le cookie `authToken`
+          withCredentials: true, // Automatically sends `authToken` cookie
         }
       );
 
-      // Rediriger l'utilisateur vers la page de l'événement avec le code de l'événement
-      const eventCode = response.data.code; // Récupérer le code de l'événement depuis la réponse
-      navigate(`/event?code=${eventCode}`); // Rediriger vers la page de l'événement
+      // Redirect user to event page with event code
+      const eventCode = response.data.code; // Get event code from response
+      navigate(`/event?code=${eventCode}`); // Redirect to event page
 
     } catch (error) {
       console.error('Error creating event:', error);
     } finally {
-      setIsCreating(false); // Fin du processus de création
+      setIsCreating(false); // End creation process
     }
   };
 

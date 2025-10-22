@@ -6,7 +6,7 @@ import axios from 'axios';
 import apiUrl from '../../config/apiConfig';
 
 interface LoginResponse {
-    token: string; // Spécifie que la réponse attend un token
+    token: string; // Specifies that the response expects a token
 }
 
 const LoginForm = () => {
@@ -16,37 +16,37 @@ const LoginForm = () => {
         const email = (event.currentTarget as HTMLFormElement).username.value;
         const password = (event.currentTarget as HTMLFormElement).password.value;
 
-        axios.post<LoginResponse>( // Spécifie ici le type attendu
+        axios.post<LoginResponse>( // Specifies the expected type here
             `${apiUrl}/auth/login`,
             { email, password },
             {
-                withCredentials: true, // Permet l'envoi et la réception des cookies httpOnly
+                withCredentials: true, // Allows sending and receiving httpOnly cookies
             }
         )
             .then(response => {
                 if (response.status === 200) {
                     console.log('Login successful, status:', response.status);
 
-                    // TypeScript sait maintenant que response.data contient un token
+                    // TypeScript now knows that response.data contains a token
                     localStorage.setItem('authToken', response.data.token);
 
-                    // Vérifie si la redirection est définie dans localStorage
+                    // Check if redirect is defined in localStorage
                     let redirectUrl = localStorage.getItem('redirectAfterLogin') || '/dashboard';
 
-                    // Si redirectAfterLogin est défini sur `/` ou absent, rediriger vers `/dashboard`
+                    // If redirectAfterLogin is set to `/` or absent, redirect to `/dashboard`
                     if (!redirectUrl || redirectUrl === '/' || redirectUrl === '/login') {
                         redirectUrl = '/dashboard';
                     }
 
                     console.log('Redirecting to:', redirectUrl);
 
-                    // Supprime la clé redirectAfterLogin du localStorage
+                    // Remove redirectAfterLogin key from localStorage
                     localStorage.removeItem('redirectAfterLogin');
 
-                    // Redirige l'utilisateur après un délai
+                    // Redirect user after a delay
                     setTimeout(() => {
                         window.location.replace(redirectUrl);
-                    }, 500); // Délai de 500ms pour s'assurer que tout est bien pris en compte
+                    }, 500); // 500ms delay to ensure everything is properly taken into account
                 } else {
                     console.error('Erreur d\'authentification');
                 }

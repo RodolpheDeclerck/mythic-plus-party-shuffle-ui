@@ -5,7 +5,7 @@ import apiUrl from '../../config/apiConfig';
 import useWebSocket from '../../hooks/useWebSocket';
 import useAuthCheck from '../../hooks/useAuthCheck';
 
-// Définition de l'interface pour les événements
+// Interface definition for events
 interface Event {
     id: number;
     name: string;
@@ -13,51 +13,51 @@ interface Event {
 }
 
 const EventSelectionPage = () => {
-    const { isAuthenticated, isAuthChecked, handleLogout } = useAuthCheck(); // Utilisation du hook pour centraliser l'authentification
-    const [events, setEvents] = useState<Event[]>([]); // Définition explicite du type Event[]
+    const { isAuthenticated, isAuthChecked, handleLogout } = useAuthCheck(); // Use hook to centralize authentication
+    const [events, setEvents] = useState<Event[]>([]); // Explicit Event[] type definition
 
-    // Déclare la fonction fetchAdminEvents avant son utilisation
+    // Declare fetchAdminEvents function before its use
     const fetchAdminEvents = async () => {
         try {
             const response = await axios.get(`${apiUrl}/api/events/admin-events`, { withCredentials: true });
-            setEvents(response.data as Event[]); // Stocke les événements dans l'état
+            setEvents(response.data as Event[]); // Store events in state
         } catch (error) {
             console.error('Error fetching events:', error);
         }
     };
 
-    // Utiliser useEffect pour la redirection et la récupération des événements
+    // Use useEffect for redirection and event fetching
     useEffect(() => {
-        if (isAuthChecked && isAuthenticated !== null) {  // Attendre la fin du chargement
+        if (isAuthChecked && isAuthenticated !== null) {  // Wait for loading to finish
             if (!isAuthenticated) {
-                window.location.href = '/login'; // Redirection si non authentifié
+                window.location.href = '/login'; // Redirect if not authenticated
             } else {
-                fetchAdminEvents(); // Si authentifié, récupère les événements
+                fetchAdminEvents(); // If authenticated, fetch events
             }
         }
     }, [isAuthenticated, isAuthChecked]);
 
-    // Utiliser useWebSocket inconditionnellement
+    // Use useWebSocket unconditionally
     useWebSocket(() => { }, () => { }, fetchAdminEvents);
 
-    // Redirection vers un événement spécifique
+    // Redirect to a specific event
     const handleJoinEvent = (eventCode: string) => {
         window.location.href = `/event?code=${eventCode}`;
     };
 
-    // Fonction pour supprimer un événement
+    // Function to delete an event
     const handleDeleteEvent = async (eventCode: string) => {
         try {
             await axios.delete(`${apiUrl}/api/events/${eventCode}`, { withCredentials: true });
             console.log(`Event ${eventCode} deleted successfully`);
-            fetchAdminEvents(); // Actualise la liste des événements après suppression
+            fetchAdminEvents(); // Refresh event list after deletion
         } catch (error) {
             console.error('Error deleting event:', error);
         }
     };
 
     if (isAuthenticated) {
-        // Afficher le contenu uniquement si l'utilisateur est authentifié
+        // Display content only if user is authenticated
         return (
             <div className="container">
                 <div className='wrapper'>

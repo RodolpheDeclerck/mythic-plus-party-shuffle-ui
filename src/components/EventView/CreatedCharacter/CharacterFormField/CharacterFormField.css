@@ -1,0 +1,34 @@
+/* CharacterFormField component styles */
+.character-field {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(255, 255, 255, 0.05); /* Fond léger pour chaque champ */
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid rgba(255, 255, 255, 0.2); /* Bordure légère et transparente */
+    color: #fff; /* Texte blanc pour maintenir la cohérence */
+}
+
+.character-field b {
+    min-width: 120px;
+    color: #fff; /* Texte blanc pour les labels */
+}
+
+/* Styles pour le mode édition */
+.created-character-info.editing .character-field {
+    min-width: 150px;
+    height: 40px;
+}
+
+/* Styles pour les champs de saisie dans le mode édition */
+.created-character-info.editing .character-field input,
+.created-character-info.editing .character-field select {
+    height: 100%;
+    flex-grow: 0;
+    width: auto;
+    border: none;
+    background: transparent;
+    color: #fff;
+    padding: 0 5px;
+}

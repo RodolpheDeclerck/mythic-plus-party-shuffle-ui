@@ -4,7 +4,7 @@ import SignIn from './SignIn';
 import SignUp from './SignUp';
 import Logout from './Logout';
 import DashBoardButton from './DashBoardButton';
-import Cookies from 'js-cookie';  // Importation de js-cookie
+import Cookies from 'js-cookie';  // Import js-cookie
 import useAuthCheck from '../../hooks/useAuthCheck';
 
 

@@ -1,13 +1,32 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 import apiUrl from '../config/apiConfig';
 
 const useWebSocket = (onCharacterUpdated: () => void,
     onPartiesShuffled: () => void,
     onEventsUpdated: () => void  = () => {}): Socket | null => {
+    
+    // Use refs to store the latest callbacks without causing reconnections
+    const onCharacterUpdatedRef = useRef(onCharacterUpdated);
+    const onPartiesShuffledRef = useRef(onPartiesShuffled);
+    const onEventsUpdatedRef = useRef(onEventsUpdated);
+
+    // Update refs when callbacks change
+    useEffect(() => {
+        onCharacterUpdatedRef.current = onCharacterUpdated;
+    }, [onCharacterUpdated]);
+
+    useEffect(() => {
+        onPartiesShuffledRef.current = onPartiesShuffled;
+    }, [onPartiesShuffled]);
+
+    useEffect(() => {
+        onEventsUpdatedRef.current = onEventsUpdated;
+    }, [onEventsUpdated]);
+
     useEffect(() => {
         const socket = io(apiUrl, {
-            transports: ['websocket'], // Forcer le transport WebSocket
+            transports: ['websocket'], // Force WebSocket transport
         });
 
         socket.on('connect', () => {
@@ -22,16 +41,32 @@ const useWebSocket = (onCharacterUpdated: () => void,
             console.warn('WebSocket disconnected:', reason);
         });
 
-        socket.on('character-updated', onCharacterUpdated);
-        socket.on('parties-updated', onPartiesShuffled);
-        socket.on('event-updated', onEventsUpdated);
+        // Use refs to avoid dependency issues
+        const handleCharacterUpdated = () => {
+            console.log('WebSocket: character-updated event received');
+            onCharacterUpdatedRef.current();
+        };
+        
+        const handlePartiesShuffled = () => {
+            console.log('WebSocket: parties-updated event received');
+            onPartiesShuffledRef.current();
+        };
+        
+        const handleEventsUpdated = () => {
+            console.log('WebSocket: event-updated event received');
+            onEventsUpdatedRef.current();
+        };
+
+        socket.on('character-updated', handleCharacterUpdated);
+        socket.on('parties-updated', handlePartiesShuffled);
+        socket.on('event-updated', handleEventsUpdated);
 
         return () => {
             socket.disconnect();
         };
-    }, [onCharacterUpdated, onPartiesShuffled, onEventsUpdated]);
+    }, []); // Empty dependency array to prevent reconnections
 
-    return null; // Vous pouvez retourner le socket si vous avez besoin de l'utiliser ailleurs
+    return null; // You can return the socket if you need to use it elsewhere
 };
 
 export default useWebSocket;

@@ -1,9 +1,9 @@
 import React from 'react';
-import './HomeButton.css';  // Importe le style spécifique pour le bouton Home
+import './HomeButton.css';  // Import specific style for Home button
 
 const HomeButton = () => {
     const handleHome = () => {
-        window.location.href = '/'; // Redirection vers la page d'accueil
+        window.location.href = '/'; // Redirect to home page
     };
 
     return (

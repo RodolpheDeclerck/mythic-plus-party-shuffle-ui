@@ -9,6 +9,7 @@
     font-size: 14px;
     transition: background-color 0.3s, border-color 0.3s;
     margin-left: 10px; /* Espace entre "Waiting Room" et "Clear" */
+    margin-top: 20px;
 }
 
 .clear-button:hover {

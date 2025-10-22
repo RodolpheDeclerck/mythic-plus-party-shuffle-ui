@@ -12,24 +12,24 @@ const SpecializationsContext = createContext<SpecializationsContextProps | undef
 export const SpecializationsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [specializations, setSpecializations] = useState<string[]>([]);
 
-  // Utilisation de useCallback pour mémoriser la fonction et éviter les appels répétés inutiles
+  // Use useCallback to memoize the function and avoid unnecessary repeated calls
   const fetchSpecializations = useCallback(async (selectedClass: string) => {
     try {
-      // Vérifiez si les spécialisations pour cette classe sont déjà stockées dans le localStorage
+      // Check if specializations for this class are already stored in localStorage
       const storedSpecializations = localStorage.getItem(`specializations_${selectedClass}`);
       if (storedSpecializations) {
         setSpecializations(JSON.parse(storedSpecializations));
       } else {
-        // Sinon, appelez l'API pour les récupérer
+        // Otherwise, call the API to retrieve them
         const response = await axios.get<string[]>(`${apiUrl}/api/specializations/${selectedClass}`);
         setSpecializations(response.data);
-        // Stockez les spécialisations dans le localStorage
+        // Store specializations in localStorage
         localStorage.setItem(`specializations_${selectedClass}`, JSON.stringify(response.data));
       }
     } catch (error) {
       console.error('Error fetching specializations:', error);
     }
-  }, []); // Le tableau de dépendances est vide, donc cette fonction ne sera pas recréée à chaque rendu
+  }, []); // Empty dependency array, so this function won't be recreated on every render
 
   return (
     <SpecializationsContext.Provider value={{ specializations, fetchSpecializations }}>

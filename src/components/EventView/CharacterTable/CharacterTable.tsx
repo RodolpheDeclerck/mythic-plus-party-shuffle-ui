@@ -4,13 +4,12 @@ import { useTranslation } from 'react-i18next';
 import './CharacterTable.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheck, faTimes } from '@fortawesome/free-solid-svg-icons';
-import { CharacterClassColors } from '../../../enums/CharacterClassColours';
-import { CharacterClass } from '../../../enums/CharacterClass';
+import { getCharacterCellClass } from '../../../utils/classNameHelper';
 
 interface CharacterTableProps {
     characters: Character[];
     onDelete?: (id: number) => void;
-    onUpdate?: (character: Character) => void; // Nouvelle prop pour Update
+    onUpdate?: (character: Character) => void; // New prop for Update
     highlightedId?: number; // Add this prop for row highlighting
 }
 
@@ -38,25 +37,25 @@ const CharacterTable: React.FC<CharacterTableProps> = ({ characters, onDelete, o
                     <tr
                         key={character.id}
                         className={character.id === highlightedId ? 'highlight' : ''}
-                        onClick={() => onUpdate && onUpdate(character)} // Appel de onUpdate lors du clic sur la ligne
+                        onClick={() => onUpdate && onUpdate(character)} // Call onUpdate when clicking on the row
                     >
-                        <td style={{ color: 'black', backgroundColor: CharacterClassColors[character.characterClass as CharacterClass] }}>
+                        <td className={getCharacterCellClass(character.characterClass)}>
                             <b>{character.id}</b>
                         </td>
-                        <td style={{ color: 'black', backgroundColor: CharacterClassColors[character.characterClass as CharacterClass] }}>
+                        <td className={getCharacterCellClass(character.characterClass)}>
                             <b>{character.name}</b>
                         </td>
-                        <td style={{ color: 'black', backgroundColor: CharacterClassColors[character.characterClass as CharacterClass] }}>
+                        <td className={getCharacterCellClass(character.characterClass)}>
                             <b>{character.characterClass}</b>
                         </td>
-                        <td style={{ color: 'black', backgroundColor: CharacterClassColors[character.characterClass as CharacterClass] }}>
+                        <td className={getCharacterCellClass(character.characterClass)}>
                             <b>{t(`specializations.${character.specialization}`)}</b>
                         </td>
-                        <td style={{ color: 'black', backgroundColor: CharacterClassColors[character.characterClass as CharacterClass] }}>
+                        <td className={getCharacterCellClass(character.characterClass)}>
                             <b>{character.iLevel}</b> <br></br>
                             ({character.keystoneMinLevel}-{character.keystoneMaxLevel})
                         </td>
-                        <td style={{ color: 'black', backgroundColor: CharacterClassColors[character.characterClass as CharacterClass] }}>
+                        <td className={getCharacterCellClass(character.characterClass)}>
                             {character.bloodLust && (
                                 <FontAwesomeIcon
                                     icon={faCheck}
@@ -64,7 +63,7 @@ const CharacterTable: React.FC<CharacterTableProps> = ({ characters, onDelete, o
                                 />
                             )}
                         </td>
-                        <td style={{ color: 'black', backgroundColor: CharacterClassColors[character.characterClass as CharacterClass] }}>
+                        <td className={getCharacterCellClass(character.characterClass)}>
                             {character.battleRez && (
                                 <FontAwesomeIcon
                                     icon={faCheck}
@@ -72,12 +71,12 @@ const CharacterTable: React.FC<CharacterTableProps> = ({ characters, onDelete, o
                                 />
                             )}
                         </td>
-                        <td style={{ color: 'black', backgroundColor: CharacterClassColors[character.characterClass as CharacterClass] }}>
+                        <td className={getCharacterCellClass(character.characterClass)}>
                             {onDelete && (
                                 <button
                                     className="delete-button"
                                     onClick={(e) => {
-                                        e.stopPropagation(); // Empêche onClick de la ligne de se déclencher
+                                        e.stopPropagation(); // Prevents row onClick from triggering
                                         onDelete(character.id);
                                     }}
                                 >
