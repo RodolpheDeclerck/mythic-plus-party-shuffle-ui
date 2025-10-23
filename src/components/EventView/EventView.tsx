@@ -17,6 +17,7 @@ import { useEventData } from '../../hooks/useEventData';
 import { useCharacterManagement } from '../../hooks/useCharacterManagement';
 import { usePartyManagement } from '../../hooks/usePartyManagement';
 import { useCharacterFiltering } from '../../hooks/useCharacterFiltering';
+import { useEventInitialization } from '../../hooks/useEventInitialization';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 import ClearButton from './ClearButton/ClearButton';
@@ -26,7 +27,6 @@ import './EventHeader/EventHeader.css';
 const EventView: React.FC = () => {
     // Router and navigation
     const location = useLocation();
-    const navigate = useNavigate();
     const eventCode = new URLSearchParams(location.search).get('code');
     
     // Authentication
@@ -39,32 +39,11 @@ const EventView: React.FC = () => {
     const { parties, setParties, error: partyError, fetchParties, handleClearEvent, swapCharacters, moveCharacter, handleShuffle, updatePartiesInBackend } = usePartyManagement(eventCode || '');
     
     // Event data and visibility
-    const { arePartiesVisible, isVerifying, setIsVerifying, checkEventExistence, fetchEvent, togglePartiesVisibility } = useEventData(eventCode || '');
+    const { arePartiesVisible, isVerifying, fetchEvent, togglePartiesVisibility } = useEventData(eventCode || '');
     
     // Local state
     const [errorState, setErrorState] = useState<string | null>(null);
 
-
-    // ===== INITIALIZATION =====
-    // Check event existence and handle initial setup
-    useEffect(() => {
-        const verifyAndRedirect = async () => {
-            const eventExists = await checkEventExistence();
-            if (!eventExists) {
-                navigate('/'); // Redirect to home if event doesn't exist
-            } else {
-                const characterData = localStorage.getItem('createdCharacter');
-                if (characterData) {
-                    setCreatedCharacter(JSON.parse(characterData));
-                } else if (isAuthChecked && !isAuthenticated) {
-                    navigate('/event/register?code=' + eventCode);
-                }
-            }
-            setIsVerifying(false); // End verification
-        };
-
-        verifyAndRedirect();
-    }, [eventCode, isAuthChecked, isAuthenticated, navigate]);
 
     // ===== API FUNCTIONS =====
     const fetchCharacters = useCallback(async () => {
@@ -83,6 +62,10 @@ const EventView: React.FC = () => {
 
     // Character management with refetch callback
     const { createdCharacter, setCreatedCharacter, isEditing, setIsEditing, error: characterError, handleSaveCharacter, handleUpdate, handleDelete, handleClear, handleCharacterDeletion } = useCharacterManagement(eventCode || '', fetchCharacters);
+
+    // ===== INITIALIZATION =====
+    // Use the new initialization hook
+    useEventInitialization(eventCode, isAuthChecked ?? false, isAuthenticated ?? null, setCreatedCharacter);
 
     const fetchPartiesWrapper = useCallback(async () => {
         fetchParties();
@@ -168,7 +151,7 @@ const EventView: React.FC = () => {
     const numberOfGroups = parties.length;
 
     // ===== LOADING & ERROR STATES =====
-    if (isVerifying || loading || !isAuthChecked) return <Loading />;
+    if (loading) return <Loading />;
     if (error || errorState || characterError || partyError) return <div>{error || errorState || characterError || partyError}</div>;
 
     return (
