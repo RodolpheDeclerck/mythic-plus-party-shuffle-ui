@@ -16,6 +16,7 @@ import useAuthCheck from '../../hooks/useAuthCheck';
 import { useEventData } from '../../hooks/useEventData';
 import { useCharacterManagement } from '../../hooks/useCharacterManagement';
 import { usePartyManagement } from '../../hooks/usePartyManagement';
+import { useCharacterFiltering } from '../../hooks/useCharacterFiltering';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 import ClearButton from './ClearButton/ClearButton';
@@ -152,18 +153,8 @@ const EventView: React.FC = () => {
     };
 
     // ===== DATA PROCESSING =====
-    // Filter characters by role
-    const tanks = characters.filter((character) => character.role === 'TANK');
-    const heals = characters.filter((character) => character.role === 'HEAL');
-    const melees = characters.filter((character) => character.role === 'CAC');
-    const dist = characters.filter((character) => character.role === 'DIST');
-    
-    // Filter pending players (in waiting room but not in any party)
-    const pendingPlayers = characters.filter(character => 
-        !parties.some(party => 
-            party.members.some(member => member.id === character.id)
-        )
-    );
+    // Use the new filtering hook
+    const { tanks, heals, melees, dist, pendingPlayers } = useCharacterFiltering(characters, parties);
     
     // Show event in progress message for non-admin users when event is running and there are pending players
     const showEventInProgressMessage = !isAuthenticated && parties.length > 0 && pendingPlayers.length > 0;
