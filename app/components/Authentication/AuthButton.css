@@ -1,0 +1,33 @@
+/* AuthButtons.css */
+.auth-buttons {
+    position: absolute; /* Positionne les boutons SignIn et SignUp de manière absolue */
+    top: 10px; /* Distance du haut de l'écran */
+    right: 10px; /* Distance de la droite de l'écran */
+    display: flex; /* Utilisation de flexbox pour aligner les boutons */
+    z-index: 1001;
+}
+
+.auth-buttons button,
+.auth-buttons .dashboard,
+.auth-buttons .logout {
+    background: transparent !important;
+    border: 2px solid rgba(255, 255, 255, .2) !important;
+    backdrop-filter: blur(30px) !important;
+    color: #fff !important;
+    border-radius: 10px !important;
+    padding: 10px 15px !important;
+    margin-left: 10px !important; /* Espace entre les boutons */
+    cursor: pointer !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    transition: background-color 0.3s ease, color 0.3s ease !important;
+    white-space: nowrap !important;
+    box-sizing: border-box !important;
+}
+
+.auth-buttons button:hover,
+.auth-buttons .dashboard:hover,
+.auth-buttons .logout:hover {
+    background: rgba(255, 255, 255, 0.2) !important;
+    color: #fff !important;
+}

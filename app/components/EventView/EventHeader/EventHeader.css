@@ -1,0 +1,30 @@
+/* EventHeader specific styles - inherits from parent EventView.css */
+.party-button-container {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.eye-button {
+    align-items: center;
+    background-color: #007bff;
+    border: 1px solid #007bff;
+    border-radius: 4px;
+    color: #fff;
+    cursor: pointer;
+    display: inline-flex;
+    font-size: 14px;
+    height: 32px;
+    justify-content: center;
+    max-width: 80px;
+    min-width: 60px;
+    padding: 8px 16px;
+    transition: background-color 0.2s;
+    vertical-align: top;
+    width: auto;
+}
+
+.eye-button:hover {
+    background-color: #0056b3;
+    border-color: #0056b3;
+}

@@ -1,0 +1,26 @@
+/* HomeButton.css */
+.home-button {
+    position: absolute !important; /* Positionne le bouton de manière absolue */
+    top: 10px !important; /* Distance du haut de l'écran */
+    left: 10px !important; /* Distance de la gauche de l'écran */
+    background: transparent !important;
+    border: 2px solid rgba(255, 255, 255, .2) !important;
+    backdrop-filter: blur(30px) !important;
+    color: #fff !important;
+    border-radius: 10px !important;
+    padding: 10px 15px !important; /* Taille du padding similaire aux autres boutons */
+    cursor: pointer !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    transition: background-color 0.3s ease, color 0.3s ease !important;
+    white-space: nowrap !important; /* Empêche le bouton de prendre plusieurs lignes */
+    width: auto !important; /* Ajuste la largeur automatiquement à la taille du contenu */
+    max-width: 150px !important; /* Limite maximale de largeur si nécessaire */
+    box-sizing: border-box !important;
+    z-index: 1001 !important;
+}
+
+.home-button:hover {
+    background: rgba(255, 255, 255, 0.2) !important;
+    color: #fff !important;
+}
