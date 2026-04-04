@@ -26,3 +26,6 @@ yarn-debug.log*
 yarn-error.log*
 
 package-lock.json
+
+# local v0 extract (zip)
+/_v0-export

@@ -5,7 +5,6 @@ import { useTranslation } from 'react-i18next';
 import SelectField from '../../SelectField';
 import { useSpecializations } from '../../../context/SpecializationsContext';
 import { useClasses } from '../../../context/ClassesContext';
-import './CreatedCharacterView.css';
 import { useRouter } from 'next/navigation';
 import InputField from '../../InputFieldProps';
 import { KEYSTONE_MIN_LEVEL, KEYSTONE_MAX_LEVEL } from '../../../constants/keystoneLevels';
@@ -14,212 +13,245 @@ import { useCharacterForm } from '../../../hooks/useCharacterForm';
 import { useCharacterActions } from '../../../hooks/useCharacterActions';
 import CharacterFormField from './CharacterFormField/CharacterFormField';
 import ValidatedNumberInput from './ValidatedNumberInput/ValidatedNumberInput';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+import './CreatedCharacterView.css';
 
 const NAME_MAX_LENGTH = 12;
 
 interface CreatedCharacterProps {
-    character: any;
-    onSave: (updatedCharacter: any) => void;
-    onDelete: (id: number) => void;
-    isAdmin: boolean;
-    isEditing: boolean;
-    setIsEditing: React.Dispatch<React.SetStateAction<boolean>>;
-    eventCode: string;
+  character: unknown;
+  onSave: (updatedCharacter: unknown) => void;
+  onDelete: (id: number) => void;
+  isAdmin: boolean;
+  isEditing: boolean;
+  setIsEditing: React.Dispatch<React.SetStateAction<boolean>>;
+  eventCode: string;
 }
 
 const CreatedCharacterView: React.FC<CreatedCharacterProps> = ({
-    character,
-    onSave,
-    onDelete,
-    isAdmin,
-    isEditing,
-    setIsEditing,
-    eventCode,
+  character,
+  onSave,
+  onDelete,
+  isAdmin,
+  isEditing,
+  setIsEditing,
+  eventCode,
 }) => {
-    // ===== HOOKS & CONTEXT =====
-    const { t } = useTranslation();
-    const { specializations, fetchSpecializations } = useSpecializations();
-    const { classes } = useClasses();
-    const router = useRouter();
+  const { t } = useTranslation();
+  const { specializations, fetchSpecializations } = useSpecializations();
+  const { classes } = useClasses();
+  const router = useRouter();
 
-    // ===== CUSTOM HOOKS =====
-    // Form state management
-    const formState = useCharacterForm(character, isEditing, fetchSpecializations);
-    
-    // Character actions (save/delete/leave)
-    const actions = useCharacterActions(eventCode, onSave, onDelete, router);
+  const formState = useCharacterForm(character, isEditing, fetchSpecializations);
+  const actions = useCharacterActions(eventCode, onSave, onDelete, router);
 
-    // ===== EVENT HANDLERS =====
-    // Handle save with form validation
-    const handleSave = async () => {
-        const formValues = formState.getFormValues();
-        await actions.handleSave(formValues, character, isAdmin, setIsEditing);
-    };
+  const handleSave = async () => {
+    const formValues = formState.getFormValues();
+    await actions.handleSave(formValues, character, isAdmin, setIsEditing);
+  };
 
-    // Handle leave/delete character
-    const handleLeave = async () => {
-        await actions.handleLeave(character);
-    };
+  const handleLeave = async () => {
+    await actions.handleLeave(character);
+  };
 
-    // Handle add new character
-    const handleAdd = () => {
-        actions.handleAdd(setIsEditing);
-    };
+  const handleAdd = () => {
+    actions.handleAdd(setIsEditing);
+  };
 
-    // Handle cancel editing
-    const handleCancel = () => {
-        actions.handleCancel(setIsEditing);
-    };
+  const handleCancel = () => {
+    actions.handleCancel(setIsEditing);
+  };
 
-    return (
-        <div className={`created-character-info ${isEditing ? 'editing' : ''}`}>
-            {/* ===== CHARACTER ID ===== */}
-            <CharacterFormField 
-                label="ID" 
-                value={character?.id || '-'} 
-                isEditing={false} 
-            />
-            
-            {/* ===== CHARACTER NAME ===== */}
-            <CharacterFormField 
-                label="Name" 
-                value={character?.name || 'Unnamed Character'} 
-                isEditing={isEditing}
+  const c = character as {
+    id?: number;
+    name?: string;
+    characterClass?: string;
+    specialization?: string;
+    iLevel?: number;
+    keystoneMinLevel?: number;
+    keystoneMaxLevel?: number;
+  } | null;
+
+  return (
+    <div
+      data-created-character
+      className={cn(
+        'flex flex-wrap items-center gap-3',
+        isEditing && 'items-start',
+      )}
+    >
+      <CharacterFormField
+        label={t('eventPage.colName')}
+        value={c?.name || '—'}
+        isEditing={isEditing}
+      >
+        {isEditing && (
+          <InputField
+            label=""
+            type="text"
+            value={formState.editedName}
+            onChange={formState.handleNameChange}
+            placeholder="…"
+            maxLength={NAME_MAX_LENGTH}
+          />
+        )}
+      </CharacterFormField>
+
+      <CharacterFormField
+        label={t('eventPage.colClass')}
+        value={c?.characterClass || '—'}
+        isEditing={isEditing}
+      >
+        {isEditing && (
+          <SelectField
+            label=""
+            options={classes.map((cls) => ({
+              value: cls,
+              label: `${cls}`,
+            }))}
+            value={formState.selectCharacterClass}
+            onChange={formState.handleClassChange}
+            placeholder="…"
+          />
+        )}
+      </CharacterFormField>
+
+      <CharacterFormField
+        label={t('eventPage.colSpec')}
+        value={
+          c?.specialization
+            ? t(`specializations.${c.specialization}`)
+            : '—'
+        }
+        isEditing={isEditing}
+      >
+        {isEditing && (
+          <SelectField
+            label=""
+            options={specializations.map((spec) => ({
+              value: spec,
+              label: t(`specializations.${spec}`),
+            }))}
+            value={formState.selectSpecialization}
+            onChange={formState.handleSpecializationChange}
+            placeholder="…"
+          />
+        )}
+      </CharacterFormField>
+
+      <CharacterFormField
+        label={t('eventPage.itemLevelShort')}
+        value={c?.iLevel !== undefined ? c.iLevel : ITEM_LEVEL_MIN}
+        isEditing={isEditing}
+      >
+        {isEditing && (
+          <ValidatedNumberInput
+            value={formState.iLevelInput.value}
+            onChange={formState.iLevelInput.handleChange}
+            onBlur={formState.iLevelInput.handleBlur}
+            onFocus={formState.iLevelInput.handleFocus}
+            min={ITEM_LEVEL_MIN}
+            max={ITEM_LEVEL_MAX}
+            maxLength={3}
+            placeholder="…"
+          />
+        )}
+      </CharacterFormField>
+
+      <CharacterFormField
+        label={t('eventPage.keyMinShort')}
+        value={
+          c?.keystoneMinLevel !== undefined
+            ? c.keystoneMinLevel
+            : KEYSTONE_MIN_LEVEL
+        }
+        isEditing={isEditing}
+      >
+        {isEditing && (
+          <ValidatedNumberInput
+            value={formState.keystoneMinInput.value}
+            onChange={formState.keystoneMinInput.handleChange}
+            onBlur={formState.keystoneMinInput.handleBlur}
+            onFocus={formState.keystoneMinInput.handleFocus}
+            min={KEYSTONE_MIN_LEVEL}
+            max={parseInt(formState.keystoneMaxInput.value) || KEYSTONE_MAX_LEVEL}
+            maxLength={2}
+            placeholder="…"
+          />
+        )}
+      </CharacterFormField>
+
+      <CharacterFormField
+        label={t('eventPage.keyMaxShort')}
+        value={
+          c?.keystoneMaxLevel !== undefined
+            ? c.keystoneMaxLevel
+            : KEYSTONE_MAX_LEVEL
+        }
+        isEditing={isEditing}
+      >
+        {isEditing && (
+          <ValidatedNumberInput
+            value={formState.keystoneMaxInput.value}
+            onChange={formState.keystoneMaxInput.handleChange}
+            onBlur={formState.keystoneMaxInput.handleBlur}
+            onFocus={formState.keystoneMaxInput.handleFocus}
+            min={parseInt(formState.keystoneMinInput.value) || KEYSTONE_MIN_LEVEL}
+            max={KEYSTONE_MAX_LEVEL}
+            maxLength={2}
+            placeholder="…"
+          />
+        )}
+      </CharacterFormField>
+
+      <div className="flex w-full flex-wrap items-center justify-end gap-2 sm:w-auto sm:pl-2">
+        {isEditing ? (
+          <>
+            <Button type="button" size="sm" onClick={() => void handleSave()}>
+              {t('eventPage.saveCharacter')}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="border-destructive/50 text-destructive hover:bg-destructive/10"
+              onClick={handleCancel}
             >
-                {isEditing && (
-                    <InputField
-                        label=""
-                        type="text"
-                        value={formState.editedName}
-                        onChange={formState.handleNameChange}
-                        placeholder="Enter character name"
-                        maxLength={NAME_MAX_LENGTH}
-                    />
-                )}
-            </CharacterFormField>
-            
-            {/* ===== CHARACTER CLASS ===== */}
-            <CharacterFormField 
-                label="Class" 
-                value={character?.characterClass || 'Unknown Class'} 
-                isEditing={isEditing}
-            >
-                {isEditing && (
-                    <SelectField
-                        label=""
-                        options={classes.map(cls => ({
-                            value: cls,
-                            label: `${cls}`,
-                        }))}
-                        value={formState.selectCharacterClass}
-                        onChange={formState.handleClassChange}
-                        placeholder="Please select a class"
-                    />
-                )}
-            </CharacterFormField>
-            
-            {/* ===== CHARACTER SPECIALIZATION ===== */}
-            <CharacterFormField 
-                label="Specialization" 
-                value={t(`specializations.${character?.specialization}`) || 'Unknown Specialization'} 
-                isEditing={isEditing}
-            >
-                {isEditing && (
-                    <SelectField
-                        label=""
-                        options={specializations.map(spec => ({
-                            value: spec,
-                            label: t(`specializations.${spec}`),
-                        }))}
-                        value={formState.selectSpecialization}
-                        onChange={formState.handleSpecializationChange}
-                        placeholder="Please select a specialization"
-                    />
-                )}
-            </CharacterFormField>
-            
-            {/* ===== ITEM LEVEL ===== */}
-            <CharacterFormField 
-                label="ILevel" 
-                value={character?.iLevel !== undefined ? character.iLevel : ITEM_LEVEL_MIN} 
-                isEditing={isEditing}
-            >
-                {isEditing && (
-                    <ValidatedNumberInput
-                        value={formState.iLevelInput.value}
-                        onChange={formState.iLevelInput.handleChange}
-                        onBlur={formState.iLevelInput.handleBlur}
-                        onFocus={formState.iLevelInput.handleFocus}
-                        min={ITEM_LEVEL_MIN}
-                        max={ITEM_LEVEL_MAX}
-                        maxLength={3}
-                        placeholder="Enter item level"
-                    />
-                )}
-            </CharacterFormField>
-            
-            {/* ===== KEYSTONE MIN LEVEL ===== */}
-            <CharacterFormField 
-                label="KeyMin" 
-                value={character?.keystoneMinLevel !== undefined ? character.keystoneMinLevel : KEYSTONE_MIN_LEVEL} 
-                isEditing={isEditing}
-            >
-                {isEditing && (
-                    <ValidatedNumberInput
-                        value={formState.keystoneMinInput.value}
-                        onChange={formState.keystoneMinInput.handleChange}
-                        onBlur={formState.keystoneMinInput.handleBlur}
-                        onFocus={formState.keystoneMinInput.handleFocus}
-                        min={KEYSTONE_MIN_LEVEL}
-                        max={parseInt(formState.keystoneMaxInput.value) || KEYSTONE_MAX_LEVEL}
-                        maxLength={2}
-                        placeholder="Enter keystone min level"
-                    />
-                )}
-            </CharacterFormField>
-            
-            {/* ===== KEYSTONE MAX LEVEL ===== */}
-            <CharacterFormField 
-                label="KeyMax" 
-                value={character?.keystoneMaxLevel !== undefined ? character.keystoneMaxLevel : KEYSTONE_MAX_LEVEL} 
-                isEditing={isEditing}
-            >
-                {isEditing && (
-                    <ValidatedNumberInput
-                        value={formState.keystoneMaxInput.value}
-                        onChange={formState.keystoneMaxInput.handleChange}
-                        onBlur={formState.keystoneMaxInput.handleBlur}
-                        onFocus={formState.keystoneMaxInput.handleFocus}
-                        min={parseInt(formState.keystoneMinInput.value) || KEYSTONE_MIN_LEVEL}
-                        max={KEYSTONE_MAX_LEVEL}
-                        maxLength={2}
-                        placeholder="Enter keystone max level"
-                    />
-                )}
-            </CharacterFormField>
-            
-            {/* ===== ACTION BUTTONS ===== */}
-            <div className="button-container">
-                {isEditing ? (
-                    <>
-                        <button onClick={handleSave}>Save</button>
-                        <button className='cancel-button' onClick={handleCancel}>Cancel</button>
-                    </>
-                ) : (
-                    <>
-                        {isAdmin ? (
-                            <button className="add-button" onClick={handleAdd}>Add</button>
-                        ) : (
-                            <>
-                                <button onClick={() => setIsEditing(true)}>Update</button>
-                                <button className='cancel-button' onClick={handleLeave}>Leave</button>
-                            </>
-                        )}
-                    </>
-                )}
-            </div>
-        </div>
-    );
+              {t('eventPage.cancelEdit')}
+            </Button>
+          </>
+        ) : (
+          <>
+            {isAdmin ? (
+              <Button type="button" size="sm" variant="secondary" onClick={handleAdd}>
+                {t('eventPage.addCharacter')}
+              </Button>
+            ) : (
+              <>
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => setIsEditing(true)}
+                >
+                  {t('eventPage.updateCharacter')}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="border-destructive/50 text-destructive hover:bg-destructive/10"
+                  onClick={() => void handleLeave()}
+                >
+                  {t('eventPage.leaveEvent')}
+                </Button>
+              </>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
 };
 
 export default CreatedCharacterView;

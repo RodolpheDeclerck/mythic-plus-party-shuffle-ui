@@ -1,33 +1,41 @@
-/* AuthButtons.css */
+/* AuthButtons.css — thème Rift (cyan + or sur vide) */
 .auth-buttons {
-    position: absolute; /* Positionne les boutons SignIn et SignUp de manière absolue */
-    top: 10px; /* Distance du haut de l'écran */
-    right: 10px; /* Distance de la droite de l'écran */
-    display: flex; /* Utilisation de flexbox pour aligner les boutons */
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
     z-index: 1001;
 }
 
 .auth-buttons button,
 .auth-buttons .dashboard,
 .auth-buttons .logout {
-    background: transparent !important;
-    border: 2px solid rgba(255, 255, 255, .2) !important;
-    backdrop-filter: blur(30px) !important;
-    color: #fff !important;
+    background: var(--rift-glass-shade, rgba(10, 6, 22, 0.55)) !important;
+    border: 1px solid var(--rift-glass-border, rgba(34, 211, 238, 0.35)) !important;
+    backdrop-filter: blur(16px) !important;
+    color: var(--rift-text, #e8f4ff) !important;
     border-radius: 10px !important;
     padding: 10px 15px !important;
-    margin-left: 10px !important; /* Espace entre les boutons */
+    margin-left: 10px !important;
     cursor: pointer !important;
     font-size: 14px !important;
     font-weight: 600 !important;
-    transition: background-color 0.3s ease, color 0.3s ease !important;
+    transition:
+        background-color 0.25s ease,
+        border-color 0.25s ease,
+        box-shadow 0.25s ease !important;
     white-space: nowrap !important;
     box-sizing: border-box !important;
+    box-shadow: 0 0 16px rgba(34, 211, 238, 0.08) !important;
 }
 
 .auth-buttons button:hover,
 .auth-buttons .dashboard:hover,
 .auth-buttons .logout:hover {
-    background: rgba(255, 255, 255, 0.2) !important;
+    background: rgba(34, 211, 238, 0.12) !important;
+    border-color: var(--rift-cyan, #22d3ee) !important;
     color: #fff !important;
+    box-shadow:
+        0 0 20px var(--rift-cyan-glow, rgba(34, 211, 238, 0.25)),
+        0 0 1px var(--rift-gold-dim, rgba(212, 175, 55, 0.5)) !important;
 }

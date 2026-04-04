@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Providers } from './providers';
+import { EventPageToolbar } from './components/EventPageToolbar';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -16,6 +17,7 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <Providers>
+          <EventPageToolbar />
           {children}
         </Providers>
       </body>

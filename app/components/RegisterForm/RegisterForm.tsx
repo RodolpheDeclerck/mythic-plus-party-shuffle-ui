@@ -1,67 +1,344 @@
 'use client';
 
-import React, { useState } from "react";
-import './RegisterForm.css';
-import { FaUser } from "react-icons/fa";
-import { FaLock } from "react-icons/fa";
-import { FaEnvelope } from "react-icons/fa6";
-import axios from 'axios';
-import apiUrl from '../../config/apiConfig';
-import { useRouter } from 'next/navigation';
+import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
+import axios from 'axios';
+import { useRouter } from 'next/navigation';
+import { Trans, useTranslation } from 'react-i18next';
+import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
+
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { Spinner } from '@/components/ui/spinner';
+import apiUrl from '../../config/apiConfig';
+
+const PASSWORD_MIN = 6;
+const USERNAME_MIN = 3;
+
+function passwordStrengthScore(password: string): 0 | 1 | 2 | 3 | 4 {
+  if (!password) return 0;
+  let score = 0;
+  if (password.length >= PASSWORD_MIN) score += 1;
+  if (password.length >= 10) score += 1;
+  if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score += 1;
+  if (/\d/.test(password) || /[^A-Za-z0-9]/.test(password)) score += 1;
+  return Math.min(4, score) as 0 | 1 | 2 | 3 | 4;
+}
 
 const RegisterForm = () => {
-    const router = useRouter();
-    const [error, setError] = useState<string>('');
+  const { t } = useTranslation();
+  const router = useRouter();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [username, setUsername] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [acceptTerms, setAcceptTerms] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
-        setError('');
-        const email = (event.currentTarget as HTMLFormElement).email.value;
-        const password = (event.currentTarget as HTMLFormElement).password.value;
-        const username = (event.currentTarget as HTMLFormElement).username.value;
+  const strength = useMemo(() => passwordStrengthScore(password), [password]);
 
-        try {
-            console.log('Tentative d\'enregistrement...');
-            const response = await axios.post(`${apiUrl}/auth/register`, { email, password, username });
-            console.log('Réponse reçue:', response);
-            
-            if (response.status === 200 || response.status === 201) {
-                console.log('Enregistrement réussi, redirection vers /login');
-                router.replace('/login');
-            }
-        } catch (error: any) {
-            console.error('Erreur lors de l\'enregistrement:', error);
-            setError(error.response?.data?.message || 'Une erreur est survenue lors de l\'enregistrement');
-        }
-    };
+  const passwordsMatch =
+    confirmPassword === '' || password === confirmPassword;
 
-    return (
-        <div className='wrapper'>
-            <form onSubmit={handleSubmit}>
-                <h1>Register</h1>
-                {error && <div className="error-message">{error}</div>}
-                <div className="input-box">
-                    <input type="text" placeholder="Email" name="email" required />
-                    <FaEnvelope className='icon'/>
-                </div>
-                <div className="input-box">
-                    <input type="password" placeholder="Password" name="password" required />
-                    <FaLock className='icon'/>
-                </div>
-                <div className="input-box">
-                    <input type="text" placeholder="Username" name="username" required />
-                    <FaUser className='icon'/>
-                </div>
+  const isFormValid =
+    email.trim() !== '' &&
+    username.trim().length >= USERNAME_MIN &&
+    password.length >= PASSWORD_MIN &&
+    password === confirmPassword &&
+    acceptTerms;
 
-                <button type="submit">Register</button>
-             
-                <div className="register-link">
-                    <p>Already have an account? <Link href="/login">Login</Link></p>
-                </div>
-            </form>
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setErrorMessage(null);
+
+    if (username.trim().length < USERNAME_MIN) {
+      setErrorMessage(t('register.usernameTooShort'));
+      return;
+    }
+    if (password.length < PASSWORD_MIN) {
+      setErrorMessage(t('register.passwordTooShort'));
+      return;
+    }
+    if (password !== confirmPassword) {
+      setErrorMessage(t('register.passwordsDoNotMatch'));
+      return;
+    }
+    if (!acceptTerms) {
+      setErrorMessage(t('register.mustAcceptTerms'));
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const response = await axios.post(
+        `${apiUrl}/auth/register`,
+        { email, password, username },
+      );
+
+      if (response.status === 200 || response.status === 201) {
+        router.replace('/login');
+        return;
+      }
+      setIsSubmitting(false);
+    } catch (error: unknown) {
+      const message =
+        axios.isAxiosError(error) && error.response?.data?.message
+          ? String(error.response.data.message)
+          : t('register.errorGeneric');
+      setErrorMessage(message);
+      setIsSubmitting(false);
+    }
+  };
+
+  const inputClass =
+    'h-11 border-purple-500/30 bg-[#0a0614]/80 pr-11 text-[var(--rift-text)] shadow-none placeholder:text-muted-foreground focus-visible:border-cyan-400/50 focus-visible:ring-cyan-400';
+  const inputClassNoToggle =
+    'h-11 border-purple-500/30 bg-[#0a0614]/80 text-[var(--rift-text)] shadow-none placeholder:text-muted-foreground focus-visible:border-cyan-400/50 focus-visible:ring-cyan-400';
+
+  return (
+    <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+      {errorMessage ? (
+        <div
+          id="register-form-error"
+          role="alert"
+          aria-live="polite"
+          className="rounded-md border border-red-500/50 bg-red-500/10 px-4 py-3 text-sm text-red-400"
+        >
+          {errorMessage}
         </div>
-    );
+      ) : null}
+
+      <div className="flex flex-col gap-2">
+        <label
+          htmlFor="register-email"
+          className="text-sm font-medium text-[var(--rift-text)]"
+        >
+          {t('register.emailLabel')}
+        </label>
+        <Input
+          id="register-email"
+          type="email"
+          name="email"
+          autoComplete="email"
+          placeholder={t('register.emailPlaceholder')}
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          disabled={isSubmitting}
+          required
+          aria-describedby={errorMessage ? 'register-form-error' : undefined}
+          className={inputClassNoToggle}
+        />
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <label
+          htmlFor="register-username"
+          className="text-sm font-medium text-[var(--rift-text)]"
+        >
+          {t('register.username')}
+        </label>
+        <Input
+          id="register-username"
+          type="text"
+          name="username"
+          autoComplete="username"
+          placeholder={t('register.usernamePlaceholder')}
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          disabled={isSubmitting}
+          required
+          minLength={USERNAME_MIN}
+          className={inputClassNoToggle}
+        />
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <label
+          htmlFor="register-password"
+          className="text-sm font-medium text-[var(--rift-text)]"
+        >
+          {t('register.passwordLabel')}
+        </label>
+        <div className="relative">
+          <Input
+            id="register-password"
+            type={showPassword ? 'text' : 'password'}
+            name="password"
+            autoComplete="new-password"
+            placeholder={t('register.passwordPlaceholder')}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            disabled={isSubmitting}
+            required
+            minLength={PASSWORD_MIN}
+            className={inputClass}
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 rounded-sm p-1 text-muted-foreground hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0614]"
+            aria-label={
+              showPassword ? t('login.hidePassword') : t('login.showPassword')
+            }
+          >
+            {showPassword ? (
+              <EyeOff className="h-4 w-4" />
+            ) : (
+              <Eye className="h-4 w-4" />
+            )}
+          </button>
+        </div>
+        {password.length > 0 ? (
+          <div className="space-y-2">
+            <div className="flex gap-1.5" aria-hidden>
+              {[0, 1, 2, 3].map((i) => {
+                const active = strength > i;
+                const barClass =
+                  strength <= 1
+                    ? active
+                      ? 'bg-red-500/90'
+                      : 'bg-white/10'
+                    : strength === 2
+                      ? active
+                        ? 'bg-amber-500/90'
+                        : 'bg-white/10'
+                      : strength === 3
+                        ? active
+                          ? 'bg-yellow-400/90'
+                          : 'bg-white/10'
+                        : active
+                          ? 'bg-cyan-400/90'
+                          : 'bg-white/10';
+                return (
+                  <div
+                    key={i}
+                    className={`h-1 flex-1 rounded-full transition-colors ${barClass}`}
+                  />
+                );
+              })}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {t(`register.passwordStrength.level${strength}`)}
+            </p>
+          </div>
+        ) : null}
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <label
+          htmlFor="register-confirm-password"
+          className="text-sm font-medium text-[var(--rift-text)]"
+        >
+          {t('register.confirmPasswordLabel')}
+        </label>
+        <div className="relative">
+          <Input
+            id="register-confirm-password"
+            type={showConfirmPassword ? 'text' : 'password'}
+            name="confirmPassword"
+            autoComplete="new-password"
+            placeholder={t('register.confirmPasswordPlaceholder')}
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            disabled={isSubmitting}
+            required
+            aria-invalid={!passwordsMatch}
+            className={`${inputClass} pr-11 ${!passwordsMatch ? 'border-red-500/50' : ''}`}
+          />
+          <button
+            type="button"
+            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 rounded-sm p-1 text-muted-foreground hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0614]"
+            aria-label={
+              showConfirmPassword
+                ? t('login.hidePassword')
+                : t('login.showPassword')
+            }
+          >
+            {showConfirmPassword ? (
+              <EyeOff className="h-4 w-4" />
+            ) : (
+              <Eye className="h-4 w-4" />
+            )}
+          </button>
+        </div>
+        {confirmPassword.length > 0 && !passwordsMatch ? (
+          <p className="text-xs text-red-400">{t('register.passwordsDoNotMatch')}</p>
+        ) : null}
+      </div>
+
+      <div className="flex items-start gap-3 rounded-md border border-purple-500/20 bg-[#0a0614]/50 p-3">
+        <Checkbox
+          id="register-terms"
+          checked={acceptTerms}
+          onCheckedChange={(checked) => setAcceptTerms(checked === true)}
+          className="mt-0.5 border-purple-500/50 data-[state=checked]:border-cyan-500 data-[state=checked]:bg-cyan-500"
+        />
+        <label
+          htmlFor="register-terms"
+          className="cursor-pointer text-sm leading-snug text-muted-foreground"
+        >
+          <Trans
+            i18nKey="register.acceptTerms"
+            components={{
+              termsLink: (
+                <Link
+                  href="/terms"
+                  className="font-medium text-cyan-400 underline-offset-4 hover:text-cyan-300 hover:underline focus:outline-none focus-visible:rounded-sm focus-visible:ring-2 focus-visible:ring-cyan-400"
+                />
+              ),
+              privacyLink: (
+                <Link
+                  href="/privacy"
+                  className="font-medium text-cyan-400 underline-offset-4 hover:text-cyan-300 hover:underline focus:outline-none focus-visible:rounded-sm focus-visible:ring-2 focus-visible:ring-cyan-400"
+                />
+              ),
+            }}
+          />
+        </label>
+      </div>
+
+      <Button
+        type="submit"
+        disabled={!isFormValid || isSubmitting}
+        className="mt-1 h-12 w-full border border-cyan-400/50 bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-700 font-semibold text-white shadow-lg shadow-cyan-500/25 hover:from-cyan-400 hover:via-blue-500 hover:to-purple-600 disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        {isSubmitting ? (
+          <span className="flex items-center justify-center gap-2">
+            <Spinner className="h-4 w-4 text-white" />
+            {t('register.submitting')}
+          </span>
+        ) : (
+          t('register.submit')
+        )}
+      </Button>
+
+      <p className="text-center text-sm text-muted-foreground">
+        {t('register.hasAccount')}{' '}
+        <Link
+          href="/login"
+          className="font-medium text-cyan-400 underline-offset-4 hover:text-cyan-300 hover:underline focus:outline-none focus-visible:rounded-sm focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0614]"
+        >
+          {t('register.signIn')}
+        </Link>
+      </p>
+
+      <div className="mt-2 border-t border-purple-500/20 pt-4 text-center">
+        <Link
+          href="/"
+          className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground underline-offset-4 hover:text-cyan-400 hover:underline focus:outline-none focus-visible:rounded-sm focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0614]"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          {t('login.joinWithCode')}
+        </Link>
+      </div>
+    </form>
+  );
 };
 
 export default RegisterForm;

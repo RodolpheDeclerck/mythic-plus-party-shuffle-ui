@@ -1,73 +1,128 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
-import InputField from './InputFieldProps';
+import { useTranslation } from 'react-i18next';
+import { ArrowLeft } from 'lucide-react';
+
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Spinner } from '@/components/ui/spinner';
 import apiUrl from '../config/apiConfig';
-import './CreateEventPage.css';
+import useAuthCheck from '../hooks/useAuthCheck';
+
+interface EventResponse {
+  code: string;
+}
 
 const CreateEventPage: React.FC = () => {
-  const [eventName, setEventName] = useState<string>(''); // Event name
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(true); // Assume user is authenticated via cookie
-  const [isCreating, setIsCreating] = useState<boolean>(false); // State to know if event is being created
+  const { t } = useTranslation();
   const router = useRouter();
+  const { isAuthenticated, isAuthChecked } = useAuthCheck();
+  const [eventName, setEventName] = useState('');
+  const [isCreating, setIsCreating] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  interface EventResponse {
-    code: string;
-  }
+  useEffect(() => {
+    if (isAuthChecked && isAuthenticated === false) {
+      window.location.href = '/login';
+    }
+  }, [isAuthChecked, isAuthenticated]);
 
-  // Authentication verification not necessary via localStorage
-  // User is assumed to be authenticated if JWT cookie is present.
-  // This part can be enhanced by sending a request to the server to validate authentication if necessary.
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const name = eventName.trim();
+    if (!name) return;
 
-  // Function to create the event
-  const handleCreateEvent = async () => {
-    if (!eventName) return;
-
-    setIsCreating(true); // Set state to creation mode
+    setErrorMessage(null);
+    setIsCreating(true);
 
     try {
-      // Send request to create event with cookies included
       const response = await axios.post<EventResponse>(
         `${apiUrl}/api/events`,
-        { name: eventName }, // Data sent in request body
-        {
-          withCredentials: true, // Automatically sends `authToken` cookie
-        }
+        { name },
+        { withCredentials: true },
       );
 
-      // Redirect user to event page with event code
-      const eventCode = response.data.code; // Get event code from response
-      router.push(`/event?code=${eventCode}`); // Redirect to event page
-
+      const eventCode = response.data.code;
+      router.push(`/event?code=${encodeURIComponent(eventCode)}`);
     } catch (error) {
       console.error('Error creating event:', error);
-    } finally {
-      setIsCreating(false); // End creation process
+      setErrorMessage(t('createEvent.errorGeneric'));
+      setIsCreating(false);
     }
   };
 
+  if (!isAuthChecked || !isAuthenticated) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-3 py-8">
+        <Spinner className="h-8 w-8 text-cyan-400" />
+        <p className="text-sm text-muted-foreground">{t('createEvent.checkingAuth')}</p>
+      </div>
+    );
+  }
+
+  const isFormValid = eventName.trim() !== '';
+
   return (
-    <div className="create-event-container">
-      {isAuthenticated && (
-        <div className="wrapper">
-          <h1>Create New Event</h1>
-          <InputField
-            label=""
-            type="text"
-            placeholder="Enter event name"
-            value={eventName}
-            onChange={(e) => setEventName(e.target.value)}
-          />
-          {eventName && (
-            <button onClick={handleCreateEvent} disabled={isCreating}>
-              {isCreating ? 'Creating...' : 'Create Event'}
-            </button>
-          )}
+    <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+      {errorMessage ? (
+        <div
+          id="create-event-error"
+          role="alert"
+          aria-live="polite"
+          className="rounded-md border border-red-500/50 bg-red-500/10 px-4 py-3 text-sm text-red-400"
+        >
+          {errorMessage}
         </div>
-      )}
-    </div>
+      ) : null}
+
+      <div className="flex flex-col gap-2">
+        <label htmlFor="event-name" className="text-sm font-medium text-foreground">
+          {t('createEvent.nameLabel')}
+        </label>
+        <Input
+          id="event-name"
+          type="text"
+          name="name"
+          autoComplete="off"
+          placeholder={t('createEvent.namePlaceholder')}
+          value={eventName}
+          onChange={(e) => setEventName(e.target.value)}
+          disabled={isCreating}
+          required
+          aria-describedby={errorMessage ? 'create-event-error' : undefined}
+          className="h-11 border-purple-500/30 bg-[#0a0614]/80 placeholder:text-muted-foreground focus-visible:border-cyan-400/50 focus-visible:ring-cyan-400"
+        />
+      </div>
+
+      <Button
+        type="submit"
+        disabled={!isFormValid || isCreating}
+        className="mt-2 h-12 w-full border border-cyan-400/50 bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-700 font-semibold text-white shadow-lg shadow-cyan-500/25 hover:from-cyan-400 hover:via-blue-500 hover:to-purple-600 disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        {isCreating ? (
+          <span className="flex items-center justify-center gap-2">
+            <Spinner className="h-4 w-4 text-white" />
+            {t('createEvent.creating')}
+          </span>
+        ) : (
+          t('createEvent.submit')
+        )}
+      </Button>
+
+      <div className="mt-4 border-t border-purple-500/20 pt-4 text-center">
+        <Link
+          href="/dashboard"
+          className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground underline-offset-4 hover:text-cyan-400 hover:underline focus:outline-none focus-visible:rounded-sm focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0614]"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          {t('createEvent.backDashboard')}
+        </Link>
+      </div>
+    </form>
   );
 };
 

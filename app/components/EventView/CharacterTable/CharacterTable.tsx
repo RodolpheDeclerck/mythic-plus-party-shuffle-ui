@@ -1,94 +1,105 @@
 import React from 'react';
 import { Character } from '../../../types/Character';
 import { useTranslation } from 'react-i18next';
-import './CharacterTable.css';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCheck, faTimes } from '@fortawesome/free-solid-svg-icons';
+import { Check } from 'lucide-react';
 import { getCharacterCellClass } from '../../../utils/classNameHelper';
+import { v0TableWrap, v0Th } from '../eventUi';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 interface CharacterTableProps {
-    characters: Character[];
-    onDelete?: (id: number) => void;
-    onUpdate?: (character: Character) => void; // New prop for Update
-    highlightedId?: number; // Add this prop for row highlighting
+  characters: Character[];
+  onDelete?: (id: number) => void;
+  onUpdate?: (character: Character) => void;
+  highlightedId?: number;
 }
 
-const CharacterTable: React.FC<CharacterTableProps> = ({ characters, onDelete, onUpdate, highlightedId }) => {
-    const { t } = useTranslation();
+const CharacterTable: React.FC<CharacterTableProps> = ({
+  characters,
+  onDelete,
+  onUpdate,
+  highlightedId,
+}) => {
+  const { t } = useTranslation();
 
-    return (
-        <table>
-            <thead>
-                <tr>
-                    <th style={{ width: '10%' }}>#</th>
-                    <th style={{ width: '20%' }}>Name</th>
-                    <th style={{ width: '15%' }}>Class</th>
-                    <th style={{ width: '15%' }}>Specialization</th>
-                    <th style={{ width: '15%' }}>
-                        Items Level <br /> (Key min-max)
-                    </th>
-                    <th style={{ width: '15%' }}>Blood Lust</th>
-                    <th style={{ width: '15%' }}>Battle Rez</th>
-                    <th style={{ width: '10%' }}>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                {characters.map((character) => (
-                    <tr
-                        key={character.id}
-                        className={character.id === highlightedId ? 'highlight' : ''}
-                        onClick={() => onUpdate && onUpdate(character)} // Call onUpdate when clicking on the row
-                    >
-                        <td className={getCharacterCellClass(character.characterClass)}>
-                            <b>{character.id}</b>
-                        </td>
-                        <td className={getCharacterCellClass(character.characterClass)}>
-                            <b>{character.name}</b>
-                        </td>
-                        <td className={getCharacterCellClass(character.characterClass)}>
-                            <b>{character.characterClass}</b>
-                        </td>
-                        <td className={getCharacterCellClass(character.characterClass)}>
-                            <b>{t(`specializations.${character.specialization}`)}</b>
-                        </td>
-                        <td className={getCharacterCellClass(character.characterClass)}>
-                            <b>{character.iLevel}</b> <br></br>
-                            ({character.keystoneMinLevel}-{character.keystoneMaxLevel})
-                        </td>
-                        <td className={getCharacterCellClass(character.characterClass)}>
-                            {character.bloodLust && (
-                                <FontAwesomeIcon
-                                    icon={faCheck}
-                                    style={{ color: 'black' }}
-                                />
-                            )}
-                        </td>
-                        <td className={getCharacterCellClass(character.characterClass)}>
-                            {character.battleRez && (
-                                <FontAwesomeIcon
-                                    icon={faCheck}
-                                    style={{ color: 'black' }}
-                                />
-                            )}
-                        </td>
-                        <td className={getCharacterCellClass(character.characterClass)}>
-                            {onDelete && (
-                                <button
-                                    className="delete-button"
-                                    onClick={(e) => {
-                                        e.stopPropagation(); // Prevents row onClick from triggering
-                                        onDelete(character.id);
-                                    }}
-                                >
-                                    Delete
-                                </button>
-                            )}
-                        </td>
-                    </tr>
-                ))}
-            </tbody>
-        </table>
-    );
+  return (
+    <div className={v0TableWrap}>
+      <table className="w-full min-w-[480px] border-collapse text-sm">
+        <thead>
+          <tr>
+            <th className={cn(v0Th, 'w-[8%]')}>{t('eventPage.colIndex')}</th>
+            <th className={v0Th}>{t('eventPage.colName')}</th>
+            <th className={v0Th}>{t('eventPage.colClass')}</th>
+            <th className={v0Th}>{t('eventPage.colSpec')}</th>
+            <th className={v0Th}>{t('eventPage.colIlvlKeys')}</th>
+            <th className={v0Th}>{t('eventPage.colBL')}</th>
+            <th className={v0Th}>{t('eventPage.colBR')}</th>
+            <th className={v0Th}>{t('eventPage.colActions')}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {characters.map((character) => (
+            <tr
+              key={character.id}
+              className={cn(
+                'transition-colors hover:bg-muted/40',
+                character.id === highlightedId && 'bg-primary/10',
+              )}
+              onClick={() => onUpdate?.(character)}
+            >
+              <td className={getCharacterCellClass(character.characterClass)}>
+                <span className="font-semibold">{character.id}</span>
+              </td>
+              <td className={getCharacterCellClass(character.characterClass)}>
+                <span className="font-semibold">{character.name}</span>
+              </td>
+              <td className={getCharacterCellClass(character.characterClass)}>
+                <span className="font-semibold">{character.characterClass}</span>
+              </td>
+              <td className={getCharacterCellClass(character.characterClass)}>
+                <span className="font-semibold">
+                  {t(`specializations.${character.specialization}`)}
+                </span>
+              </td>
+              <td className={getCharacterCellClass(character.characterClass)}>
+                <span className="font-semibold">{character.iLevel}</span>
+                <br />
+                <span className="text-xs opacity-90">
+                  ({character.keystoneMinLevel}-{character.keystoneMaxLevel})
+                </span>
+              </td>
+              <td className={getCharacterCellClass(character.characterClass)}>
+                {character.bloodLust && (
+                  <Check className="mx-auto h-4 w-4 text-primary" strokeWidth={2.5} />
+                )}
+              </td>
+              <td className={getCharacterCellClass(character.characterClass)}>
+                {character.battleRez && (
+                  <Check className="mx-auto h-4 w-4 text-primary" strokeWidth={2.5} />
+                )}
+              </td>
+              <td className={getCharacterCellClass(character.characterClass)}>
+                {onDelete && (
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="sm"
+                    className="h-8 text-xs"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      void onDelete(character.id);
+                    }}
+                  >
+                    {t('eventPage.remove')}
+                  </Button>
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
 };
 
 export default CharacterTable;

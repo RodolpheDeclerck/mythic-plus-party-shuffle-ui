@@ -1,98 +1,252 @@
 'use client';
 
-import './Dashboard.css';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
 import axios from 'axios';
+import { useTranslation } from 'react-i18next';
+import {
+  Plus,
+  Trash2,
+  ExternalLink,
+  Calendar,
+  Users,
+} from 'lucide-react';
+
+import { Button } from '@/components/ui/button';
+import { Spinner } from '@/components/ui/spinner';
 import apiUrl from '../../config/apiConfig';
 import useWebSocket from '../../hooks/useWebSocket';
 import useAuthCheck from '../../hooks/useAuthCheck';
 
-// Interface definition for events
 interface Event {
-    id: number;
-    name: string;
-    code: string;
+  id: number;
+  name: string;
+  code: string;
+  createdAt?: string;
+  participantCount?: number;
 }
 
-const EventSelectionPage = () => {
-    const { isAuthenticated, isAuthChecked, handleLogout } = useAuthCheck(); // Use hook to centralize authentication
-    const [events, setEvents] = useState<Event[]>([]); // Explicit Event[] type definition
+const Dashboard = () => {
+  const { t } = useTranslation();
+  const { isAuthenticated, isAuthChecked } = useAuthCheck();
+  const [events, setEvents] = useState<Event[]>([]);
+  const [eventsLoading, setEventsLoading] = useState(true);
+  const [deleteConfirmCode, setDeleteConfirmCode] = useState<string | null>(
+    null,
+  );
 
-    // Declare fetchAdminEvents function before its use
-    const fetchAdminEvents = async () => {
-        try {
-            const response = await axios.get(`${apiUrl}/api/events/admin-events`, { withCredentials: true });
-            setEvents(response.data as Event[]); // Store events in state
-        } catch (error) {
-            console.error('Error fetching events:', error);
-        }
-    };
-
-    // Use useEffect for redirection and event fetching
-    useEffect(() => {
-        if (isAuthChecked && isAuthenticated !== null) {  // Wait for loading to finish
-            if (!isAuthenticated) {
-                window.location.href = '/login'; // Redirect if not authenticated
-            } else {
-                fetchAdminEvents(); // If authenticated, fetch events
-            }
-        }
-    }, [isAuthenticated, isAuthChecked]);
-
-    // Use useWebSocket unconditionally
-    useWebSocket(() => { }, () => { }, fetchAdminEvents);
-
-    // Redirect to a specific event
-    const handleJoinEvent = (eventCode: string) => {
-        window.location.href = `/event?code=${eventCode}`;
-    };
-
-    // Function to delete an event
-    const handleDeleteEvent = async (eventCode: string) => {
-        try {
-            await axios.delete(`${apiUrl}/api/events/${eventCode}`, { withCredentials: true });
-            console.log(`Event ${eventCode} deleted successfully`);
-            fetchAdminEvents(); // Refresh event list after deletion
-        } catch (error) {
-            console.error('Error deleting event:', error);
-        }
-    };
-
-    if (isAuthenticated) {
-        // Display content only if user is authenticated
-        return (
-            <div className="container">
-                <div className='wrapper'>
-                    <div className='content-box'>
-                        <h1>Hello</h1>
-                        <button onClick={() => window.location.href = '/event/join'}>Join Existing Event</button>
-                        <button onClick={() => window.location.href = '/event/create'}>Create New Event</button>
-
-                        {/* Affiche la liste des événements */}
-                        {events.length > 0 ? (
-                            <div>
-                                <h2>Your Admin Events</h2>
-                                <div className="events-list">
-                                    <ul>
-                                        {events.map(event => (
-                                            <li key={event.id}>
-                                                <span>{event.name}</span>
-                                                <button onClick={() => handleJoinEvent(event.code)}>Open</button>
-                                                <button onClick={() => handleDeleteEvent(event.code)}>Delete</button>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            </div>
-                        ) : (
-                            <p>No events available.</p>
-                        )}
-                    </div>
-                </div>
-            </div>
-        );
+  const fetchAdminEvents = useCallback(async () => {
+    setEventsLoading(true);
+    try {
+      const response = await axios.get<Event[]>(
+        `${apiUrl}/api/events/admin-events`,
+        { withCredentials: true },
+      );
+      setEvents(Array.isArray(response.data) ? response.data : []);
+    } catch (error) {
+      console.error('Error fetching events:', error);
+      setEvents([]);
+    } finally {
+      setEventsLoading(false);
     }
+  }, []);
+
+  useEffect(() => {
+    if (isAuthChecked && isAuthenticated !== null) {
+      if (!isAuthenticated) {
+        window.location.href = '/login';
+      } else {
+        void fetchAdminEvents();
+      }
+    }
+  }, [isAuthenticated, isAuthChecked, fetchAdminEvents]);
+
+  useWebSocket(() => {}, () => {}, fetchAdminEvents);
+
+  const handleOpenEvent = (eventCode: string) => {
+    window.location.href = `/event?code=${encodeURIComponent(eventCode)}`;
+  };
+
+  const handleDeleteEvent = async (eventCode: string) => {
+    try {
+      await axios.delete(`${apiUrl}/api/events/${eventCode}`, {
+        withCredentials: true,
+      });
+      setDeleteConfirmCode(null);
+      void fetchAdminEvents();
+    } catch (error) {
+      console.error('Error deleting event:', error);
+    }
+  };
+
+  const formatDate = (iso: string) => {
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return null;
+    return d.toLocaleDateString(undefined, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+  };
+
+  if (!isAuthChecked || !isAuthenticated) {
     return null;
+  }
+
+  return (
+    <div className="mx-auto w-full max-w-4xl">
+      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-cyan-400">
+            {t('dashboard.eyebrow')}
+          </p>
+          <h1 className="text-2xl font-bold text-foreground">
+            {t('dashboard.title')}
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {t('dashboard.subtitle')}
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          <Button
+            asChild
+            variant="outline"
+            className="border-purple-500/40 bg-[#0a0614]/60 text-foreground hover:bg-purple-500/10"
+          >
+            <Link href="/">{t('dashboard.joinExisting')}</Link>
+          </Button>
+          <Button
+            asChild
+            className="border border-cyan-400/50 bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-700 font-semibold text-white shadow-lg shadow-cyan-500/25 hover:from-cyan-400 hover:via-blue-500 hover:to-purple-600"
+          >
+            <Link href="/event/create">
+              <Plus className="mr-2 h-4 w-4" />
+              {t('dashboard.createEvent')}
+            </Link>
+          </Button>
+        </div>
+      </div>
+
+      {eventsLoading ? (
+        <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-purple-500/20 bg-[#0a0614]/50 py-16">
+          <Spinner className="h-8 w-8 text-cyan-400" />
+          <p className="text-sm text-muted-foreground">
+            {t('dashboard.loadingEvents')}
+          </p>
+        </div>
+      ) : events.length === 0 ? (
+        <div className="rounded-2xl border border-purple-500/20 bg-[#0a0614]/50 px-4 py-16 text-center">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-purple-500/10">
+            <Calendar className="h-8 w-8 text-purple-400" />
+          </div>
+          <h3 className="mb-2 text-lg font-semibold text-foreground">
+            {t('dashboard.noEvents')}
+          </h3>
+          <p className="mx-auto mb-6 max-w-sm text-sm text-muted-foreground">
+            {t('dashboard.noEventsDescription')}
+          </p>
+          <Button
+            asChild
+            className="border border-cyan-400/50 bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-700 font-semibold text-white hover:from-cyan-400 hover:via-blue-500 hover:to-purple-600"
+          >
+            <Link href="/event/create">
+              <Plus className="mr-2 h-4 w-4" />
+              {t('dashboard.createEvent')}
+            </Link>
+          </Button>
+        </div>
+      ) : (
+        <div className="grid gap-4">
+          {events.map((event) => (
+            <div
+              key={event.id}
+              className="relative rounded-xl bg-gradient-to-r from-purple-500/30 via-cyan-500/20 to-purple-500/30 p-px"
+            >
+              <div className="rounded-xl bg-[#0a0614]/95 p-5 backdrop-blur-sm">
+                {deleteConfirmCode === event.code ? (
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <p className="text-sm text-foreground">
+                      {t('dashboard.confirmDelete')}
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setDeleteConfirmCode(null)}
+                        className="text-muted-foreground hover:text-foreground"
+                      >
+                        {t('dashboard.deleteCancel')}
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => void handleDeleteEvent(event.code)}
+                        className="border border-red-500/50 bg-red-500/20 text-red-400 hover:bg-red-500/30"
+                      >
+                        {t('dashboard.deleteConfirm')}
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="min-w-0 flex-1">
+                      <h3 className="truncate font-semibold text-foreground">
+                        {event.name}
+                      </h3>
+                      <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
+                        <span className="inline-flex items-center gap-1.5">
+                          <span className="rounded bg-cyan-400/10 px-2 py-0.5 font-mono text-xs text-cyan-400">
+                            {event.code}
+                          </span>
+                        </span>
+                        {event.createdAt ? (
+                          <span className="flex items-center gap-1.5">
+                            <Calendar className="h-3.5 w-3.5 shrink-0" />
+                            {t('dashboard.createdOn')}{' '}
+                            {formatDate(event.createdAt) ?? '—'}
+                          </span>
+                        ) : null}
+                        {typeof event.participantCount === 'number' ? (
+                          <span className="flex items-center gap-1.5">
+                            <Users className="h-3.5 w-3.5 shrink-0" />
+                            {event.participantCount}{' '}
+                            {t('dashboard.participants')}
+                          </span>
+                        ) : null}
+                      </div>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-2 sm:ml-4">
+                      <Button
+                        type="button"
+                        size="sm"
+                        onClick={() => handleOpenEvent(event.code)}
+                        className="border border-cyan-500/50 bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30"
+                      >
+                        <ExternalLink className="mr-1.5 h-4 w-4" />
+                        {t('dashboard.openEvent')}
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setDeleteConfirmCode(event.code)}
+                        className="text-muted-foreground hover:bg-red-500/10 hover:text-red-400"
+                        aria-label={t('dashboard.deleteConfirm')}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 };
 
-export default EventSelectionPage;
+export default Dashboard;
