@@ -11,19 +11,19 @@ export default function LoginPage() {
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-8">
       <div
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
         style={{
           backgroundImage: `url('${loginBackgroundImageUrl.replace(/'/g, '%27')}')`,
         }}
         aria-hidden
       />
-      <div className="absolute inset-0 bg-[#0a0614]/60" aria-hidden />
+      <div className="fixed inset-0 z-0 bg-[#0a0614]/60" aria-hidden />
       <div
-        className="absolute inset-0 bg-gradient-to-t from-[#0a0614] via-transparent to-[#0a0614]/40"
+        className="fixed inset-0 z-0 bg-gradient-to-t from-[#0a0614] via-transparent to-[#0a0614]/40"
         aria-hidden
       />
       <div
-        className="absolute inset-0 bg-gradient-to-r from-[#0a0614]/50 via-transparent to-[#0a0614]/50"
+        className="fixed inset-0 z-0 bg-gradient-to-r from-[#0a0614]/50 via-transparent to-[#0a0614]/50"
         aria-hidden
       />
 
