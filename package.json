@@ -43,12 +43,6 @@
     "lint": "next lint",
     "test": "jest"
   },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
-  },
   "browserslist": {
     "production": [
       ">0.2%",
@@ -62,6 +56,8 @@
     ]
   },
   "devDependencies": {
+    "eslint": "^8.57.0",
+    "eslint-config-next": "14.2.35",
     "@tailwindcss/postcss": "^4.2.2",
     "@types/jwt-decode": "^2.2.1",
     "@types/react-icons": "^2.2.7",
