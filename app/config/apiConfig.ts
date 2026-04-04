@@ -9,7 +9,7 @@ if (
 ) {
   // eslint-disable-next-line no-console
   console.error(
-    '[mythic-plus] Production build is using a localhost API URL. Set NEXT_PUBLIC_API_URL before `next build` (e.g. on Render) so requests reach your backend.',
+    '[mythic-plus] Production build is using a localhost API URL. Set NEXT_PUBLIC_API_URL or REACT_APP_API_URL before `next build` (e.g. on Render) so requests reach your backend.',
   );
 }
 

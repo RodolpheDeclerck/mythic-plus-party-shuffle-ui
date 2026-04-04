@@ -7,7 +7,7 @@ services:
     plan: free
     buildCommand: npm install && npm run build
     startCommand: npm start
-    # NEXT_PUBLIC_* is inlined at build time — must be set before `next build`, not only at runtime.
+    # Inlined at build time. Same role as CRA’s REACT_APP_API_URL on main.
     envVars:
       - key: NEXT_PUBLIC_API_URL
         value: https://api.mythic-plus-party-shuffle.ca
