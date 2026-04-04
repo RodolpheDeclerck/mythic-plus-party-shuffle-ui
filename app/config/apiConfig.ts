@@ -1,7 +1,7 @@
 // src/config/apiConfig.ts
 // next.config.js merges REACT_APP_API_URL into NEXT_PUBLIC_API_URL for CRA parity with main.
 //
-// Production browser: REST uses same-origin /api/upstream → no CORS (proxied to the real API on the server).
+// Production browser: REST uses same-origin /api/be → proxied via next.config.js rewrites.
 // Socket.IO still needs the real backend URL — use getSocketUrl().
 
 function serverBackend(): string {
@@ -20,7 +20,7 @@ function computeRestBase(): string {
   if (typeof window === 'undefined') {
     return serverBackend();
   }
-  return '/api/upstream';
+  return '/api/be';
 }
 
 const apiUrl = computeRestBase();
