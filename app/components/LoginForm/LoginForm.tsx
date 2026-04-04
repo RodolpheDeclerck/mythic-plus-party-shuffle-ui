@@ -60,6 +60,7 @@ const LoginForm = () => {
 
         localStorage.removeItem('redirectAfterLogin');
 
+        setIsSubmitting(false);
         setTimeout(() => {
           window.location.replace(redirectUrl);
         }, 500);
