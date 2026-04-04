@@ -2,7 +2,7 @@
 
 import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
-import axios from 'axios';
+import axios, { isAxiosError } from 'axios';
 import { useRouter } from 'next/navigation';
 import { Trans, useTranslation } from 'react-i18next';
 import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
@@ -87,7 +87,7 @@ const RegisterForm = () => {
       setIsSubmitting(false);
     } catch (error: unknown) {
       const message =
-        axios.isAxiosError(error) && error.response?.data?.message
+        isAxiosError(error) && error.response?.data?.message
           ? String(error.response.data.message)
           : t('register.errorGeneric');
       setErrorMessage(message);

@@ -63,7 +63,6 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.2.2",
-    "@types/axios": "^0.9.36",
     "@types/jwt-decode": "^2.2.1",
     "@types/react-icons": "^2.2.7",
     "add": "^2.0.6",

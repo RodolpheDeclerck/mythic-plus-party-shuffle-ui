@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import axios from 'axios';
+import axios, { isAxiosError } from 'axios';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/ui/button';
@@ -38,9 +38,9 @@ const JoinEventForm = () => {
       }
       setIsSubmitting(false);
     } catch (error: unknown) {
-      if (axios.isAxiosError(error) && error.response?.status === 404) {
+      if (isAxiosError(error) && error.response?.status === 404) {
         setErrorMessage(t('home.errorNotFound'));
-      } else if (axios.isAxiosError(error) && error.response) {
+      } else if (isAxiosError(error) && error.response) {
         setErrorMessage(t('home.errorGeneric'));
       } else {
         setErrorMessage(t('home.errorNetwork'));

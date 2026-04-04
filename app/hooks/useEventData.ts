@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import axios from 'axios';
+import axios, { isAxiosError } from 'axios';
 import apiUrl from '../config/apiConfig';
 import { Event } from '../types/Event';
 
@@ -26,7 +26,7 @@ export const useEventData = (eventCode: string) => {
         }
         return true;
       } catch (error: unknown) {
-        if (axios.isAxiosError(error) && error.response?.status === 404) {
+        if (isAxiosError(error) && error.response?.status === 404) {
           return false;
         }
         console.error('Error checking event existence:', error);
