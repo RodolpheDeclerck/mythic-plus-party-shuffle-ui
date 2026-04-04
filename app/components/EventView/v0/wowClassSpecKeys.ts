@@ -11,6 +11,7 @@ export const WOW_CLASS_SPEC_TO_KEY: Record<string, Record<string, string>> = {
   Deathknight: deathKnightSpecs,
   'Demon Hunter': {
     Havoc: 'DemonHunter_Havoc',
+    Devourer: 'DemonHunter_Devourer',
     Vengeance: 'DemonHunter_Vengeance',
   },
   Druid: {

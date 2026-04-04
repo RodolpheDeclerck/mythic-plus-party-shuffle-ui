@@ -58,6 +58,29 @@ function partyGroupContainsCharacterId(group: PartyGroup, id: number): boolean {
   )
 }
 
+/** Aligné sur `PartyTable` : ilvl moyen (min–max) et plus petite / plus grande clé du groupe. */
+function getPartyGroupAggregateStats(group: PartyGroup): {
+  avgIlvl: string
+  minIlvl: number
+  maxIlvl: number
+  minKey: number
+  maxKey: number
+} | null {
+  const members = [group.tank, group.healer, ...group.dps].filter(
+    (m): m is Participant => m != null,
+  )
+  if (members.length === 0) return null
+  const ilvls = members.map((m) => m.ilvl)
+  const sum = ilvls.reduce((a, b) => a + b, 0)
+  return {
+    avgIlvl: (sum / ilvls.length).toFixed(2),
+    minIlvl: Math.min(...ilvls),
+    maxIlvl: Math.max(...ilvls),
+    minKey: Math.min(...members.map((m) => m.keyMin)),
+    maxKey: Math.max(...members.map((m) => m.keyMax)),
+  }
+}
+
 function PlayerRosterTableRow({
   participant,
   isViewer,
@@ -1002,6 +1025,26 @@ export function EventDetailV0({
                       })
                     })()}
                   </div>
+                  {(() => {
+                    const stats = getPartyGroupAggregateStats(group)
+                    if (!stats) return null
+                    return (
+                      <div className="flex flex-col gap-1 border-t border-purple-500/20 bg-purple-950/40 px-3 py-2 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:text-sm">
+                        <p>
+                          <span className="font-medium text-foreground">
+                            {t('eventPage.avgIlvl')}
+                          </span>{' '}
+                          {stats.avgIlvl} ({stats.minIlvl} – {stats.maxIlvl})
+                        </p>
+                        <p>
+                          <span className="font-medium text-foreground">
+                            {t('eventPage.keyRange')}
+                          </span>{' '}
+                          {stats.minKey} – {stats.maxKey}
+                        </p>
+                      </div>
+                    )
+                  })()}
                 </div>
               )
             })}
@@ -1131,24 +1174,7 @@ export function EventDetailV0({
                 const highlighted =
                   viewerCharacterId != null &&
                   partyGroupContainsCharacterId(group, viewerCharacterId)
-                const members = [
-                  group.tank,
-                  group.healer,
-                  ...group.dps,
-                ].filter(Boolean) as Participant[]
-                const ilvls = members.map((m) => m.ilvl)
-                const keys = members.map((m) => ({
-                  min: m.keyMin,
-                  max: m.keyMax,
-                }))
-                const minIlvl = members.length ? Math.min(...ilvls) : 0
-                const maxIlvl = members.length ? Math.max(...ilvls) : 0
-                const minKey = members.length
-                  ? Math.min(...keys.map((k) => k.min))
-                  : 0
-                const maxKey = members.length
-                  ? Math.max(...keys.map((k) => k.max))
-                  : 0
+                const stats = getPartyGroupAggregateStats(group)
                 return (
                   <div
                     key={group.id}
@@ -1168,13 +1194,22 @@ export function EventDetailV0({
                       <span className="font-semibold text-foreground">
                         {tEv("group")} {groupNumber}
                       </span>
-                      {members.length > 0 ? (
-                        <div className="flex items-center gap-2 text-xs">
-                          <span className="rounded bg-blue-500/20 px-1.5 py-0.5 font-mono font-bold text-blue-300">
-                            {minIlvl}-{maxIlvl}
+                      {stats ? (
+                        <div className="flex flex-wrap items-center gap-2 text-xs">
+                          <span
+                            className="rounded bg-blue-500/20 px-1.5 py-0.5 font-mono font-bold text-blue-300"
+                            title={t('eventPage.avgIlvl')}
+                          >
+                            {stats.avgIlvl}{' '}
+                            <span className="font-normal opacity-90">
+                              ({stats.minIlvl}–{stats.maxIlvl})
+                            </span>
                           </span>
-                          <span className="rounded bg-cyan-500/20 px-1.5 py-0.5 font-mono text-cyan-300">
-                            +{minKey}-{maxKey}
+                          <span
+                            className="rounded bg-cyan-500/20 px-1.5 py-0.5 font-mono text-cyan-300"
+                            title={t('eventPage.keyRange')}
+                          >
+                            {stats.minKey}–{stats.maxKey}
                           </span>
                         </div>
                       ) : null}

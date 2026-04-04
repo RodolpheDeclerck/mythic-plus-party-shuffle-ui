@@ -69,7 +69,7 @@ const PartyTable: React.FC<PartyTableProps> = ({
 
   const findMaxKeystoneLevel = (party: Party) => {
     if (party.members.length === 0) return 0;
-    return Math.min(...party.members.map((member) => member.keystoneMaxLevel));
+    return Math.max(...party.members.map((member) => member.keystoneMaxLevel));
   };
 
   const getSortedMembers = (party: Party) => {
