@@ -1,10 +1,14 @@
+const deathKnightSpecs: Record<string, string> = {
+  Blood: 'DeathKnight_Blood',
+  Frost: 'DeathKnight_Frost',
+  Unholy: 'DeathKnight_Unholy',
+};
+
 /** Maps v0 dialog class + spec labels to API specialization keys (translation keys). */
 export const WOW_CLASS_SPEC_TO_KEY: Record<string, Record<string, string>> = {
-  'Death Knight': {
-    Blood: 'DeathKnight_Blood',
-    Frost: 'DeathKnight_Frost',
-    Unholy: 'DeathKnight_Unholy',
-  },
+  'Death Knight': deathKnightSpecs,
+  /** Même clés que l’enum API / PostgreSQL (`Deathknight`). */
+  Deathknight: deathKnightSpecs,
   'Demon Hunter': {
     Havoc: 'DemonHunter_Havoc',
     Vengeance: 'DemonHunter_Vengeance',

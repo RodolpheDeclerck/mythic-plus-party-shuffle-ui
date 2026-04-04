@@ -10,6 +10,7 @@ import {
   ITEM_LEVEL_TIER_MID,
   ITEM_LEVEL_TIER_LOW,
 } from '@/constants/itemLevels';
+import { toDisplayCharacterClass } from '@/utils/characterClassApiMap';
 
 type RoleBlock = {
   key: string;
@@ -131,9 +132,9 @@ export function V0ParticipantsByRole({
                         {participant.name}
                       </td>
                       <td
-                        className={`truncate px-4 py-2.5 ${v0ClassNameColor(participant.characterClass)}`}
+                        className={`truncate px-4 py-2.5 ${v0ClassNameColor(toDisplayCharacterClass(participant.characterClass))}`}
                       >
-                        {participant.characterClass}
+                        {toDisplayCharacterClass(participant.characterClass)}
                       </td>
                       <td className="truncate px-4 py-2.5 text-muted-foreground">
                         {t(`specializations.${participant.specialization}`)}

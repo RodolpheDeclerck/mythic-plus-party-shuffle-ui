@@ -1,5 +1,9 @@
 import type { Character } from '@/types/Character';
 import type { Party } from '@/types/Party';
+import {
+  toApiCharacterClass,
+  toDisplayCharacterClass,
+} from '@/utils/characterClassApiMap';
 import { resolveSpecializationKey } from './wowClassSpecKeys';
 
 export interface ParticipantV0 {
@@ -43,7 +47,7 @@ export function characterToParticipantV0(
   return {
     id: String(c.id),
     name: c.name,
-    class: c.characterClass,
+    class: toDisplayCharacterClass(c.characterClass),
     spec: specLabel,
     role: characterRoleToV0(c.role),
     ilvl: c.iLevel,
@@ -64,7 +68,7 @@ export function participantToCharacterForUpsert(
   return {
     id: Number.isFinite(idNum) && idNum > 0 ? idNum : 0,
     name: p.name,
-    characterClass: p.class,
+    characterClass: toApiCharacterClass(p.class),
     specialization,
     iLevel: p.ilvl,
     role: v0RoleToCharacterRole(p.role),
@@ -80,7 +84,7 @@ function charToSlotParticipant(c: Character, specLabel: string): ParticipantV0 {
   return {
     id: String(c.id),
     name: c.name,
-    class: c.characterClass,
+    class: toDisplayCharacterClass(c.characterClass),
     spec: specLabel,
     role: characterRoleToV0(c.role),
     ilvl: c.iLevel,
@@ -138,7 +142,7 @@ export function partyGroupsV0ToParties(
       members.push({
         id: 0,
         name: p.name,
-        characterClass: p.class,
+        characterClass: toApiCharacterClass(p.class),
         specialization: resolveSpecializationKey(p.class, p.spec),
         iLevel: p.ilvl,
         role: v0RoleToCharacterRole(p.role),
