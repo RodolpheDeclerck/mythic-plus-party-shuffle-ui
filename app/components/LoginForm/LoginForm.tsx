@@ -13,7 +13,23 @@ import { Spinner } from '@/components/ui/spinner';
 import apiUrl from '../../config/apiConfig';
 
 interface LoginResponse {
-  token: string;
+  token?: string;
+  accessToken?: string;
+  user?: { id?: number; email?: string; username?: string };
+  message?: string;
+}
+
+function parseLoginBody(raw: unknown): LoginResponse | null {
+  if (raw == null) return null;
+  if (typeof raw === 'string') {
+    try {
+      return JSON.parse(raw) as LoginResponse;
+    } catch {
+      return null;
+    }
+  }
+  if (typeof raw === 'object') return raw as LoginResponse;
+  return null;
 }
 
 function messageFromAxiosError(err: unknown): string | null {
@@ -53,18 +69,27 @@ const LoginForm = () => {
           return;
         }
 
-        const data = response.data as LoginResponse & { accessToken?: string };
-        const token = data?.token ?? data?.accessToken;
-        if (!token || typeof token !== 'string') {
-          // Nest auth.controller must return { token } in JSON (not only httpOnly cookie) for this SPA.
+        const data = parseLoginBody(response.data);
+        const token =
+          data?.token && typeof data.token === 'string'
+            ? data.token
+            : data?.accessToken && typeof data.accessToken === 'string'
+              ? data.accessToken
+              : null;
+
+        if (token) {
+          localStorage.setItem('authToken', token);
+        } else if (data?.user && (data.user.email || data.user.id != null)) {
+          // Older API: JWT only in httpOnly cookie. Session must work via /api/be + Cookie on shared parent domain.
+          localStorage.removeItem('authToken');
+        } else {
           // eslint-disable-next-line no-console
-          console.error('Login 200 but JSON has no token — check API deploy and Network → Response body:', response.data);
+          console.error('Login 200 but unusable body — redeploy API with token in JSON or fix cookie DOMAIN:', response.data);
           setErrorMessage(t('login.errorMissingToken'));
           setIsSubmitting(false);
           return;
         }
 
-        localStorage.setItem('authToken', token);
         if (rememberMe) {
           localStorage.setItem('loginRememberMe', '1');
         } else {
