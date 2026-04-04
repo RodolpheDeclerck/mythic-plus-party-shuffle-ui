@@ -44,7 +44,18 @@ const LoginForm = () => {
           return;
         }
 
-        localStorage.setItem('authToken', response.data.token);
+        const data = response.data as LoginResponse & { accessToken?: string };
+        const token = data?.token ?? data?.accessToken;
+        if (!token || typeof token !== 'string') {
+          // API historically used httpOnly cookie only; body must include token for SPA + proxy.
+          // eslint-disable-next-line no-console
+          console.error('Login OK but no token in JSON body', response.data);
+          setErrorMessage(t('login.errorInvalidCredentials'));
+          setIsSubmitting(false);
+          return;
+        }
+
+        localStorage.setItem('authToken', token);
         if (rememberMe) {
           localStorage.setItem('loginRememberMe', '1');
         } else {
@@ -65,7 +76,9 @@ const LoginForm = () => {
           window.location.replace(redirectUrl);
         }, 500);
       })
-      .catch(() => {
+      .catch((err: unknown) => {
+        // eslint-disable-next-line no-console
+        console.error('Login request failed', err);
         setErrorMessage(t('login.errorInvalidCredentials'));
         setIsSubmitting(false);
       });
