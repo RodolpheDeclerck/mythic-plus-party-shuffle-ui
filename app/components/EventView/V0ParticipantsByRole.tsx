@@ -5,6 +5,11 @@ import { Shield, Heart, Sword, Crosshair, Trash2 } from 'lucide-react';
 import type { Character } from '@/types/Character';
 import { BloodlustIcon, BattleRezIcon } from './wow-icons';
 import { v0ClassNameColor } from './v0ClassColors';
+import {
+  ITEM_LEVEL_TIER_HIGH,
+  ITEM_LEVEL_TIER_MID,
+  ITEM_LEVEL_TIER_LOW,
+} from '@/constants/itemLevels';
 
 type RoleBlock = {
   key: string;
@@ -67,9 +72,9 @@ export function V0ParticipantsByRole({
   ];
 
   const ilvlColor = (ilvl: number) => {
-    if (ilvl >= 490) return 'text-purple-400';
-    if (ilvl >= 480) return 'text-blue-400';
-    if (ilvl >= 470) return 'text-green-400';
+    if (ilvl >= ITEM_LEVEL_TIER_HIGH) return 'text-purple-400';
+    if (ilvl >= ITEM_LEVEL_TIER_MID) return 'text-blue-400';
+    if (ilvl >= ITEM_LEVEL_TIER_LOW) return 'text-green-400';
     return 'text-muted-foreground';
   };
 

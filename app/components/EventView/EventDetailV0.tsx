@@ -20,6 +20,11 @@ import {
   participantToCharacterForUpsert,
 } from "./v0/v0PartyBridge"
 import { v0ClassColors as classColors } from "./v0ClassColors"
+import {
+  ITEM_LEVEL_TIER_HIGH,
+  ITEM_LEVEL_TIER_MID,
+  ITEM_LEVEL_TIER_LOW,
+} from "@/constants/itemLevels"
 
 export type EventDetailV0Props = {
   eventCode: string
@@ -99,11 +104,11 @@ function PlayerRosterTableRow({
         <span
           className={cn(
             "inline-block rounded px-2 py-0.5 font-mono text-sm font-bold",
-            participant.ilvl >= 490
+            participant.ilvl >= ITEM_LEVEL_TIER_HIGH
               ? "bg-purple-500/20 text-purple-300"
-              : participant.ilvl >= 480
+              : participant.ilvl >= ITEM_LEVEL_TIER_MID
                 ? "bg-blue-500/20 text-blue-300"
-                : participant.ilvl >= 470
+                : participant.ilvl >= ITEM_LEVEL_TIER_LOW
                   ? "bg-green-500/20 text-green-300"
                   : "bg-muted/20 text-muted-foreground",
           )}
@@ -696,7 +701,7 @@ export function EventDetailV0({
           </Button>
           <Button
             onClick={handleShuffle}
-            disabled={shufflePending || tanks.length === 0 || healers.length === 0 || allDps.length < 3}
+            disabled={shufflePending || participants.length === 0}
             className="bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-700 text-white font-semibold border border-cyan-400/50 hover:from-cyan-400 hover:via-blue-500 hover:to-purple-600 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-cyan-500/25"
           >
             <Shuffle className="w-4 h-4 mr-2" />
@@ -1328,11 +1333,11 @@ export function EventDetailV0({
                                 <span
                                   className={cn(
                                     "inline-block rounded px-2 py-0.5 font-mono text-sm font-bold",
-                                    participant.ilvl >= 490
+                                    participant.ilvl >= ITEM_LEVEL_TIER_HIGH
                                       ? "bg-purple-500/20 text-purple-300"
-                                      : participant.ilvl >= 480
+                                      : participant.ilvl >= ITEM_LEVEL_TIER_MID
                                         ? "bg-blue-500/20 text-blue-300"
-                                        : participant.ilvl >= 470
+                                        : participant.ilvl >= ITEM_LEVEL_TIER_LOW
                                           ? "bg-green-500/20 text-green-300"
                                           : "bg-muted/20 text-muted-foreground",
                                   )}

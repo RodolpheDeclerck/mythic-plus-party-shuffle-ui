@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 
 import { BloodlustIcon, BattleRezIcon } from "./wow-icons"
 import { Trash2 } from "lucide-react"
+import { ITEM_LEVEL_MIN, ITEM_LEVEL_MAX } from "@/constants/itemLevels"
 
 interface Participant {
   id: string
@@ -122,7 +123,7 @@ export function EditParticipantDialogV0({
       setName("")
       setWowClass("")
       setSpec("")
-      setIlvl(0)
+      setIlvl(ITEM_LEVEL_MIN)
       setKeyMin(2)
       setKeyMax(30)
     }
@@ -145,7 +146,7 @@ export function EditParticipantDialogV0({
       class: wowClass,
       spec,
       role,
-      ilvl,
+      ilvl: Math.max(ITEM_LEVEL_MIN, Math.min(ilvl, ITEM_LEVEL_MAX)),
       hasBloodlust,
       hasBattleRez,
       keyMin,
@@ -264,10 +265,13 @@ export function EditParticipantDialogV0({
               id="v0-participant-ilvl"
               type="number"
               value={ilvl}
-              onChange={(e) => setIlvl(parseInt(e.target.value, 10) || 0)}
+              onChange={(e) => {
+                const n = parseInt(e.target.value, 10)
+                setIlvl(Number.isFinite(n) ? n : ITEM_LEVEL_MIN)
+              }}
               className="bg-purple-900/20 border-purple-500/30 text-foreground"
-              min={0}
-              max={999}
+              min={ITEM_LEVEL_MIN}
+              max={ITEM_LEVEL_MAX}
             />
           </div>
 
