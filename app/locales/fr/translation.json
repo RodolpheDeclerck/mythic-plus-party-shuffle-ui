@@ -138,7 +138,8 @@
     "createAccount": "Créer un compte",
     "agreementText": "En vous connectant, vous acceptez nos",
     "joinWithCode": "Rejoindre avec un code d'événement",
-    "errorInvalidCredentials": "Échec de la connexion. Vérifiez votre e-mail et votre mot de passe."
+    "errorInvalidCredentials": "Échec de la connexion. Vérifiez votre e-mail et votre mot de passe.",
+    "errorMissingToken": "Le serveur a accepté la connexion mais la réponse JSON ne contient pas de jeton. Redéploie l’API (auth/login doit renvoyer \"token\" dans le corps) ou vérifie l’onglet Réseau → login → Réponse."
   },
   "register": {
     "heroEyebrow": "Rejoignez l'aventure",

@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import axios from 'axios';
+import axios, { isAxiosError } from 'axios';
 import { useTranslation } from 'react-i18next';
 import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
 
@@ -14,6 +14,15 @@ import apiUrl from '../../config/apiConfig';
 
 interface LoginResponse {
   token: string;
+}
+
+function messageFromAxiosError(err: unknown): string | null {
+  if (!isAxiosError(err) || err.response?.data == null) return null;
+  const d = err.response.data as Record<string, unknown>;
+  if (typeof d.message === 'string') return d.message;
+  if (Array.isArray(d.message)) return (d.message as string[]).join(', ');
+  if (Array.isArray(d.errors)) return (d.errors as string[]).join(', ');
+  return null;
 }
 
 const LoginForm = () => {
@@ -47,10 +56,10 @@ const LoginForm = () => {
         const data = response.data as LoginResponse & { accessToken?: string };
         const token = data?.token ?? data?.accessToken;
         if (!token || typeof token !== 'string') {
-          // API historically used httpOnly cookie only; body must include token for SPA + proxy.
+          // Nest auth.controller must return { token } in JSON (not only httpOnly cookie) for this SPA.
           // eslint-disable-next-line no-console
-          console.error('Login OK but no token in JSON body', response.data);
-          setErrorMessage(t('login.errorInvalidCredentials'));
+          console.error('Login 200 but JSON has no token — check API deploy and Network → Response body:', response.data);
+          setErrorMessage(t('login.errorMissingToken'));
           setIsSubmitting(false);
           return;
         }
@@ -79,7 +88,10 @@ const LoginForm = () => {
       .catch((err: unknown) => {
         // eslint-disable-next-line no-console
         console.error('Login request failed', err);
-        setErrorMessage(t('login.errorInvalidCredentials'));
+        const serverMsg = messageFromAxiosError(err);
+        setErrorMessage(
+          serverMsg ?? t('login.errorInvalidCredentials'),
+        );
         setIsSubmitting(false);
       });
   };
