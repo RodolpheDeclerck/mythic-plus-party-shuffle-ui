@@ -1,17 +1,44 @@
 // src/config/apiConfig.ts
 // next.config.js merges REACT_APP_API_URL into NEXT_PUBLIC_API_URL for CRA parity with main.
-const raw = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-const apiUrl = raw.replace(/\/$/, '');
+//
+// Production browser: REST uses same-origin /api/upstream → no CORS (proxied to the real API on the server).
+// Socket.IO still needs the real backend URL — use getSocketUrl().
+
+function serverBackend(): string {
+  return (
+    process.env.BACKEND_URL ||
+    process.env.NEXT_PUBLIC_API_URL ||
+    process.env.REACT_APP_API_URL ||
+    'http://localhost:8080'
+  ).replace(/\/$/, '');
+}
+
+function computeRestBase(): string {
+  if (process.env.NODE_ENV !== 'production') {
+    return serverBackend();
+  }
+  if (typeof window === 'undefined') {
+    return serverBackend();
+  }
+  return '/api/upstream';
+}
+
+const apiUrl = computeRestBase();
 
 if (
   typeof window !== 'undefined' &&
   process.env.NODE_ENV === 'production' &&
-  apiUrl.includes('localhost')
+  serverBackend().includes('localhost')
 ) {
   // eslint-disable-next-line no-console
   console.error(
-    '[mythic-plus] Production build is using a localhost API URL. Set NEXT_PUBLIC_API_URL or REACT_APP_API_URL before `next build`.',
+    '[mythic-plus] Production API URL resolves to localhost. Set NEXT_PUBLIC_API_URL or REACT_APP_API_URL before `next build`.',
   );
 }
 
 export default apiUrl;
+
+/** Real API origin for Socket.IO (not proxied). */
+export function getSocketUrl(): string {
+  return serverBackend();
+}

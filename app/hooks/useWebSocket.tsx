@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
-import apiUrl from '../config/apiConfig';
+import { getSocketUrl } from '../config/apiConfig';
 
 const useWebSocket = (onCharacterUpdated: () => void,
     onPartiesShuffled: () => void,
@@ -26,7 +26,7 @@ const useWebSocket = (onCharacterUpdated: () => void,
 
     useEffect(() => {
         let isMounted = true;
-        const socket = io(apiUrl, {
+        const socket = io(getSocketUrl(), {
             transports: ['websocket', 'polling'], // Try websocket first, fallback to polling
             reconnection: true,
             reconnectionDelay: 1000,
