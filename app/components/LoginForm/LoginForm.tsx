@@ -79,15 +79,13 @@ const LoginForm = () => {
 
         if (token) {
           localStorage.setItem('authToken', token);
-        } else if (data?.user && (data.user.email || data.user.id != null)) {
-          // Older API: JWT only in httpOnly cookie. Session must work via /api/be + Cookie on shared parent domain.
-          localStorage.removeItem('authToken');
         } else {
-          // eslint-disable-next-line no-console
-          console.error('Login 200 but unusable body — redeploy API with token in JSON or fix cookie DOMAIN:', response.data);
-          setErrorMessage(t('login.errorMissingToken'));
-          setIsSubmitting(false);
-          return;
+          // Nest returns 401 on bad credentials; 200 means success. JWT may be httpOnly cookie only.
+          localStorage.removeItem('authToken');
+          if (process.env.NODE_ENV === 'development') {
+            // eslint-disable-next-line no-console
+            console.warn('Login 200 without token in JSON — using cookie session if DOMAIN is set on API.', response.data);
+          }
         }
 
         if (rememberMe) {

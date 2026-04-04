@@ -138,8 +138,7 @@
     "createAccount": "Create an account",
     "agreementText": "By signing in, you agree to our",
     "joinWithCode": "Join with an event code",
-    "errorInvalidCredentials": "Sign in failed. Check your email and password.",
-    "errorMissingToken": "Server accepted login but did not return a token in the response. Redeploy the API (auth/login must include \"token\" in JSON) or open DevTools → Network → login → Response to verify."
+    "errorInvalidCredentials": "Sign in failed. Check your email and password."
   },
   "register": {
     "heroEyebrow": "Join the adventure",
