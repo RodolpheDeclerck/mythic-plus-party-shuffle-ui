@@ -3,23 +3,27 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
-import Loading from '../Loading';
-import useFetchCharacters from '../../hooks/useFetchCharacters';
-import useWebSocket from '../../hooks/useWebSocket';
+import Loading from '@/components/Loading';
+import useFetchCharacters from '@/hooks/useFetchCharacters';
+import useWebSocket from '@/hooks/useWebSocket';
 import {
   fetchCharacters as fetchCharactersApi,
   upsertCharacter,
-} from '../../services/api';
-import useAuthCheck from '../../hooks/useAuthCheck';
-import { useEventData } from '../../hooks/useEventData';
-import { useCharacterManagement } from '../../hooks/useCharacterManagement';
-import { usePartyManagement } from '../../hooks/usePartyManagement';
-import { EventDetailV0 } from './EventDetailV0';
-import { ReRegisterEventDialogV0 } from './ReRegisterEventDialogV0';
-import { v0Card, v0CardPadding } from './eventUi';
+} from '@/services/api';
+import useAuthCheck from '@/hooks/useAuthCheck';
+import { useEventData } from '@/hooks/useEventData';
+import { useCharacterManagement } from '@/hooks/useCharacterManagement';
+import { usePartyManagement } from '@/hooks/usePartyManagement';
+import { EventDetail } from './EventDetail';
+import { ReRegisterEventDialog } from './ReRegisterEventDialog';
+import { eventCard, eventCardPadding } from './eventUi';
 import { cn } from '@/lib/utils';
 import type { Character } from '@/types/Character';
 import type { Party } from '@/types/Party';
+import {
+  CHARACTERS_FETCH_FAILED,
+  resolveEventViewErrorMessage,
+} from '@/lib/event/eventViewErrors';
 
 const EventView: React.FC = () => {
   const { t } = useTranslation();
@@ -29,9 +33,8 @@ const EventView: React.FC = () => {
 
   const { isAuthenticated, isAuthChecked } = useAuthCheck();
 
-  const { characters, loading, error, setCharacters } = useFetchCharacters(
-    eventCode || '',
-  );
+  const { characters, loading, charactersFetchErrorCode, setCharacters } =
+    useFetchCharacters(eventCode || '');
 
   const {
     parties,
@@ -66,7 +69,7 @@ const EventView: React.FC = () => {
         const updatedCharacters = await fetchCharactersApi(eventCode);
         setCharacters(updatedCharacters);
       } catch {
-        setErrorState('Failed to fetch characters');
+        setErrorState(CHARACTERS_FETCH_FAILED);
       }
     }
   }, [eventCode, setCharacters]);
@@ -87,7 +90,7 @@ const EventView: React.FC = () => {
       } else {
         const characterData = localStorage.getItem('createdCharacter');
         if (characterData) {
-          setCreatedCharacter(JSON.parse(characterData));
+          setCreatedCharacter(JSON.parse(characterData) as Character);
         } else if (isAuthChecked && !isAuthenticated) {
           router.push('/event/register?code=' + eventCode);
         }
@@ -120,7 +123,7 @@ const EventView: React.FC = () => {
     void fetchPartiesWrapper();
   }, [fetchPartiesWrapper]);
 
-  /** Joueur : la liste ne contient plus son perso (ex. admin « Clear list ») → modale de réinscription. */
+  /** Player: local character dropped from roster (e.g. admin cleared list) → re-register modal. */
   useEffect(() => {
     if (loading || !eventCode || !createdCharacter) return;
     const inList = characters.some((c) => c.id === createdCharacter.id);
@@ -159,7 +162,7 @@ const EventView: React.FC = () => {
     [setParties, updatePartiesInBackend],
   );
 
-  const handleSaveParticipantV0 = useCallback(
+  const handleSaveParticipant = useCallback(
     async (payload: Character & { eventCode: string }) => {
       await upsertCharacter(payload);
       await fetchCharacters();
@@ -178,7 +181,7 @@ const EventView: React.FC = () => {
   }, [createdCharacter?.id, handleDelete, router, setCreatedCharacter]);
 
   const handleReRegisterSuccess = useCallback(
-    (data: unknown) => {
+    (data: Character) => {
       localStorage.setItem('createdCharacter', JSON.stringify(data));
       setCreatedCharacter(data);
       setReRegisterOpen(false);
@@ -194,29 +197,33 @@ const EventView: React.FC = () => {
     localStorage.removeItem('createdCharacter');
     setCreatedCharacter(null);
     if (eventCode) {
-      router.push(
-        `/event/register?code=${encodeURIComponent(eventCode)}`,
-      );
+      router.push(`/event/register?code=${encodeURIComponent(eventCode)}`);
     }
   }, [eventCode, router, setCreatedCharacter]);
 
   if (isVerifying || loading || !isAuthChecked) return <Loading />;
 
-  if (error || errorState || characterError || partyError) {
+  if (
+    charactersFetchErrorCode ||
+    errorState ||
+    characterError ||
+    partyError
+  ) {
     return (
       <div
         className={cn(
-          v0Card,
-          v0CardPadding,
+          eventCard,
+          eventCardPadding,
           'border-destructive/40 bg-destructive/5 text-destructive',
         )}
         role="alert"
       >
-        {error ||
-          errorState ||
-          characterError ||
-          partyError ||
-          t('eventPage.loadError')}
+        {resolveEventViewErrorMessage(t, {
+          charactersFetchErrorCode,
+          errorState,
+          characterError,
+          partyError,
+        })}
       </div>
     );
   }
@@ -226,7 +233,7 @@ const EventView: React.FC = () => {
   return (
     <div className={cn('mx-auto w-full space-y-8 text-foreground')}>
       {eventCode && eventInfo ? (
-        <EventDetailV0
+        <EventDetail
           eventCode={eventCode}
           eventName={eventInfo.name}
           homeHref={auth ? '/dashboard' : '/'}
@@ -240,7 +247,7 @@ const EventView: React.FC = () => {
           onToggleVisibility={() => void togglePartiesVisibility()}
           onPartiesUpdate={handlePartiesUpdate}
           onClearAllCharacters={() => void handleClear(characters)}
-          onSaveParticipant={handleSaveParticipantV0}
+          onSaveParticipant={handleSaveParticipant}
           onDeleteParticipant={handleDelete}
           viewerCharacterId={createdCharacter?.id ?? null}
           onViewerLeaveEvent={handleViewerLeave}
@@ -248,7 +255,7 @@ const EventView: React.FC = () => {
       ) : null}
 
       {reRegisterOpen && eventCode && createdCharacter ? (
-        <ReRegisterEventDialogV0
+        <ReRegisterEventDialog
           open
           eventCode={eventCode}
           formInstanceKey={reRegisterFormKey}

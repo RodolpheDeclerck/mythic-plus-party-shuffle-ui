@@ -50,6 +50,7 @@
     "roleMelee": "Melee",
     "roleRanged": "Ranged",
     "loadError": "Something went wrong loading this page.",
+    "fetchCharactersError": "Could not load the participant list.",
     "inProgressTitle": "Run already started",
     "inProgressBody": "Groups may already be set. Contact the host to be placed.",
     "groupsTitle": "You have a group",
@@ -216,7 +217,7 @@
     "body": "Password reset is not available in the app yet. Please contact your event organizer or sign in if you remember your password.",
     "backToLogin": "Back to sign in"
   },
-  "eventV0": {
+  "eventDetail": {
     "backToDashboard": "Back to dashboard",
     "backHome": "Back to home",
     "playerEyebrow": "Event lobby",

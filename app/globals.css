@@ -5,12 +5,12 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Alignés sur le wallpaper (void + néons cyan + or) — Layout + formulaires legacy */
+  /* Match wallpaper (void + cyan neons + gold) — layout + legacy forms */
   --rift-cyan: #22d3ee;
   --rift-cyan-glow: rgba(34, 211, 238, 0.45);
   --rift-gold: #d4af37;
   --rift-gold-dim: rgba(212, 175, 55, 0.4);
-  /* Reflets du wallpaper (highlights) */
+  /* Wallpaper highlight tints */
   --rift-cyan-soft: #bae6fd;
   --rift-gold-highlight: #fde047;
   --rift-text: #e8f4ff;
@@ -19,7 +19,7 @@
   --rift-glass-shade: rgba(10, 6, 22, 0.55);
   --rift-void: #0a0616;
 
-  /* Login / carte — même lecture que background.png : vide, violet, cyan électrique, or */
+  /* Login / card — same read as background.png: void, violet, electric cyan, gold */
   --login-card-border: linear-gradient(
     125deg,
     #1a0a2e 0%,
@@ -33,7 +33,7 @@
   --login-card-surface-elevated: #100b1f;
   --login-eyebrow: #67e8f9;
 
-  /* shadcn : même famille que le fond (cyan électrique + vide violet) */
+  /* shadcn tokens aligned with portal background (electric cyan + void violet) */
   --background: oklch(0.12 0.045 285);
   --foreground: oklch(0.96 0.02 230);
   --card: oklch(0.15 0.05 285);
@@ -156,8 +156,8 @@
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+  font-family:
+    source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
 }
 
 /* Login: void / portal — cyan ice, violet shadow, brass accents */
@@ -232,7 +232,7 @@ code {
     0 0 42px rgba(124, 58, 237, 0.25);
 }
 
-/* Native <select> list : fond sombre ; la couleur du texte vient des classes Tailwind sur chaque <option> */
+/* Native <select> dropdown: dark surface; option text uses Tailwind classes on each <option> */
 select.event-register-select option {
   background-color: #1a0a2e;
 }

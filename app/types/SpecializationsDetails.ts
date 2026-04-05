@@ -1,5 +1,5 @@
 export interface SpecializationDetails {
-    role: string;
-    bloodLust: boolean;
-    battleRez: boolean;
+  role: string;
+  bloodLust: boolean;
+  battleRez: boolean;
 }

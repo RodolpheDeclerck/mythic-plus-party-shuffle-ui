@@ -7,6 +7,7 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import { AuthProvider } from './context/AuthContext';
 import { ClassesProvider } from './context/ClassesContext';
 import { SpecializationsProvider } from './context/SpecializationsContext';
+import { I18nHtmlLangSync } from './components/I18nHtmlLangSync';
 import i18n from './i18n';
 
 function I18nStoredLanguageSync() {
@@ -25,11 +26,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <AuthProvider>
       <I18nStoredLanguageSync />
+      <I18nHtmlLangSync />
       <ClassesProvider>
         <SpecializationsProvider>
-          <DndProvider backend={HTML5Backend}>
-            {children}
-          </DndProvider>
+          <DndProvider backend={HTML5Backend}>{children}</DndProvider>
         </SpecializationsProvider>
       </ClassesProvider>
     </AuthProvider>

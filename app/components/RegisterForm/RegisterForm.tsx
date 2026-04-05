@@ -11,7 +11,9 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
-import apiUrl from '../../config/apiConfig';
+import apiUrl from '@/config/apiConfig';
+import { cn } from '@/lib/utils';
+import { riftVoidFill80, riftVoidFill50 } from '@/lib/riftUi';
 
 const PASSWORD_MIN = 6;
 const USERNAME_MIN = 3;
@@ -41,8 +43,7 @@ const RegisterForm = () => {
 
   const strength = useMemo(() => passwordStrengthScore(password), [password]);
 
-  const passwordsMatch =
-    confirmPassword === '' || password === confirmPassword;
+  const passwordsMatch = confirmPassword === '' || password === confirmPassword;
 
   const isFormValid =
     email.trim() !== '' &&
@@ -75,10 +76,11 @@ const RegisterForm = () => {
     setIsSubmitting(true);
 
     try {
-      const response = await axios.post(
-        `${apiUrl}/auth/register`,
-        { email, password, username },
-      );
+      const response = await axios.post(`${apiUrl}/auth/register`, {
+        email,
+        password,
+        username,
+      });
 
       if (response.status === 200 || response.status === 201) {
         router.replace('/login');
@@ -95,10 +97,14 @@ const RegisterForm = () => {
     }
   };
 
-  const inputClass =
-    'h-11 border-purple-500/30 bg-[#0a0614]/80 pr-11 text-[var(--rift-text)] shadow-none placeholder:text-muted-foreground focus-visible:border-cyan-400/50 focus-visible:ring-cyan-400';
-  const inputClassNoToggle =
-    'h-11 border-purple-500/30 bg-[#0a0614]/80 text-[var(--rift-text)] shadow-none placeholder:text-muted-foreground focus-visible:border-cyan-400/50 focus-visible:ring-cyan-400';
+  const inputClass = cn(
+    'h-11 border-purple-500/30 pr-11 text-[var(--rift-text)] shadow-none placeholder:text-muted-foreground focus-visible:border-cyan-400/50 focus-visible:ring-cyan-400',
+    riftVoidFill80,
+  );
+  const inputClassNoToggle = cn(
+    'h-11 border-purple-500/30 text-[var(--rift-text)] shadow-none placeholder:text-muted-foreground focus-visible:border-cyan-400/50 focus-visible:ring-cyan-400',
+    riftVoidFill80,
+  );
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-5">
@@ -181,7 +187,7 @@ const RegisterForm = () => {
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 rounded-sm p-1 text-muted-foreground hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0614]"
+            className="absolute right-3 top-1/2 -translate-y-1/2 rounded-sm p-1 text-muted-foreground hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--rift-void)]"
             aria-label={
               showPassword ? t('login.hidePassword') : t('login.showPassword')
             }
@@ -253,7 +259,7 @@ const RegisterForm = () => {
           <button
             type="button"
             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 rounded-sm p-1 text-muted-foreground hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0614]"
+            className="absolute right-3 top-1/2 -translate-y-1/2 rounded-sm p-1 text-muted-foreground hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--rift-void)]"
             aria-label={
               showConfirmPassword
                 ? t('login.hidePassword')
@@ -268,11 +274,18 @@ const RegisterForm = () => {
           </button>
         </div>
         {confirmPassword.length > 0 && !passwordsMatch ? (
-          <p className="text-xs text-red-400">{t('register.passwordsDoNotMatch')}</p>
+          <p className="text-xs text-red-400">
+            {t('register.passwordsDoNotMatch')}
+          </p>
         ) : null}
       </div>
 
-      <div className="flex items-start gap-3 rounded-md border border-purple-500/20 bg-[#0a0614]/50 p-3">
+      <div
+        className={cn(
+          'flex items-start gap-3 rounded-md border border-purple-500/20 p-3',
+          riftVoidFill50,
+        )}
+      >
         <Checkbox
           id="register-terms"
           checked={acceptTerms}
@@ -305,8 +318,9 @@ const RegisterForm = () => {
 
       <Button
         type="submit"
+        variant="portal"
         disabled={!isFormValid || isSubmitting}
-        className="mt-1 h-12 w-full border border-cyan-400/50 bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-700 font-semibold text-white shadow-lg shadow-cyan-500/25 hover:from-cyan-400 hover:via-blue-500 hover:to-purple-600 disabled:cursor-not-allowed disabled:opacity-50"
+        className="mt-1 h-12 w-full"
       >
         {isSubmitting ? (
           <span className="flex items-center justify-center gap-2">
@@ -322,7 +336,7 @@ const RegisterForm = () => {
         {t('register.hasAccount')}{' '}
         <Link
           href="/login"
-          className="font-medium text-cyan-400 underline-offset-4 hover:text-cyan-300 hover:underline focus:outline-none focus-visible:rounded-sm focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0614]"
+          className="font-medium text-cyan-400 underline-offset-4 hover:text-cyan-300 hover:underline focus:outline-none focus-visible:rounded-sm focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--rift-void)]"
         >
           {t('register.signIn')}
         </Link>
@@ -331,7 +345,7 @@ const RegisterForm = () => {
       <div className="mt-2 border-t border-purple-500/20 pt-4 text-center">
         <Link
           href="/"
-          className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground underline-offset-4 hover:text-cyan-400 hover:underline focus:outline-none focus-visible:rounded-sm focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0614]"
+          className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground underline-offset-4 hover:text-cyan-400 hover:underline focus:outline-none focus-visible:rounded-sm focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--rift-void)]"
         >
           <ArrowLeft className="h-4 w-4" />
           {t('login.joinWithCode')}

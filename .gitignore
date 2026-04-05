@@ -29,3 +29,6 @@ package-lock.json
 
 # local v0 extract (zip)
 /_v0-export
+
+# v0 reference snapshot (often locked by sync tools)
+/_v0-reference

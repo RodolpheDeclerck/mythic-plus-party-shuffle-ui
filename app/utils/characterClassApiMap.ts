@@ -1,5 +1,5 @@
 /**
- * L’enum PostgreSQL / Nest utilise `Deathknight` ; l’UI WoW affiche souvent `Death Knight`.
+ * PostgreSQL / Nest enum uses `Deathknight`; WoW UI usually shows `Death Knight`.
  */
 const DISPLAY_TO_API: Record<string, string> = {
   'Death Knight': 'Deathknight',

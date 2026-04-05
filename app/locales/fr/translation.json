@@ -50,6 +50,7 @@
     "roleMelee": "Mêlée",
     "roleRanged": "À distance",
     "loadError": "Impossible de charger la page.",
+    "fetchCharactersError": "Impossible de charger la liste des participants.",
     "inProgressTitle": "Donjon déjà lancé",
     "inProgressBody": "Les groupes sont peut-être déjà faits. Contactez l’hôte pour être ajouté.",
     "groupsTitle": "Vous avez un groupe",
@@ -216,7 +217,7 @@
     "body": "La réinitialisation du mot de passe n'est pas encore disponible dans l'application. Contactez l'organisateur de l'événement ou reconnectez-vous si vous vous souvenez de votre mot de passe.",
     "backToLogin": "Retour à la connexion"
   },
-  "eventV0": {
+  "eventDetail": {
     "backToDashboard": "Retour au tableau de bord",
     "backHome": "Retour à l'accueil",
     "playerEyebrow": "Salle d'événement",

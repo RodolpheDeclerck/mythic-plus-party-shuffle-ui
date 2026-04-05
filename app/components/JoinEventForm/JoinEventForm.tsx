@@ -8,7 +8,9 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
-import apiUrl from '../../config/apiConfig';
+import apiUrl from '@/config/apiConfig';
+import { cn } from '@/lib/utils';
+import { riftVoidFill80 } from '@/lib/riftUi';
 
 const JoinEventForm = () => {
   const { t } = useTranslation();
@@ -63,7 +65,10 @@ const JoinEventForm = () => {
       ) : null}
 
       <div className="flex flex-col gap-2">
-        <label htmlFor="event-code" className="text-sm font-medium text-foreground">
+        <label
+          htmlFor="event-code"
+          className="text-sm font-medium text-foreground"
+        >
           {t('home.eventCodeLabel')}
         </label>
         <Input
@@ -77,14 +82,18 @@ const JoinEventForm = () => {
           disabled={isSubmitting}
           required
           aria-describedby={errorMessage ? 'join-event-error' : undefined}
-          className="h-11 border-purple-500/30 bg-[#0a0614]/80 font-mono placeholder:text-muted-foreground focus-visible:border-cyan-400/50 focus-visible:ring-cyan-400"
+          className={cn(
+            'h-11 border-purple-500/30 font-mono placeholder:text-muted-foreground focus-visible:border-cyan-400/50 focus-visible:ring-cyan-400',
+            riftVoidFill80,
+          )}
         />
       </div>
 
       <Button
         type="submit"
+        variant="portal"
         disabled={isSubmitting || !eventCode.trim()}
-        className="mt-2 h-12 w-full border border-cyan-400/50 bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-700 font-semibold text-white shadow-lg shadow-cyan-500/25 hover:from-cyan-400 hover:via-blue-500 hover:to-purple-600 disabled:cursor-not-allowed disabled:opacity-50"
+        className="mt-2 h-12 w-full"
       >
         {isSubmitting ? (
           <span className="flex items-center justify-center gap-2">
@@ -104,7 +113,7 @@ const JoinEventForm = () => {
         {t('home.haveAccount')}{' '}
         <Link
           href="/login"
-          className="font-medium text-cyan-400 underline-offset-4 hover:text-cyan-300 hover:underline focus:outline-none focus-visible:rounded-sm focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0614]"
+          className="font-medium text-cyan-400 underline-offset-4 hover:text-cyan-300 hover:underline focus:outline-none focus-visible:rounded-sm focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--rift-void)]"
         >
           {t('home.signIn')}
         </Link>
@@ -114,7 +123,7 @@ const JoinEventForm = () => {
         {t('login.noAccount')}{' '}
         <Link
           href="/register"
-          className="font-medium text-cyan-400 underline-offset-4 hover:text-cyan-300 hover:underline focus:outline-none focus-visible:rounded-sm focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0614]"
+          className="font-medium text-cyan-400 underline-offset-4 hover:text-cyan-300 hover:underline focus:outline-none focus-visible:rounded-sm focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--rift-void)]"
         >
           {t('login.createAccount')}
         </Link>

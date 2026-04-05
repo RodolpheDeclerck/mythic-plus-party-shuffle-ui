@@ -1,8 +1,6 @@
-// src/config/apiConfig.ts
-// next.config.js merges REACT_APP_API_URL into NEXT_PUBLIC_API_URL for CRA parity with main.
-//
-// Production browser: REST uses same-origin /api/be → proxied via next.config.js rewrites.
-// Socket.IO still needs the real backend URL — use getSocketUrl().
+// REST base URL and Socket.IO origin.
+// next.config.js maps REACT_APP_API_URL into NEXT_PUBLIC_API_URL (CRA parity).
+// In production the browser uses same-origin /api/be (rewrites); Socket.IO uses getSocketUrl().
 
 function serverBackend(): string {
   return (

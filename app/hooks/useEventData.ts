@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import axios, { isAxiosError } from 'axios';
-import apiUrl from '../config/apiConfig';
-import { Event } from '../types/Event';
+import apiUrl from '@/config/apiConfig';
+import { Event } from '@/types/Event';
 
 export const useEventData = (eventCode: string) => {
   const [arePartiesVisible, setArePartiesVisible] = useState(false);

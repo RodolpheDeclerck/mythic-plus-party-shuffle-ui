@@ -4,7 +4,7 @@
 const resolvedPublicApiUrl =
   process.env.NEXT_PUBLIC_API_URL ||
   process.env.REACT_APP_API_URL ||
-  'http://localhost:8080'
+  'http://localhost:8080';
 
 // Same-origin proxy target (no trailing slash). Used at build time for rewrites().
 const backendProxyBase = (
@@ -12,7 +12,7 @@ const backendProxyBase = (
   process.env.NEXT_PUBLIC_API_URL ||
   process.env.REACT_APP_API_URL ||
   'http://localhost:8080'
-).replace(/\/$/, '')
+).replace(/\/$/, '');
 
 const nextConfig = {
   reactStrictMode: true,
@@ -26,7 +26,7 @@ const nextConfig = {
         source: '/api/be/:path*',
         destination: `${backendProxyBase}/:path*`,
       },
-    ]
+    ];
   },
   typescript: {
     ignoreBuildErrors: false,
@@ -34,7 +34,6 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: false,
   },
-}
+};
 
-module.exports = nextConfig
-
+module.exports = nextConfig;

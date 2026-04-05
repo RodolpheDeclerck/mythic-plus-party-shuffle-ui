@@ -1,4 +1,4 @@
-import { CharacterClass } from "./CharacterClass";
+import { CharacterClass } from './CharacterClass';
 
 /** RAID_CLASS_COLORS — https://warcraft.wiki.gg/wiki/Class_colors */
 export const CharacterClassColors: { [key in CharacterClass]: string } = {
@@ -15,4 +15,4 @@ export const CharacterClassColors: { [key in CharacterClass]: string } = {
   [CharacterClass.Warlock]: '#8788EE',
   [CharacterClass.Evoker]: '#33937F',
   [CharacterClass.Shaman]: '#0070DD',
-}
+};

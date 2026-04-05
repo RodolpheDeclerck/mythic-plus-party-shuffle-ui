@@ -10,7 +10,9 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
-import apiUrl from '../../config/apiConfig';
+import apiUrl from '@/config/apiConfig';
+import { cn } from '@/lib/utils';
+import { riftVoidFill80 } from '@/lib/riftUi';
 
 interface LoginResponse {
   token?: string;
@@ -84,7 +86,10 @@ const LoginForm = () => {
           localStorage.removeItem('authToken');
           if (process.env.NODE_ENV === 'development') {
             // eslint-disable-next-line no-console
-            console.warn('Login 200 without token in JSON — using cookie session if DOMAIN is set on API.', response.data);
+            console.warn(
+              'Login 200 without token in JSON — using cookie session if DOMAIN is set on API.',
+              response.data,
+            );
           }
         }
 
@@ -112,9 +117,7 @@ const LoginForm = () => {
         // eslint-disable-next-line no-console
         console.error('Login request failed', err);
         const serverMsg = messageFromAxiosError(err);
-        setErrorMessage(
-          serverMsg ?? t('login.errorInvalidCredentials'),
-        );
+        setErrorMessage(serverMsg ?? t('login.errorInvalidCredentials'));
         setIsSubmitting(false);
       });
   };
@@ -146,7 +149,10 @@ const LoginForm = () => {
           disabled={isSubmitting}
           required
           aria-describedby={errorMessage ? 'login-form-error' : undefined}
-          className="h-11 border-purple-500/30 bg-[#0a0614]/80 placeholder:text-muted-foreground focus-visible:border-cyan-400/50 focus-visible:ring-cyan-400"
+          className={cn(
+            'h-11 border-purple-500/30 placeholder:text-muted-foreground focus-visible:border-cyan-400/50 focus-visible:ring-cyan-400',
+            riftVoidFill80,
+          )}
         />
       </div>
 
@@ -160,7 +166,7 @@ const LoginForm = () => {
           </label>
           <Link
             href="/forgot-password"
-            className="text-sm font-medium text-cyan-400 underline-offset-4 hover:text-cyan-300 hover:underline focus:outline-none focus-visible:rounded-sm focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0614]"
+            className="text-sm font-medium text-cyan-400 underline-offset-4 hover:text-cyan-300 hover:underline focus:outline-none focus-visible:rounded-sm focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--rift-void)]"
           >
             {t('login.forgotPassword')}
           </Link>
@@ -175,12 +181,15 @@ const LoginForm = () => {
             onChange={(e) => setPassword(e.target.value)}
             disabled={isSubmitting}
             required
-            className="h-11 border-purple-500/30 bg-[#0a0614]/80 pr-11 placeholder:text-muted-foreground focus-visible:border-cyan-400/50 focus-visible:ring-cyan-400"
+            className={cn(
+              'h-11 border-purple-500/30 pr-11 placeholder:text-muted-foreground focus-visible:border-cyan-400/50 focus-visible:ring-cyan-400',
+              riftVoidFill80,
+            )}
           />
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 rounded-sm p-1 text-muted-foreground hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0614]"
+            className="absolute right-3 top-1/2 -translate-y-1/2 rounded-sm p-1 text-muted-foreground hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--rift-void)]"
             aria-label={
               showPassword ? t('login.hidePassword') : t('login.showPassword')
             }
@@ -211,8 +220,9 @@ const LoginForm = () => {
 
       <Button
         type="submit"
+        variant="portal"
         disabled={!isFormValid || isSubmitting}
-        className="mt-2 h-12 w-full border border-cyan-400/50 bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-700 font-semibold text-white shadow-lg shadow-cyan-500/25 hover:from-cyan-400 hover:via-blue-500 hover:to-purple-600 disabled:cursor-not-allowed disabled:opacity-50"
+        className="mt-2 h-12 w-full"
       >
         {isSubmitting ? (
           <span className="flex items-center justify-center gap-2">
@@ -228,7 +238,7 @@ const LoginForm = () => {
         {t('login.noAccount')}{' '}
         <Link
           href="/register"
-          className="font-medium text-cyan-400 underline-offset-4 hover:text-cyan-300 hover:underline focus:outline-none focus-visible:rounded-sm focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0614]"
+          className="font-medium text-cyan-400 underline-offset-4 hover:text-cyan-300 hover:underline focus:outline-none focus-visible:rounded-sm focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--rift-void)]"
         >
           {t('login.createAccount')}
         </Link>
@@ -254,7 +264,7 @@ const LoginForm = () => {
       <div className="mt-4 border-t border-purple-500/20 pt-4 text-center">
         <Link
           href="/"
-          className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground underline-offset-4 hover:text-cyan-400 hover:underline focus:outline-none focus-visible:rounded-sm focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0614]"
+          className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground underline-offset-4 hover:text-cyan-400 hover:underline focus:outline-none focus-visible:rounded-sm focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--rift-void)]"
         >
           <ArrowLeft className="h-4 w-4" />
           {t('login.joinWithCode')}

@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils';
 
-/** RAID_CLASS_COLORS (fonds) — https://warcraft.wiki.gg/wiki/Class_colors */
+/** RAID_CLASS_COLORS (backgrounds) — https://warcraft.wiki.gg/wiki/Class_colors */
 const WOW_CLASS: Record<string, string> = {
   warrior: 'bg-[#C69B6D] text-black',
   deathknight: 'bg-[#C41E3A] text-white',
@@ -15,7 +15,7 @@ const WOW_CLASS: Record<string, string> = {
   warlock: 'bg-[#8788EE] text-black',
   evoker: 'bg-[#33937F] text-white',
   shaman: 'bg-[#0070DD] text-white',
-}
+};
 
 function normalizeClassKey(characterClass: string): string {
   return characterClass.toLowerCase().replace(/\s+/g, '');

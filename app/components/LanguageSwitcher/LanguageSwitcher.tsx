@@ -1,6 +1,8 @@
 'use client';
 
 import { useTranslation } from 'react-i18next';
+import { cn } from '@/lib/utils';
+import { riftVoidSolid } from '@/lib/riftUi';
 import { Globe } from 'lucide-react';
 
 const LOCALES = ['en', 'fr'] as const;
@@ -16,9 +18,11 @@ function persistLocale(lng: Locale) {
 
 export function LanguageSwitcher() {
   const { t, i18n: i18nInstance } = useTranslation();
-  const current = (LOCALES.includes(i18nInstance.language as Locale)
-    ? i18nInstance.language
-    : 'en') as Locale;
+  const current = (
+    LOCALES.includes(i18nInstance.language as Locale)
+      ? i18nInstance.language
+      : 'en'
+  ) as Locale;
 
   return (
     <div className="flex items-center gap-2">
@@ -33,10 +37,10 @@ export function LanguageSwitcher() {
         className="cursor-pointer rounded bg-transparent text-sm text-muted-foreground hover:text-foreground focus:outline-none focus:ring-2 focus:ring-cyan-400"
         aria-label={t('languageSwitcher.label')}
       >
-        <option value="en" className="bg-[#0a0614] text-foreground">
+        <option value="en" className={cn(riftVoidSolid, 'text-foreground')}>
           {t('languageSwitcher.en')}
         </option>
-        <option value="fr" className="bg-[#0a0614] text-foreground">
+        <option value="fr" className={cn(riftVoidSolid, 'text-foreground')}>
           {t('languageSwitcher.fr')}
         </option>
       </select>

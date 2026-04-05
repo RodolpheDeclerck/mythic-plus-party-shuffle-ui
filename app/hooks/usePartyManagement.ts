@@ -1,171 +1,186 @@
 import { useState, useCallback } from 'react';
-import { Party } from '../types/Party';
-import { fetchParties as fetchPartiesApi, deleteParties, shuffleParties } from '../services/api';
-import apiUrl from '../config/apiConfig';
-import axios from 'axios';
+import type { Character } from '@/types/Character';
+import type { Party } from '@/types/Party';
+import {
+  fetchParties as fetchPartiesApi,
+  deleteParties,
+  shuffleParties,
+  saveEventParties,
+  setEventPartiesVisibility,
+} from '@/services/api';
 
 export const usePartyManagement = (eventCode: string) => {
-    const [parties, setParties] = useState<Party[]>([]);
-    const [error, setError] = useState<string | null>(null);
-    
-    const fetchParties = useCallback(async () => {
-        if (eventCode) {
-            try {
-                const updatedParties = await fetchPartiesApi(eventCode);
-                setParties([...updatedParties]);
-            } catch (error) {
-                console.error('Error fetching parties:', error);
-                setError('Failed to fetch parties');
-            }
-        } else {
-            console.error('Event code is null');
-        }
-    }, [eventCode]);
-    
-    const handleClearEvent = async () => {
-        if (eventCode) {
-            try {
-                await deleteParties(eventCode);
-                setParties([]);
-            } catch (error) {
-                console.error('Error deleting parties:', error);
-                setError('Failed to delete parties');
-            }
-        } else {
-            console.error('Event code is null');
-        }
-    };
-    
-    const updatePartiesInBackend = async (updatedParties: Party[]) => {
+  const [parties, setParties] = useState<Party[]>([]);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchParties = useCallback(async () => {
+    if (!eventCode) {
+      return;
+    }
+    try {
+      const updatedParties = await fetchPartiesApi(eventCode);
+      setParties([...updatedParties]);
+    } catch {
+      setError('Failed to fetch parties');
+    }
+  }, [eventCode]);
+
+  const handleClearEvent = async () => {
+    if (!eventCode) {
+      return;
+    }
+    try {
+      await deleteParties(eventCode);
+      setParties([]);
+    } catch {
+      setError('Failed to delete parties');
+    }
+  };
+
+  const updatePartiesInBackend = useCallback(
+    async (updatedParties: Party[]) => {
+      if (!eventCode) {
+        return;
+      }
+      try {
+        await saveEventParties(eventCode, updatedParties);
+        setError(null);
+      } catch {
+        setError('Failed to sync party layout');
         try {
-            const response = await fetch(`${apiUrl}/api/events/${eventCode}/parties`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(updatedParties),
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to update parties');
-            }
-            console.log('Parties updated in Redis');
-        } catch (error) {
-            console.error('Error updating parties in Redis:', error);
+          const fresh = await fetchPartiesApi(eventCode);
+          setParties([...fresh]);
+        } catch {
+          setError('Failed to refresh parties');
         }
-    };
-    
-    const swapCharacters = (fromPartyIndex: number, toPartyIndex: number, sourceId: number, targetId: number) => {
-        setParties((prevParties) => {
-            const updatedParties = prevParties.map((party) => ({
-                ...party,
-                members: [...party.members],
-            }));
+      }
+    },
+    [eventCode],
+  );
 
-            const sourceParty = updatedParties[fromPartyIndex];
-            const targetParty = updatedParties[toPartyIndex];
+  const swapCharacters = (
+    fromPartyIndex: number,
+    toPartyIndex: number,
+    sourceId: number,
+    targetId: number,
+  ) => {
+    setParties((prevParties) => {
+      const updatedParties = prevParties.map((party) => ({
+        ...party,
+        members: [...party.members],
+      }));
 
-            // Find the members by their IDs
-            const sourceMemberIndex = sourceParty.members.findIndex(m => m.id === sourceId);
-            const targetMemberIndex = targetParty.members.findIndex(m => m.id === targetId);
+      const sourceParty = updatedParties[fromPartyIndex];
+      const targetParty = updatedParties[toPartyIndex];
 
-            if (sourceMemberIndex === -1 || targetMemberIndex === -1) {
-                console.error("Members not found");
-                return prevParties;
-            }
+      const sourceMemberIndex = sourceParty.members.findIndex(
+        (m) => m.id === sourceId,
+      );
+      const targetMemberIndex = targetParty.members.findIndex(
+        (m) => m.id === targetId,
+      );
 
-            // Perform the swap using the found indices
-            [sourceParty.members[sourceMemberIndex], targetParty.members[targetMemberIndex]] =
-                [targetParty.members[targetMemberIndex], sourceParty.members[sourceMemberIndex]];
+      if (sourceMemberIndex === -1 || targetMemberIndex === -1) {
+        return prevParties;
+      }
 
-            updatePartiesInBackend(updatedParties);
+      [
+        sourceParty.members[sourceMemberIndex],
+        targetParty.members[targetMemberIndex],
+      ] = [
+        targetParty.members[targetMemberIndex],
+        sourceParty.members[sourceMemberIndex],
+      ];
 
-            return updatedParties;
-        });
-    };
-    
-    const moveCharacter = (fromPartyIndex: number, toPartyIndex: number, memberId: number, toIndex: number) => {
-        setParties((prevParties) => {
-            const updatedParties = [...prevParties];
-            const sourceParty = updatedParties[fromPartyIndex];
-            const targetParty = updatedParties[toPartyIndex];
+      void updatePartiesInBackend(updatedParties);
 
-            if (!sourceParty || !targetParty) {
-                console.error("Invalid party indices");
-                return prevParties;
-            }
+      return updatedParties;
+    });
+  };
 
-            // Find the member by ID
-            const memberIndex = sourceParty.members.findIndex(m => m.id === memberId);
-            if (memberIndex === -1) {
-                console.error("Member not found");
-                return prevParties;
-            }
+  const moveCharacter = (
+    fromPartyIndex: number,
+    toPartyIndex: number,
+    memberId: number,
+    toIndex: number,
+  ) => {
+    setParties((prevParties) => {
+      const updatedParties = [...prevParties];
+      const sourceParty = updatedParties[fromPartyIndex];
+      const targetParty = updatedParties[toPartyIndex];
 
-            // Remove the member from the source party
-            const [movedCharacter] = sourceParty.members.splice(memberIndex, 1);
+      if (!sourceParty || !targetParty) {
+        return prevParties;
+      }
 
-            if (targetParty.members.length < 5) {
-                // Insert at the specified target index
-                targetParty.members.splice(toIndex, 0, movedCharacter);
-            } else {
-                console.error("Target party is full. Move not allowed.");
-                // Put the character back in the source party
-                sourceParty.members.splice(memberIndex, 0, movedCharacter);
-            }
+      const memberIndex = sourceParty.members.findIndex(
+        (m) => m.id === memberId,
+      );
+      if (memberIndex === -1) {
+        return prevParties;
+      }
 
-            updatePartiesInBackend(updatedParties);
+      const [movedCharacter] = sourceParty.members.splice(memberIndex, 1);
 
-            return updatedParties;
-        });
-    };
-    
-    const handleShuffle = async (createdCharacter: any, setCreatedCharacter: (character: any) => void) => {
-        if (eventCode) {
-            try {
-                await axios.patch(
-                    `${apiUrl}/api/events/${eventCode}/setPartiesVisibility`,
-                    { visible: false },
-                    { withCredentials: true }
-                );
+      if (targetParty.members.length < 5) {
+        targetParty.members.splice(toIndex, 0, movedCharacter);
+      } else {
+        sourceParty.members.splice(memberIndex, 0, movedCharacter);
+        return prevParties;
+      }
 
-                const shuffledParties = await shuffleParties(eventCode);
-                let updatedCharacter = null;
+      void updatePartiesInBackend(updatedParties);
 
-                if (createdCharacter) {
-                    updatedCharacter = shuffledParties
-                        .flatMap((party) => party.members)
-                        .find((member) => member.id === createdCharacter.id);
-                }
+      return updatedParties;
+    });
+  };
 
-                if (updatedCharacter) {
-                    setCreatedCharacter({ ...updatedCharacter });
-                    localStorage.setItem('createdCharacter', JSON.stringify(updatedCharacter));
-                } else {
-                    setCreatedCharacter(null);
-                    localStorage.removeItem('createdCharacter');
-                }
+  const handleShuffle = async (
+    createdCharacter: Character | null,
+    setCreatedCharacter: (character: Character | null) => void,
+  ) => {
+    if (!eventCode) {
+      return;
+    }
+    try {
+      await setEventPartiesVisibility(eventCode, false);
 
-                setParties([...shuffledParties]);
+      const shuffledParties = await shuffleParties(eventCode);
+      let updatedCharacter: Character | null = null;
 
-            } catch (error) {
-                console.error('Error shuffling parties:', error);
-                setError('Failed to shuffle parties');
-            }
-        } else {
-            console.error('Event code is null');
-        }
-    };
-    
-    return { 
-        parties, 
-        setParties,
-        error,
-        fetchParties,
-        handleClearEvent,
-        updatePartiesInBackend,
-        swapCharacters,
-        moveCharacter,
-        handleShuffle
-    };
+      if (createdCharacter) {
+        updatedCharacter =
+          shuffledParties
+            .flatMap((party) => party.members)
+            .find((member) => member.id === createdCharacter.id) ?? null;
+      }
+
+      if (updatedCharacter) {
+        setCreatedCharacter({ ...updatedCharacter });
+        localStorage.setItem(
+          'createdCharacter',
+          JSON.stringify(updatedCharacter),
+        );
+      } else {
+        setCreatedCharacter(null);
+        localStorage.removeItem('createdCharacter');
+      }
+
+      setParties([...shuffledParties]);
+    } catch {
+      setError('Failed to shuffle parties');
+    }
+  };
+
+  return {
+    parties,
+    setParties,
+    error,
+    fetchParties,
+    handleClearEvent,
+    updatePartiesInBackend,
+    swapCharacters,
+    moveCharacter,
+    handleShuffle,
+  };
 };

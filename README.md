@@ -1,46 +1,74 @@
-# Getting Started with Create React App
+# Mythic Plus Party Shuffle — UI
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Next.js (App Router) front-end for organizing Mythic+ runs: event codes, character signup, admin party grid, shuffle, and live updates over Socket.IO.
 
-## Available Scripts
+## Requirements
 
-In the project directory, you can run:
+- **Node.js** 20.x (LTS recommended)
+- **npm** 9+
 
-### `npm start`
+## Setup
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+```bash
+npm install
+```
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+## Scripts
 
-### `npm test`
+| Command | Description |
+|--------|-------------|
+| `npm run dev` | Development server ([http://localhost:3000](http://localhost:3000)) |
+| `npm run build` | Production build |
+| `npm start` | Serve production build |
+| `npm run lint` | ESLint (Next) |
+| `npm test` | Jest (watch in dev) |
+| `npm run test:ci` | Jest once, CI-friendly |
+| `npm run format` | Prettier (see `package.json` globs) |
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Environment variables
 
-### `npm run build`
+Used in [`app/config/apiConfig.ts`](app/config/apiConfig.ts) and [`next.config.js`](next.config.js):
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+| Variable | Role |
+|----------|------|
+| `NEXT_PUBLIC_API_URL` | Preferred public API base (also injected at build via `next.config` `env`) |
+| `REACT_APP_API_URL` | Legacy alias for the same value (CRA parity) |
+| `BACKEND_URL` | Optional override for **server-side** rewrite target and `getSocketUrl()` |
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+**Development:** REST calls go directly to `serverBackend()` (default `http://localhost:8080` if unset).
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+**Production (browser):** REST uses same-origin **`/api/be`** → rewritten to `BACKEND_URL` / `NEXT_PUBLIC_API_URL` / `REACT_APP_API_URL` (see `rewrites` in `next.config.js`). **Socket.IO** always uses `getSocketUrl()` → real backend origin (not proxied).
 
-### `npm run eject`
+Optional branding:
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+| Variable | Role |
+|----------|------|
+| `NEXT_PUBLIC_LOGIN_BACKGROUND_URL` | Login/portal background image URL (default `public/background.png`) — [`app/config/loginBackground.ts`](app/config/loginBackground.ts) |
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+Do **not** commit secrets. For production builds, ensure `NEXT_PUBLIC_API_URL` (or equivalent) is not `localhost` or the app will log a configuration warning.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+## Backend
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+This repository is **UI only**. Run the API separately (e.g. sibling repo **mythic-plus-party-shuffle-api-nest** or your own backend) on the origin you configure above.
 
-## Learn More
+## Architecture (short)
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+```text
+Browser
+  ├─ REST: dev → API origin | prod browser → /api/be → Next rewrites → API
+  └─ Socket.IO: direct to getSocketUrl() (same origin resolution as BACKEND_URL / NEXT_PUBLIC_* )
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+More detail: [`ARCHITECTURE.md`](ARCHITECTURE.md) (event page / `EventView` flow).
+
+## Security note
+
+Auth tokens are stored in **`localStorage`** for API calls (see axios setup). That matches many SPAs but is **XSS-sensitive**; httpOnly cookies issued by the API would be a hardening path. No credentials belong in this repo.
+
+## Stack
+
+Next.js 14, React 18, TypeScript, Tailwind CSS, i18next, axios, socket.io-client, react-dnd, Radix UI primitives (shadcn-style components).
+
+## CI
+
+GitHub Actions runs lint, `test:ci`, and `npm run build` on push/PR to `main` and `next` (see [`.github/workflows/ci.yml`](.github/workflows/ci.yml)).
