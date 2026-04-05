@@ -58,10 +58,25 @@ const classColors: Record<string, string> = {
   "Warrior": "text-[#C69B6D]",
 }
 
-function ParticipantRow({ participant, isMe }: { participant: Participant; isMe: boolean }) {
+const roleIcons: Record<string, { icon: React.ElementType; color: string }> = {
+  tank: { icon: Shield, color: "text-blue-400" },
+  healer: { icon: Heart, color: "text-green-400" },
+  meleeDps: { icon: Sword, color: "text-red-400" },
+  rangedDps: { icon: Crosshair, color: "text-orange-400" },
+}
+
+function ParticipantRow({ participant, isMe, showRole }: { participant: Participant; isMe: boolean; showRole?: boolean }) {
   const t = useTranslations("event")
+  const RoleIcon = roleIcons[participant.role]?.icon
+  const roleColor = roleIcons[participant.role]?.color || "text-muted-foreground"
+  
   return (
     <tr className={`border-b border-border/30 last:border-0 transition-colors ${isMe ? "bg-cyan-500/10" : "hover:bg-secondary/20"}`}>
+      {showRole && (
+        <td className="px-3 py-2.5 text-center w-10">
+          {RoleIcon && <RoleIcon className={`w-4 h-4 inline ${roleColor}`} />}
+        </td>
+      )}
       <td className={`px-4 py-2.5 font-medium truncate ${isMe ? "text-cyan-300 font-bold" : ""}`}>
         {participant.name}
         {isMe && <span className="ml-2 text-xs text-cyan-400 font-normal">({t("you")})</span>}
@@ -144,13 +159,24 @@ function GroupCard({ group, index, myParticipantId, highlighted }: {
   highlighted: boolean
 }) {
   const t = useTranslations("event")
-  const members = [group.tank, group.healer, ...group.dps].filter(Boolean) as Participant[]
+  const members = [group.tank, group.healer, ...(group.dps || [])].filter(Boolean) as Participant[]
   const ilvls = members.map(m => m.ilvl)
   const keys = members.map(m => ({ min: m.keyMin, max: m.keyMax }))
   const minIlvl = members.length ? Math.min(...ilvls) : 0
   const maxIlvl = members.length ? Math.max(...ilvls) : 0
+  const avgIlvl = members.length ? Math.round(ilvls.reduce((a, b) => a + b, 0) / ilvls.length) : 0
   const minKey = members.length ? Math.min(...keys.map(k => k.min)) : 0
   const maxKey = members.length ? Math.max(...keys.map(k => k.max)) : 0
+
+  // Check what's missing
+  const missingTank = !group.tank
+  const missingHealer = !group.healer
+  const dpsCount = (group.dps || []).filter(Boolean).length
+  const missingDps = 3 - dpsCount
+  const hasBloodlust = members.some(m => m.hasBloodlust)
+  const hasBattleRez = members.some(m => m.hasBattleRez)
+
+  const hasMissing = missingTank || missingHealer || missingDps > 0 || !hasBloodlust || !hasBattleRez
 
   return (
     <div className={`rounded-xl border overflow-hidden ${highlighted ? "border-cyan-400/40" : "border-purple-500/20"}`}>
@@ -159,17 +185,55 @@ function GroupCard({ group, index, myParticipantId, highlighted }: {
         {members.length > 0 && (
           <div className="flex items-center gap-2 text-xs">
             <span className="font-bold font-mono px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300">{minIlvl}-{maxIlvl}</span>
+            <span className="font-mono px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300">~{avgIlvl}</span>
             <span className="font-mono px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300">+{minKey}-{maxKey}</span>
           </div>
         )}
       </div>
+
+      {/* Missing elements warning or complete status */}
+      {hasMissing ? (
+        <div className="px-4 py-2 bg-amber-900/20 border-b border-amber-500/20 flex flex-wrap items-center gap-2 text-xs">
+          <span className="text-amber-400 font-medium">{t("missing")}:</span>
+          {missingTank && (
+            <span className="flex items-center gap-1 px-2 py-0.5 rounded bg-blue-500/20 text-blue-300">
+              <Shield className="w-3 h-3" /> Tank
+            </span>
+          )}
+          {missingHealer && (
+            <span className="flex items-center gap-1 px-2 py-0.5 rounded bg-green-500/20 text-green-300">
+              <Heart className="w-3 h-3" /> Healer
+            </span>
+          )}
+          {missingDps > 0 && (
+            <span className="flex items-center gap-1 px-2 py-0.5 rounded bg-red-500/20 text-red-300">
+              <Sword className="w-3 h-3" /> {missingDps} DPS
+            </span>
+          )}
+          {!hasBloodlust && (
+            <span className="flex items-center gap-1 px-2 py-0.5 rounded bg-orange-500/20 text-orange-300">
+              <BloodlustIcon className="w-3 h-3" /> BL
+            </span>
+          )}
+          {!hasBattleRez && (
+            <span className="flex items-center gap-1 px-2 py-0.5 rounded bg-teal-500/20 text-teal-300">
+              <BattleRezIcon className="w-3 h-3" /> BR
+            </span>
+          )}
+        </div>
+      ) : (
+        <div className="px-4 py-2 bg-green-900/20 border-b border-green-500/20 flex items-center gap-2 text-xs">
+          <span className="text-green-400 font-medium">{t("complete")}</span>
+        </div>
+      )}
+
       <div className="overflow-x-auto">
         <table className="w-full table-fixed">
           <tbody>
-            {group.tank && <ParticipantRow participant={group.tank} isMe={group.tank.id === myParticipantId} />}
-            {group.healer && <ParticipantRow participant={group.healer} isMe={group.healer.id === myParticipantId} />}
-            {group.dps.map(dps => (
-              <ParticipantRow key={dps.id} participant={dps} isMe={dps.id === myParticipantId} />
+            {group.tank && <ParticipantRow participant={group.tank} isMe={group.tank.id === myParticipantId} showRole />}
+            {group.healer && <ParticipantRow participant={group.healer} isMe={group.healer.id === myParticipantId} showRole />}
+            {group.dps?.map(dps => dps && (
+              <ParticipantRow key={dps.id} participant={dps} isMe={dps.id === myParticipantId} showRole />
             ))}
           </tbody>
         </table>

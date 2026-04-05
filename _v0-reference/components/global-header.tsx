@@ -1,7 +1,7 @@
 "use client"
 
 import { useTranslations } from "next-intl"
-import { LogOut, User, LogIn } from "lucide-react"
+import { LogOut, User, LogIn, Home } from "lucide-react"
 import Link from "next/link"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { Button } from "@/components/ui/button"
@@ -12,7 +12,23 @@ export function GlobalHeader() {
   const { user, isAuthenticated, logout } = useAuth()
 
   return (
-    <div className="fixed top-4 right-4 z-50 flex items-center gap-3">
+    <>
+      {/* Home button - top left */}
+      <div className="fixed top-4 left-4 z-50">
+        <Button
+          asChild
+          variant="ghost"
+          size="sm"
+          className="text-muted-foreground hover:text-cyan-400 hover:bg-cyan-500/10"
+        >
+          <Link href={isAuthenticated ? "/dashboard" : "/"}>
+            <Home className="w-4 h-4" />
+          </Link>
+        </Button>
+      </div>
+
+      {/* Auth and language - top right */}
+      <div className="fixed top-4 right-4 z-50 flex items-center gap-3">
       <LanguageSwitcher />
       {isAuthenticated && user ? (
         <div className="flex items-center gap-2">
@@ -43,6 +59,7 @@ export function GlobalHeader() {
           </Link>
         </Button>
       )}
-    </div>
+      </div>
+    </>
   )
 }

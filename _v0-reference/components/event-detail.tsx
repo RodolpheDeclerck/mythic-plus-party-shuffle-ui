@@ -774,12 +774,16 @@ export function EventDetail({ eventId, isAdmin = false }: EventDetailProps) {
                         const keys = members.map(m => ({ min: m.keyMin, max: m.keyMax }))
                         const minIlvl = Math.min(...ilvls)
                         const maxIlvl = Math.max(...ilvls)
+                        const avgIlvl = Math.round(ilvls.reduce((a, b) => a + b, 0) / ilvls.length)
                         const minKey = Math.min(...keys.map(k => k.min))
                         const maxKey = Math.max(...keys.map(k => k.max))
                         return (
                           <div className="flex items-center gap-2 text-xs">
-                            <span className={`font-bold font-mono px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300`}>
+                            <span className="font-bold font-mono px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300">
                               {minIlvl}-{maxIlvl}
+                            </span>
+                            <span className="font-mono px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300">
+                              ~{avgIlvl}
                             </span>
                             <span className="font-mono px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300">
                               +{minKey}-{maxKey}

@@ -1,28 +1,35 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import axios from 'axios';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Spinner } from '@/components/ui/spinner';
+import { cn } from '@/lib/utils';
 import { useClasses } from '../../context/ClassesContext';
 import { useSpecializations } from '../../context/SpecializationsContext';
 import apiUrl from '../../config/apiConfig';
 import { KEYSTONE_MIN_LEVEL, KEYSTONE_MAX_LEVEL } from '../../constants/keystoneLevels';
 import { ITEM_LEVEL_MIN, ITEM_LEVEL_MAX } from '../../constants/itemLevels';
+import { v0ClassColors } from '../EventView/v0ClassColors';
+import { BloodlustIcon, BattleRezIcon } from '../EventView/wow-icons';
+import { v0RoleFromApiSpecialization } from '../../utils/v0SpecRolePreview';
 
 const NAME_MAX_LENGTH = 12;
 
-const fieldInputClass =
-  'h-11 w-full border-purple-500/30 bg-[#0a0614]/80 text-[var(--rift-text)] shadow-none placeholder:text-muted-foreground focus-visible:border-cyan-400/50 focus-visible:ring-cyan-400';
+const bloodlustClasses = ['Shaman', 'Mage', 'Hunter', 'Evoker'];
+const battleRezClasses = ['Death Knight', 'Druid', 'Warlock', 'Paladin'];
 
-const selectClass =
-  'h-11 w-full cursor-pointer rounded-md border border-purple-500/30 bg-[#0a0614]/80 px-3 text-sm text-[var(--rift-text)] shadow-none outline-none focus-visible:border-cyan-400/50 focus-visible:ring-2 focus-visible:ring-cyan-400';
+const inputV0Class =
+  'h-11 border-purple-500/30 bg-purple-900/20 text-foreground placeholder:text-muted-foreground/50 shadow-none focus-visible:border-cyan-400/50 focus-visible:ring-cyan-400';
+
+/** Liste native : fond sombre + color-scheme pour éviter liste blanche (Windows / Chrome). */
+const selectV0Class =
+  'event-register-select h-11 w-full cursor-pointer rounded-md border border-purple-500/30 bg-[#1a0a2e] px-3 text-sm text-zinc-100 shadow-none outline-none [color-scheme:dark] focus-visible:border-cyan-400/50 focus-visible:ring-2 focus-visible:ring-cyan-400 disabled:cursor-not-allowed disabled:opacity-60';
 
 const EventRegisterForm: React.FC = () => {
   const [name, setName] = useState<string>('');
@@ -30,7 +37,7 @@ const EventRegisterForm: React.FC = () => {
   const [selectSpecialization, setSelectSpecialization] = useState<string>('');
   const [iLevel, setILevel] = useState(ITEM_LEVEL_MIN.toString());
   const [kStoneMin, setKStoneMin] = useState(KEYSTONE_MIN_LEVEL.toString());
-  const [kStoneMax, setKStoneMax] = useState(KEYSTONE_MAX_LEVEL.toString());
+  const [kStoneMax, setKStoneMax] = useState('15');
   const [isFirstInputAfterFocus, setIsFirstInputAfterFocus] = useState(false);
   const [isFirstInputAfterFocusKeyMin, setIsFirstInputAfterFocusKeyMin] =
     useState(false);
@@ -47,6 +54,19 @@ const EventRegisterForm: React.FC = () => {
   const { specializations, fetchSpecializations } = useSpecializations();
 
   const eventCode = searchParams.get('code');
+
+  const previewRole = useMemo(() => {
+    if (!selectCharacterClass || !selectSpecialization) return null;
+    return v0RoleFromApiSpecialization(
+      selectCharacterClass,
+      selectSpecialization,
+    );
+  }, [selectCharacterClass, selectSpecialization]);
+
+  const hasBloodlust =
+    !!selectCharacterClass && bloodlustClasses.includes(selectCharacterClass);
+  const hasBattleRez =
+    !!selectCharacterClass && battleRezClasses.includes(selectCharacterClass);
 
   useEffect(() => {
     const storedCharacter = localStorage.getItem('createdCharacter');
@@ -244,25 +264,19 @@ const EventRegisterForm: React.FC = () => {
     }
   };
 
-  const showKeystoneSection =
-    selectCharacterClass &&
-    selectSpecialization &&
-    parseInt(iLevel, 10) >= ITEM_LEVEL_MIN;
+  const canSubmit =
+    !!eventCode &&
+    name.trim().length > 0 &&
+    !!selectCharacterClass &&
+    !!selectSpecialization;
 
   if (!eventCode) {
     return (
       <div className="flex flex-col gap-4 text-center">
-        <p className="text-sm font-medium text-red-400">
-          {t('eventRegister.missingCodeTitle')}
-        </p>
-        <p className="text-sm text-muted-foreground">
-          {t('eventRegister.missingCodeBody')}
-        </p>
         <Link
           href="/"
           className="inline-flex items-center justify-center gap-2 text-sm font-medium text-cyan-400 underline-offset-4 hover:text-cyan-300 hover:underline"
         >
-          <ArrowLeft className="h-4 w-4" />
           {t('eventRegister.backHome')}
         </Link>
       </div>
@@ -270,7 +284,13 @@ const EventRegisterForm: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col gap-5">
+    <form
+      className="space-y-5"
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (canSubmit) void handleSave();
+      }}
+    >
       {saveError ? (
         <div
           role="alert"
@@ -280,10 +300,10 @@ const EventRegisterForm: React.FC = () => {
         </div>
       ) : null}
 
-      <div className="flex flex-col gap-2">
+      <div className="space-y-2">
         <label
           htmlFor="event-reg-name"
-          className="text-sm font-medium text-[var(--rift-text)]"
+          className="text-sm text-muted-foreground"
         >
           {t('eventRegister.nameLabel')}
         </label>
@@ -294,15 +314,15 @@ const EventRegisterForm: React.FC = () => {
           placeholder={t('eventRegister.namePlaceholder')}
           maxLength={NAME_MAX_LENGTH}
           disabled={isSaving}
-          className={fieldInputClass}
+          className={inputV0Class}
         />
       </div>
 
-      {name.length > 0 ? (
-        <div className="flex flex-col gap-2">
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
           <label
             htmlFor="event-reg-class"
-            className="text-sm font-medium text-[var(--rift-text)]"
+            className="text-sm text-muted-foreground"
           >
             {t('eventRegister.classLabel')}
           </label>
@@ -311,140 +331,192 @@ const EventRegisterForm: React.FC = () => {
             value={selectCharacterClass}
             onChange={(e) => handleClassChange(e.target.value)}
             disabled={isSaving}
-            className={selectClass}
+            className={cn(
+              selectV0Class,
+              selectCharacterClass
+                ? v0ClassColors[selectCharacterClass] ?? 'text-zinc-100'
+                : 'text-zinc-100',
+            )}
           >
-            <option value="">{t('eventRegister.classPlaceholder')}</option>
+            <option value="" className="text-zinc-400">
+              {t('eventRegister.classPlaceholder')}
+            </option>
             {classes.map((cls) => (
-              <option key={cls} value={cls}>
+              <option
+                key={cls}
+                value={cls}
+                className={v0ClassColors[cls] ?? 'text-zinc-100'}
+              >
                 {cls}
               </option>
             ))}
           </select>
         </div>
-      ) : null}
 
-      {specializations.length > 0 ? (
-        <div className="flex flex-col gap-2">
+        <div className="space-y-2">
           <label
             htmlFor="event-reg-spec"
-            className="text-sm font-medium text-[var(--rift-text)]"
+            className="text-sm text-muted-foreground"
           >
             {t('eventRegister.specLabel')}
           </label>
           <select
             id="event-reg-spec"
-            value={selectSpecialization}
+            value={selectCharacterClass ? selectSpecialization : ''}
             onChange={(e) => handleSpecializationChange(e.target.value)}
-            disabled={isSaving}
-            className={selectClass}
+            disabled={isSaving || !selectCharacterClass}
+            className={cn(
+              selectV0Class,
+              !selectCharacterClass && 'cursor-not-allowed',
+            )}
           >
-            <option value="">{t('eventRegister.specPlaceholder')}</option>
-            {specializations.map((spec) => (
-              <option key={spec} value={spec}>
-                {t(`specializations.${spec}`)}
-              </option>
-            ))}
+            <option value="">
+              {selectCharacterClass
+                ? t('eventRegister.specPlaceholder')
+                : t('eventRegister.specNeedClass')}
+            </option>
+            {selectCharacterClass
+              ? specializations.map((spec) => (
+                  <option
+                    key={spec}
+                    value={spec}
+                    className="text-zinc-100"
+                  >
+                    {t(`specializations.${spec}`)}
+                  </option>
+                ))
+              : null}
           </select>
         </div>
-      ) : null}
+      </div>
 
-      {selectCharacterClass && selectSpecialization ? (
-        <div className="flex flex-col gap-2">
+      <div className="space-y-2">
+        <label
+          htmlFor="event-reg-ilvl"
+          className="text-sm text-muted-foreground"
+        >
+          {t('eventRegister.ilvlLabel')}
+        </label>
+        <Input
+          id="event-reg-ilvl"
+          type="number"
+          value={iLevel}
+          onChange={handleILevelChange}
+          onBlur={handleILevelBlur}
+          onFocus={handleILevelFocus}
+          placeholder={t('eventRegister.ilvlPlaceholder')}
+          min={ITEM_LEVEL_MIN}
+          max={ITEM_LEVEL_MAX}
+          disabled={isSaving}
+          className={inputV0Class}
+        />
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
           <label
-            htmlFor="event-reg-ilvl"
-            className="text-sm font-medium text-[var(--rift-text)]"
+            htmlFor="event-reg-key-min"
+            className="text-sm text-muted-foreground"
           >
-            {t('eventRegister.ilvlLabel')}
+            {t('eventRegister.keyMinLabel')}
           </label>
           <Input
-            id="event-reg-ilvl"
+            id="event-reg-key-min"
             type="number"
-            value={iLevel}
-            onChange={handleILevelChange}
-            onBlur={handleILevelBlur}
-            onFocus={handleILevelFocus}
-            placeholder={t('eventRegister.ilvlPlaceholder')}
-            min={ITEM_LEVEL_MIN}
-            max={ITEM_LEVEL_MAX}
+            value={kStoneMin}
+            onChange={handleKeystoneMinChange}
+            onBlur={handleKeystoneMinBlur}
+            onFocus={handleKeystoneMinFocus}
+            min={KEYSTONE_MIN_LEVEL}
+            max={parseInt(kStoneMax, 10) || KEYSTONE_MAX_LEVEL}
+            placeholder={t('eventRegister.keyMinPlaceholder')}
             disabled={isSaving}
-            className={fieldInputClass}
+            className={inputV0Class}
           />
         </div>
-      ) : null}
-
-      {showKeystoneSection ? (
-        <div className="flex flex-col gap-4 border-t border-purple-500/20 pt-4">
-          <div className="flex flex-col gap-2">
-            <label
-              htmlFor="event-reg-key-min"
-              className="text-sm font-medium text-[var(--rift-text)]"
-            >
-              {t('eventRegister.keyMinLabel')}
-            </label>
-            <Input
-              id="event-reg-key-min"
-              type="number"
-              value={kStoneMin}
-              onChange={handleKeystoneMinChange}
-              onBlur={handleKeystoneMinBlur}
-              onFocus={handleKeystoneMinFocus}
-              min={KEYSTONE_MIN_LEVEL}
-              max={parseInt(kStoneMax, 10) || KEYSTONE_MAX_LEVEL}
-              placeholder={t('eventRegister.keyMinPlaceholder')}
-              disabled={isSaving}
-              className={fieldInputClass}
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <label
-              htmlFor="event-reg-key-max"
-              className="text-sm font-medium text-[var(--rift-text)]"
-            >
-              {t('eventRegister.keyMaxLabel')}
-            </label>
-            <Input
-              id="event-reg-key-max"
-              type="number"
-              value={kStoneMax}
-              onChange={handleKeystoneMaxChange}
-              onBlur={handleKeystoneMaxBlur}
-              onFocus={handleKeystoneMaxFocus}
-              min={parseInt(kStoneMin, 10) || KEYSTONE_MIN_LEVEL}
-              max={KEYSTONE_MAX_LEVEL}
-              placeholder={t('eventRegister.keyMaxPlaceholder')}
-              disabled={isSaving}
-              className={fieldInputClass}
-            />
-          </div>
-
-          <Button
-            type="button"
-            onClick={() => void handleSave()}
-            disabled={isSaving}
-            className="h-12 w-full border border-cyan-400/50 bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-700 font-semibold text-white shadow-lg shadow-cyan-500/25 hover:from-cyan-400 hover:via-blue-500 hover:to-purple-600 disabled:cursor-not-allowed disabled:opacity-50"
+        <div className="space-y-2">
+          <label
+            htmlFor="event-reg-key-max"
+            className="text-sm text-muted-foreground"
           >
-            {isSaving ? (
-              <span className="flex items-center justify-center gap-2">
-                <Spinner className="h-4 w-4 text-white" />
-                {t('eventRegister.joining')}
-              </span>
-            ) : (
-              t('eventRegister.joinEvent')
-            )}
-          </Button>
+            {t('eventRegister.keyMaxLabel')}
+          </label>
+          <Input
+            id="event-reg-key-max"
+            type="number"
+            value={kStoneMax}
+            onChange={handleKeystoneMaxChange}
+            onBlur={handleKeystoneMaxBlur}
+            onFocus={handleKeystoneMaxFocus}
+            min={parseInt(kStoneMin, 10) || KEYSTONE_MIN_LEVEL}
+            max={KEYSTONE_MAX_LEVEL}
+            placeholder={t('eventRegister.keyMaxPlaceholder')}
+            disabled={isSaving}
+            className={inputV0Class}
+          />
+        </div>
+      </div>
+
+      {selectCharacterClass && selectSpecialization ? (
+        <div className="rounded-lg border border-purple-500/20 bg-purple-900/30 p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="mb-1 text-sm text-muted-foreground">
+                {t('eventRegister.roleLabel')}
+              </p>
+              {previewRole ? (
+                <p className="font-medium capitalize text-foreground">
+                  {t(`eventV0.roles.${previewRole}`)}
+                </p>
+              ) : null}
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="flex flex-col items-center gap-1">
+                <BloodlustIcon
+                  className={`h-6 w-6 ${hasBloodlust ? 'text-orange-400' : 'text-muted-foreground/30'}`}
+                />
+                <span className="text-xs text-muted-foreground">
+                  {hasBloodlust ? t('eventRegister.yes') : t('eventRegister.no')}
+                </span>
+              </div>
+              <div className="flex flex-col items-center gap-1">
+                <BattleRezIcon
+                  className={`h-6 w-6 ${hasBattleRez ? 'text-green-400' : 'text-muted-foreground/30'}`}
+                />
+                <span className="text-xs text-muted-foreground">
+                  {hasBattleRez ? t('eventRegister.yes') : t('eventRegister.no')}
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
       ) : null}
 
-      <div className="border-t border-purple-500/20 pt-4 text-center">
+      <Button
+        type="submit"
+        disabled={!canSubmit || isSaving}
+        className="h-12 w-full border border-cyan-400/50 bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-700 font-semibold text-white shadow-lg shadow-cyan-500/25 hover:from-cyan-400 hover:via-blue-500 hover:to-purple-600 disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        {isSaving ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            {t('eventRegister.joining')}
+          </>
+        ) : (
+          t('eventRegister.joinEvent')
+        )}
+      </Button>
+
+      <p className="mt-4 text-center text-sm text-gray-400">
+        {t('eventRegister.signInPrompt')}{' '}
         <Link
-          href="/"
-          className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground underline-offset-4 hover:text-cyan-400 hover:underline focus:outline-none focus-visible:rounded-sm focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0614]"
+          href="/login"
+          className="font-medium text-cyan-400 underline-offset-4 hover:text-cyan-300 hover:underline"
         >
-          <ArrowLeft className="h-4 w-4" />
-          {t('eventRegister.backHome')}
+          {t('eventRegister.signInLink')}
         </Link>
-      </div>
-    </div>
+      </p>
+    </form>
   );
 };
 

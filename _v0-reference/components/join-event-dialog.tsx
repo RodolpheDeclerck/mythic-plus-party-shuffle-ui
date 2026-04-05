@@ -49,7 +49,7 @@ const wowClasses = [
 
 const specsByClass: Record<string, string[]> = {
   "Death Knight": ["Blood", "Frost", "Unholy"],
-  "Demon Hunter": ["Havoc", "Devourer", "Vengeance"],
+  "Demon Hunter": ["Havoc", "Vengeance"],
   "Druid": ["Balance", "Feral", "Guardian", "Restoration"],
   "Evoker": ["Devastation", "Preservation", "Augmentation"],
   "Hunter": ["Beast Mastery", "Marksmanship", "Survival"],
@@ -68,7 +68,7 @@ const battleRezClasses = ["Death Knight", "Druid", "Warlock", "Paladin"]
 
 const specRoles: Record<string, Record<string, "tank" | "healer" | "meleeDps" | "rangedDps">> = {
   "Death Knight": { "Blood": "tank", "Frost": "meleeDps", "Unholy": "meleeDps" },
-  "Demon Hunter": { "Havoc": "meleeDps", "Devourer": "rangedDps", "Vengeance": "tank" },
+  "Demon Hunter": { "Havoc": "meleeDps", "Vengeance": "tank" },
   "Druid": { "Balance": "rangedDps", "Feral": "meleeDps", "Guardian": "tank", "Restoration": "healer" },
   "Evoker": { "Devastation": "rangedDps", "Preservation": "healer", "Augmentation": "rangedDps" },
   "Hunter": { "Beast Mastery": "rangedDps", "Marksmanship": "rangedDps", "Survival": "meleeDps" },

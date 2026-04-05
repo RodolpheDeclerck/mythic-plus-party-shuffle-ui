@@ -58,11 +58,11 @@ function partyGroupContainsCharacterId(group: PartyGroup, id: number): boolean {
   )
 }
 
-/** Aligné sur `PartyTable` : ilvl moyen (min–max) et plus petite / plus grande clé du groupe. */
+/** Comme v0 (event-participant-view GroupCard) : stats d’affichage en-tête. */
 function getPartyGroupAggregateStats(group: PartyGroup): {
-  avgIlvl: string
   minIlvl: number
   maxIlvl: number
+  avgIlvlRounded: number
   minKey: number
   maxKey: number
 } | null {
@@ -73,12 +73,63 @@ function getPartyGroupAggregateStats(group: PartyGroup): {
   const ilvls = members.map((m) => m.ilvl)
   const sum = ilvls.reduce((a, b) => a + b, 0)
   return {
-    avgIlvl: (sum / ilvls.length).toFixed(2),
     minIlvl: Math.min(...ilvls),
     maxIlvl: Math.max(...ilvls),
+    avgIlvlRounded: Math.round(sum / ilvls.length),
     minKey: Math.min(...members.map((m) => m.keyMin)),
     maxKey: Math.max(...members.map((m) => m.keyMax)),
   }
+}
+
+/** Bandeau « Missing » / « Complete » aligné sur v0 participant. */
+function getPartyGroupCompositionStatus(group: PartyGroup) {
+  const members = [group.tank, group.healer, ...group.dps].filter(
+    (m): m is Participant => m != null,
+  )
+  const missingTank = !group.tank
+  const missingHealer = !group.healer
+  const dpsCount = group.dps.filter(Boolean).length
+  const missingDps = 3 - dpsCount
+  const hasBloodlust = members.some((m) => m.hasBloodlust)
+  const hasBattleRez = members.some((m) => m.hasBattleRez)
+  const hasMissing =
+    missingTank ||
+    missingHealer ||
+    missingDps > 0 ||
+    !hasBloodlust ||
+    !hasBattleRez
+  return {
+    missingTank,
+    missingHealer,
+    missingDps,
+    hasBloodlust,
+    hasBattleRez,
+    hasMissing,
+  }
+}
+
+const playerGroupRoleIcons: Record<
+  Participant['role'],
+  { icon: typeof Shield; color: string }
+> = {
+  tank: { icon: Shield, color: 'text-blue-400' },
+  healer: { icon: Heart, color: 'text-green-400' },
+  meleeDps: { icon: Sword, color: 'text-red-400' },
+  rangedDps: { icon: Crosshair, color: 'text-orange-400' },
+}
+
+/** Pastille ilvl des lignes drag (event-detail v0 admin). */
+function adminGroupIlvlBadgeClass(ilvl: number): string {
+  return cn(
+    'w-10 rounded px-1.5 py-0.5 text-center font-mono text-xs font-bold',
+    ilvl >= ITEM_LEVEL_TIER_HIGH
+      ? 'bg-purple-500/20 text-purple-300'
+      : ilvl >= ITEM_LEVEL_TIER_MID
+        ? 'bg-blue-500/20 text-blue-300'
+        : ilvl >= ITEM_LEVEL_TIER_LOW
+          ? 'bg-green-500/20 text-green-300'
+          : 'bg-muted/20 text-muted-foreground',
+  )
 }
 
 function PlayerRosterTableRow({
@@ -86,12 +137,18 @@ function PlayerRosterTableRow({
   isViewer,
   classColors,
   tEv,
+  showRole,
 }: {
   participant: Participant
   isViewer: boolean
   classColors: Record<string, string>
   tEv: (key: string) => string
+  showRole?: boolean
 }) {
+  const RoleIcon = playerGroupRoleIcons[participant.role]?.icon
+  const roleColor =
+    playerGroupRoleIcons[participant.role]?.color ?? 'text-muted-foreground'
+
   return (
     <tr
       className={cn(
@@ -99,6 +156,13 @@ function PlayerRosterTableRow({
         isViewer ? "bg-cyan-500/10" : "hover:bg-secondary/20",
       )}
     >
+      {showRole ? (
+        <td className="w-10 px-3 py-2.5 text-center">
+          {RoleIcon ? (
+            <RoleIcon className={cn('inline h-4 w-4', roleColor)} />
+          ) : null}
+        </td>
+      ) : null}
       <td
         className={cn(
           "truncate px-4 py-2.5 font-medium",
@@ -225,16 +289,6 @@ export function EventDetailV0({
       partyGroupContainsCharacterId(g, viewerCharacterId),
     )
   }, [isAdmin, arePartiesVisible, shuffledGroups, viewerCharacterId])
-
-  const participantGroupNumber = useMemo(() => {
-    if (isAdmin || !arePartiesVisible || viewerCharacterId == null) return null
-    const g = shuffledGroups.find((x) =>
-      partyGroupContainsCharacterId(x, viewerCharacterId),
-    )
-    if (!g) return null
-    const idx = shuffledGroups.findIndex((x) => x.id === g.id)
-    return idx >= 0 ? idx + 1 : null
-  }, [isAdmin, arePartiesVisible, viewerCharacterId, shuffledGroups])
 
   const [codeCopied, setCodeCopied] = useState(false)
   const [draggedItem, setDraggedItem] = useState<{participant: Participant, fromGroupId: string | 'unassigned', slot: 'tank' | 'healer' | 'dps'} | null>(null)
@@ -636,13 +690,21 @@ export function EventDetailV0({
           <GripVertical className="w-3 h-3 text-muted-foreground/40 flex-shrink-0" />
         ) : null}
         <ParticipantIcon className={`w-4 h-4 ${participantIconColor} flex-shrink-0`} />
-        <span className={`font-medium min-w-0 flex-1 truncate ${classColors[participant.class] || "text-foreground"}`}>
+        <span
+          className={`w-20 truncate font-medium ${classColors[participant.class] || 'text-foreground'}`}
+        >
           {participant.name}
         </span>
-        <span className="text-muted-foreground/60 text-xs font-mono w-8 flex-shrink-0 text-right">
+        <span className="hidden w-16 truncate text-xs text-muted-foreground sm:block">
+          {participant.spec}
+        </span>
+        <span className={adminGroupIlvlBadgeClass(participant.ilvl)}>
           {participant.ilvl}
         </span>
-        <span className="text-cyan-400/70 text-xs font-mono w-12 text-center hidden lg:block" title={tEv("keyRange")}>
+        <span
+          className="hidden w-12 text-center font-mono text-xs text-cyan-400/70 lg:block"
+          title={tEv('keyRange')}
+        >
           {participant.keyMin}-{participant.keyMax}
         </span>
         <div className="flex items-center gap-1 w-10 justify-end">
@@ -655,85 +717,80 @@ export function EventDetailV0({
 
   return (
     <div className="w-full space-y-8">
-      {/* En-tête : maquette v0 participant (simple) vs admin (carte néon) */}
+      {/* En-tête admin : plat comme event-detail v0 (pas de cadre gradient) */}
       {isAdmin ? (
-      <div className="relative rounded-2xl bg-gradient-to-br from-cyan-500/70 via-purple-600/50 to-violet-800/60 p-px shadow-2xl shadow-cyan-500/20">
-        <div className="rounded-2xl bg-[#0a0614]/95 p-6 backdrop-blur-md sm:p-8">
-          <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-            <div className="min-w-0 flex-1">
-              <Link
-                href={homeHref}
-                className="mb-3 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-cyan-400"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                {tEv("backToDashboard")}
-              </Link>
-              <h1 className="text-balance text-2xl font-bold tracking-tight sm:text-3xl">
-                <span className="bg-gradient-to-r from-cyan-300 via-white to-purple-400 bg-clip-text text-transparent">
-                  {eventName}
-                </span>
-              </h1>
-              <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
-                <div className="flex items-center gap-2">
-                  <span>{tEv("eventCode")}</span>
-                  <code className="rounded bg-purple-500/20 px-2 py-0.5 font-mono text-cyan-400">
-                    {eventCode}
-                  </code>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={copyCode}
-                    className="h-7 w-7 p-0"
-                    aria-label={tEv("copyCode")}
-                  >
-                    {codeCopied ? (
-                      <Check className="h-3.5 w-3.5 text-green-400" />
-                    ) : (
-                      <Copy className="h-3.5 w-3.5" />
-                    )}
-                  </Button>
-                </div>
-                {eventCreatedAt ? (
-                  <span>
-                    {tEv("createdOn")}: {eventCreatedAt}
-                  </span>
-                ) : null}
-                <span>
-                  {tEv("totalParticipants")}: {participants.length}
-                </span>
+        <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
+          <div className="min-w-0">
+            <Link
+              href={homeHref}
+              className="mb-2 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-cyan-400"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              {tEv('backToDashboard')}
+            </Link>
+            <h1 className="text-2xl font-bold text-foreground">{eventName}</h1>
+            <div className="mt-2 flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <span>{tEv('eventCode')}:</span>
+                <code className="rounded bg-purple-500/20 px-2 py-0.5 font-mono text-cyan-400">
+                  {eventCode}
+                </code>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={copyCode}
+                  className="h-6 w-6 p-0"
+                  aria-label={tEv('copyCode')}
+                >
+                  {codeCopied ? (
+                    <Check className="h-3 w-3 text-green-400" />
+                  ) : (
+                    <Copy className="h-3 w-3" />
+                  )}
+                </Button>
               </div>
-            </div>
-
-            <div className="flex flex-shrink-0 flex-wrap items-center justify-end gap-2 md:max-w-[50%]">
-          <Button
-            onClick={() => setClearParticipantsOpen(true)}
-            variant="outline"
-            className="border-red-500/50 text-red-400 hover:bg-red-500/10"
-            disabled={participants.length === 0}
-          >
-            <Trash2 className="w-4 h-4 mr-2" />
-            {tEv("clearParticipants")}
-          </Button>
-          <Button
-            onClick={handleAddParticipant}
-            variant="outline"
-            className="border-green-500/50 text-green-400 hover:bg-green-500/10"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            {tEv("addParticipant")}
-          </Button>
-          <Button
-            onClick={handleShuffle}
-            disabled={shufflePending || participants.length === 0}
-            className="bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-700 text-white font-semibold border border-cyan-400/50 hover:from-cyan-400 hover:via-blue-500 hover:to-purple-600 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-cyan-500/25"
-          >
-            <Shuffle className="w-4 h-4 mr-2" />
-            {shufflePending ? tEv("shuffling") : tEv("shuffleParties")}
-          </Button>
+              {eventCreatedAt ? (
+                <span>
+                  {tEv('createdOn')}: {eventCreatedAt}
+                </span>
+              ) : null}
+              <span>
+                {tEv('totalParticipants')}: {participants.length}
+              </span>
             </div>
           </div>
+
+          <div className="flex flex-shrink-0 flex-wrap items-center gap-2">
+            <Button
+              type="button"
+              onClick={handleAddParticipant}
+              className="border border-green-500/50 bg-green-500/20 font-semibold text-green-400 hover:bg-green-500/30"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              {tEv('addParticipant')}
+            </Button>
+            <div className="h-6 w-px bg-purple-500/30" />
+            <Button
+              type="button"
+              onClick={() => setClearParticipantsOpen(true)}
+              variant="outline"
+              className="border-red-500/50 text-red-400 hover:bg-red-500/10"
+              disabled={participants.length === 0}
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              {tEv('clearParticipants')}
+            </Button>
+            <Button
+              type="button"
+              onClick={handleShuffle}
+              disabled={shufflePending || participants.length === 0}
+              className="border border-cyan-400/50 bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-700 font-semibold text-white shadow-lg shadow-cyan-500/25 hover:from-cyan-400 hover:via-blue-500 hover:to-purple-600 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <Shuffle className="mr-2 h-4 w-4" />
+              {shufflePending ? tEv('shuffling') : tEv('shuffleParties')}
+            </Button>
+          </div>
         </div>
-      </div>
       ) : (
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex min-w-0 flex-1 items-start gap-4">
@@ -778,7 +835,7 @@ export function EventDetailV0({
         </div>
       )}
 
-      {/* Joueurs : groupes masqués (style v0 participant) */}
+      {/* Joueurs : groupes masqués (event-participant-view v0) */}
       {!isAdmin && shuffledGroups.length > 0 && !arePartiesVisible ? (
         <div className="space-y-4">
           <h2 className="flex items-center gap-2 font-semibold text-foreground">
@@ -787,10 +844,7 @@ export function EventDetailV0({
           </h2>
           <div className="rounded-xl border border-purple-500/20 bg-purple-900/10 py-10 text-center">
             <Users className="mx-auto mb-3 h-10 w-10 text-muted-foreground/40" />
-            <p className="font-medium text-cyan-300">{tEv("waitingGroupsTitle")}</p>
-            <p className="mt-2 px-4 text-sm leading-relaxed text-muted-foreground">
-              {tEv("waitingGroupsBody")}
-            </p>
+            <p className="text-muted-foreground">{tEv("groupsHiddenByAdmin")}</p>
           </div>
         </div>
       ) : null}
@@ -799,9 +853,9 @@ export function EventDetailV0({
       {isAdmin && shuffledGroups.length > 0 && (
         <div className="bg-gradient-to-br from-cyan-500/10 via-purple-500/10 to-blue-500/10 rounded-2xl border border-cyan-500/30 p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
-              <Shuffle className="w-5 h-5 text-cyan-400" />
-              {tEv("generatedGroups")}
+            <h2 className="flex items-center gap-2 text-xl font-bold text-foreground">
+              <Users className="h-5 w-5 text-cyan-400" />
+              {tEv('generatedGroups')}
             </h2>
             {isAdmin ? (
             <div className="flex items-center gap-2">
@@ -829,11 +883,10 @@ export function EventDetailV0({
               <Button
                 onClick={() => setClearGroupsOpen(true)}
                 variant="outline"
-                size="sm"
                 className="border-red-500/50 text-red-400 hover:bg-red-500/10"
               >
-                <Trash2 className="w-4 h-4 mr-2" />
-                {tEv("clearGroups")}
+                <Trash2 className="mr-2 h-4 w-4" />
+                {tEv('clearGroups')}
               </Button>
               <Button
                 onClick={handleAddGroup}
@@ -906,12 +959,29 @@ export function EventDetailV0({
                         : 'border-green-500/40'
                   }`}
                 >
-                  <div className="px-4 py-2 bg-purple-900/30 border-b border-purple-500/20 flex items-center justify-between">
-                    <h3 className="font-semibold text-foreground">
-                      {!isAdmin && arePartiesVisible
-                        ? `${tEv("yourGroupCardTitle")} · ${tEv("group")} ${groupNumber}`
-                        : `${tEv("group")} ${groupNumber}`}
-                    </h3>
+                  <div className="flex items-center justify-between border-b border-purple-500/20 bg-purple-900/30 px-4 py-2">
+                    <div className="flex min-w-0 flex-1 items-center gap-3">
+                      <h3 className="truncate font-semibold text-foreground">
+                        {tEv('group')} {groupNumber}
+                      </h3>
+                      {(() => {
+                        const stats = getPartyGroupAggregateStats(group)
+                        if (!stats) return null
+                        return (
+                          <div className="flex shrink-0 items-center gap-2 text-xs">
+                            <span className="rounded bg-blue-500/20 px-1.5 py-0.5 font-mono font-bold text-blue-300">
+                              {stats.minIlvl}-{stats.maxIlvl}
+                            </span>
+                            <span className="rounded bg-purple-500/20 px-1.5 py-0.5 font-mono text-purple-300">
+                              ~{stats.avgIlvlRounded}
+                            </span>
+                            <span className="rounded bg-cyan-500/20 px-1.5 py-0.5 font-mono text-cyan-300">
+                              +{stats.minKey}-{stats.maxKey}
+                            </span>
+                          </div>
+                        )
+                      })()}
+                    </div>
                     <div className="flex items-center gap-2">
                       {isAdmin && isGroupEmpty(group) ? (
                         <Button
@@ -1007,13 +1077,21 @@ export function EventDetailV0({
                             ) : (
                               <Crosshair className="w-4 h-4 text-orange-400 flex-shrink-0" />
                             )}
-                            <span className={`font-medium min-w-0 flex-1 truncate ${classColors[dps.class] || "text-foreground"}`}>
+                            <span
+                              className={`w-20 truncate font-medium ${classColors[dps.class] || 'text-foreground'}`}
+                            >
                               {dps.name}
                             </span>
-                            <span className="text-muted-foreground/60 text-xs font-mono w-8 flex-shrink-0 text-right">
+                            <span className="hidden w-16 truncate text-xs text-muted-foreground sm:block">
+                              {dps.spec}
+                            </span>
+                            <span className={adminGroupIlvlBadgeClass(dps.ilvl)}>
                               {dps.ilvl}
                             </span>
-                            <span className="text-cyan-400/70 text-xs font-mono w-12 text-center hidden lg:block" title={tEv("keyRange")}>
+                            <span
+                              className="hidden w-12 text-center font-mono text-xs text-cyan-400/70 lg:block"
+                              title={tEv('keyRange')}
+                            >
                               {dps.keyMin}-{dps.keyMax}
                             </span>
                             <div className="flex items-center gap-1 w-10 justify-end">
@@ -1025,26 +1103,6 @@ export function EventDetailV0({
                       })
                     })()}
                   </div>
-                  {(() => {
-                    const stats = getPartyGroupAggregateStats(group)
-                    if (!stats) return null
-                    return (
-                      <div className="flex flex-col gap-1 border-t border-purple-500/20 bg-purple-950/40 px-3 py-2 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:text-sm">
-                        <p>
-                          <span className="font-medium text-foreground">
-                            {t('eventPage.avgIlvl')}
-                          </span>{' '}
-                          {stats.avgIlvl} ({stats.minIlvl} – {stats.maxIlvl})
-                        </p>
-                        <p>
-                          <span className="font-medium text-foreground">
-                            {t('eventPage.keyRange')}
-                          </span>{' '}
-                          {stats.minKey} – {stats.maxKey}
-                        </p>
-                      </div>
-                    )
-                  })()}
                 </div>
               )
             })}
@@ -1117,14 +1175,22 @@ export function EventDetailV0({
                       }`}
                     >
                       <GripVertical className="w-3 h-3 text-muted-foreground/40 flex-shrink-0" />
-                      <RoleIcon className={`w-4 h-4 ${roleColor} flex-shrink-0`} />
-                      <span className={`min-w-0 flex-1 font-medium truncate ${classColors[participant.class] || "text-foreground"}`}>
+                      <RoleIcon className={`h-4 w-4 flex-shrink-0 ${roleColor}`} />
+                      <span
+                        className={`truncate font-medium ${classColors[participant.class] || 'text-foreground'}`}
+                      >
                         {participant.name}
                       </span>
-                      <span className="flex-shrink-0 text-muted-foreground/60 text-xs font-mono">
+                      <span className="hidden truncate text-xs text-muted-foreground sm:block">
+                        {participant.spec}
+                      </span>
+                      <span className="font-mono text-xs text-muted-foreground/60">
                         {participant.ilvl}
                       </span>
-                      <span className="text-cyan-400/70 text-xs font-mono ml-auto" title={tEv("keyRange")}>
+                      <span
+                        className="ml-auto font-mono text-xs text-cyan-400/70"
+                        title={tEv('keyRange')}
+                      >
                         {participant.keyMin}-{participant.keyMax}
                       </span>
                       <div className="flex items-center gap-1">
@@ -1145,121 +1211,165 @@ export function EventDetailV0({
         </div>
       )}
 
-      {/* Groupes — vue joueur (cartes type v0 / event-participant-view) */}
+      {/* Groupes — vue joueur (event-participant-view v0) */}
       {!isAdmin && shuffledGroups.length > 0 && arePartiesVisible ? (
         <div className="w-full space-y-4">
-          <h2 className="flex items-center gap-2 font-semibold text-foreground">
-            <Shuffle className="h-5 w-5 text-cyan-400" />
-            {participantGroupNumber != null
-              ? `${tEv("yourGroupSection")} · ${tEv("group")} ${participantGroupNumber}`
-              : tEv("yourGroupSection")}
-          </h2>
-          {groupsToRender.length === 0 ? (
-            <div className="rounded-xl border border-purple-500/20 bg-purple-900/10 py-10 text-center">
-              <Shuffle className="mx-auto mb-3 h-10 w-10 text-muted-foreground/40" />
-              <p className="text-muted-foreground">
-                {viewerSid == null
-                  ? tEv("needCharacterToViewGroup")
-                  : tEv("notInAGroupYet")}
-              </p>
-            </div>
-          ) : (
-            <div className="grid gap-4">
-              {groupsToRender.map((group) => {
-                const groupNumberRaw = shuffledGroups.findIndex(
-                  (x) => x.id === group.id,
-                )
-                const groupNumber =
-                  groupNumberRaw >= 0 ? groupNumberRaw + 1 : 1
-                const highlighted =
-                  viewerCharacterId != null &&
-                  partyGroupContainsCharacterId(group, viewerCharacterId)
-                const stats = getPartyGroupAggregateStats(group)
-                return (
-                  <div
-                    key={group.id}
-                    className={cn(
-                      "overflow-hidden rounded-xl border",
-                      highlighted
-                        ? "border-cyan-400/40"
-                        : "border-purple-500/20",
-                    )}
-                  >
+          {groupsToRender.length > 0 ? (
+            <>
+              <h2 className="flex items-center gap-2 font-semibold text-foreground">
+                <Shuffle className="h-5 w-5 text-cyan-400" />
+                {tEv('yourGroup')}
+              </h2>
+              <div className="grid gap-4">
+                {groupsToRender.map((group) => {
+                  const groupNumberRaw = shuffledGroups.findIndex(
+                    (x) => x.id === group.id,
+                  )
+                  const groupNumber =
+                    groupNumberRaw >= 0 ? groupNumberRaw + 1 : 1
+                  const highlighted =
+                    viewerCharacterId != null &&
+                    partyGroupContainsCharacterId(group, viewerCharacterId)
+                  const stats = getPartyGroupAggregateStats(group)
+                  const comp = getPartyGroupCompositionStatus(group)
+                  const members = [
+                    group.tank,
+                    group.healer,
+                    ...group.dps,
+                  ].filter((m): m is Participant => m != null)
+
+                  return (
                     <div
+                      key={group.id}
                       className={cn(
-                        "flex items-center gap-3 px-4 py-2",
-                        highlighted ? "bg-cyan-900/20" : "bg-purple-900/20",
+                        'overflow-hidden rounded-xl border',
+                        highlighted
+                          ? 'border-cyan-400/40'
+                          : 'border-purple-500/20',
                       )}
                     >
-                      <span className="font-semibold text-foreground">
-                        {tEv("group")} {groupNumber}
-                      </span>
-                      {stats ? (
-                        <div className="flex flex-wrap items-center gap-2 text-xs">
-                          <span
-                            className="rounded bg-blue-500/20 px-1.5 py-0.5 font-mono font-bold text-blue-300"
-                            title={t('eventPage.avgIlvl')}
-                          >
-                            {stats.avgIlvl}{' '}
-                            <span className="font-normal opacity-90">
-                              ({stats.minIlvl}–{stats.maxIlvl})
+                      <div
+                        className={cn(
+                          'flex items-center gap-3 px-4 py-2',
+                          highlighted ? 'bg-cyan-900/20' : 'bg-purple-900/20',
+                        )}
+                      >
+                        <span className="font-semibold text-foreground">
+                          {tEv('group')} {groupNumber}
+                        </span>
+                        {members.length > 0 && stats ? (
+                          <div className="flex flex-wrap items-center gap-2 text-xs">
+                            <span className="rounded bg-blue-500/20 px-1.5 py-0.5 font-mono font-bold text-blue-300">
+                              {stats.minIlvl}-{stats.maxIlvl}
                             </span>
+                            <span className="rounded bg-purple-500/20 px-1.5 py-0.5 font-mono text-purple-300">
+                              ~{stats.avgIlvlRounded}
+                            </span>
+                            <span className="rounded bg-cyan-500/20 px-1.5 py-0.5 font-mono text-cyan-300">
+                              +{stats.minKey}-{stats.maxKey}
+                            </span>
+                          </div>
+                        ) : null}
+                      </div>
+
+                      {comp.hasMissing ? (
+                        <div className="flex flex-wrap items-center gap-2 border-b border-amber-500/20 bg-amber-900/20 px-4 py-2 text-xs">
+                          <span className="font-medium text-amber-400">
+                            {tEv('missing')}
                           </span>
-                          <span
-                            className="rounded bg-cyan-500/20 px-1.5 py-0.5 font-mono text-cyan-300"
-                            title={t('eventPage.keyRange')}
-                          >
-                            {stats.minKey}–{stats.maxKey}
+                          {comp.missingTank ? (
+                            <span className="flex items-center gap-1 rounded bg-blue-500/20 px-2 py-0.5 text-blue-300">
+                              <Shield className="h-3 w-3" /> Tank
+                            </span>
+                          ) : null}
+                          {comp.missingHealer ? (
+                            <span className="flex items-center gap-1 rounded bg-green-500/20 px-2 py-0.5 text-green-300">
+                              <Heart className="h-3 w-3" /> Healer
+                            </span>
+                          ) : null}
+                          {comp.missingDps > 0 ? (
+                            <span className="flex items-center gap-1 rounded bg-red-500/20 px-2 py-0.5 text-red-300">
+                              <Sword className="h-3 w-3" /> {comp.missingDps}{' '}
+                              DPS
+                            </span>
+                          ) : null}
+                          {!comp.hasBloodlust ? (
+                            <span className="flex items-center gap-1 rounded bg-orange-500/20 px-2 py-0.5 text-orange-300">
+                              <BloodlustIcon className="h-3 w-3" /> BL
+                            </span>
+                          ) : null}
+                          {!comp.hasBattleRez ? (
+                            <span className="flex items-center gap-1 rounded bg-teal-500/20 px-2 py-0.5 text-teal-300">
+                              <BattleRezIcon className="h-3 w-3" /> BR
+                            </span>
+                          ) : null}
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2 border-b border-green-500/20 bg-green-900/20 px-4 py-2 text-xs">
+                          <span className="font-medium text-green-400">
+                            {tEv('complete')}
                           </span>
                         </div>
-                      ) : null}
+                      )}
+
+                      <div className="overflow-x-auto">
+                        <table className="w-full table-fixed">
+                          <tbody>
+                            {group.tank ? (
+                              <PlayerRosterTableRow
+                                key={`t-${group.tank.id}`}
+                                participant={group.tank}
+                                isViewer={group.tank.id === viewerSid}
+                                classColors={classColors}
+                                tEv={tEv}
+                                showRole
+                              />
+                            ) : null}
+                            {group.healer ? (
+                              <PlayerRosterTableRow
+                                key={`h-${group.healer.id}`}
+                                participant={group.healer}
+                                isViewer={group.healer.id === viewerSid}
+                                classColors={classColors}
+                                tEv={tEv}
+                                showRole
+                              />
+                            ) : null}
+                            {group.dps.map((dps) =>
+                              dps ? (
+                                <PlayerRosterTableRow
+                                  key={dps.id}
+                                  participant={dps}
+                                  isViewer={dps.id === viewerSid}
+                                  classColors={classColors}
+                                  tEv={tEv}
+                                  showRole
+                                />
+                              ) : null,
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
                     </div>
-                    <div className="overflow-x-auto">
-                      <table className="w-full table-fixed">
-                        <colgroup>
-                          <col className="w-[22%]" />
-                          <col className="w-[18%]" />
-                          <col className="w-[18%]" />
-                          <col className="w-[12%]" />
-                          <col className="w-[12%]" />
-                          <col className="w-[9%]" />
-                          <col className="w-[9%]" />
-                        </colgroup>
-                        <tbody>
-                          {group.tank ? (
-                            <PlayerRosterTableRow
-                              key={`t-${group.tank.id}`}
-                              participant={group.tank}
-                              isViewer={group.tank.id === viewerSid}
-                              classColors={classColors}
-                              tEv={tEv}
-                            />
-                          ) : null}
-                          {group.healer ? (
-                            <PlayerRosterTableRow
-                              key={`h-${group.healer.id}`}
-                              participant={group.healer}
-                              isViewer={group.healer.id === viewerSid}
-                              classColors={classColors}
-                              tEv={tEv}
-                            />
-                          ) : null}
-                          {group.dps.map((dps) => (
-                            <PlayerRosterTableRow
-                              key={dps.id}
-                              participant={dps}
-                              isViewer={dps.id === viewerSid}
-                              classColors={classColors}
-                              tEv={tEv}
-                            />
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
+                  )
+                })}
+              </div>
+            </>
+          ) : (
+            <>
+              <h2 className="flex items-center gap-2 font-semibold text-foreground">
+                <Shuffle className="h-5 w-5 text-cyan-400" />
+                {tEv('generatedGroups')}
+              </h2>
+              <div className="rounded-xl border border-purple-500/20 bg-purple-900/10 py-10 text-center">
+                <Shuffle className="mx-auto mb-3 h-10 w-10 text-muted-foreground/40" />
+                <p className="text-muted-foreground">
+                  {viewerCharacterId == null
+                    ? tEv('needCharacterToViewGroup')
+                    : tEv('notAssignedToGroup')}
+                </p>
+              </div>
+            </>
           )}
         </div>
       ) : null}

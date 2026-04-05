@@ -32,7 +32,7 @@ function EventPageInner({ id }: { id: string }) {
 
   const mockGroups: PartyGroup[] = [
     { id: "g1", tank: participants[0], healer: participants[1], dps: [participants[2], participants[3], participants[4]] },
-    { id: "g2", tank: participants[5], healer: participants[6], dps: [participants[7], participants[8], participants[9]] },
+    { id: "g2", tank: participants[5], healer: undefined as any, dps: [participants[7], participants[9]] },
   ]
 
   const myParticipantId = "p4"

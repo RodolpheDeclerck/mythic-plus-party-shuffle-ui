@@ -46,12 +46,6 @@ const PartyTable: React.FC<PartyTableProps> = ({
 }) => {
   const { t } = useTranslation();
 
-  const calculateAverageIlevel = (party: Party) => {
-    if (party.members.length === 0) return 0;
-    const totalIlevel = party.members.reduce((sum, member) => sum + member.iLevel, 0);
-    return (totalIlevel / party.members.length).toFixed(2);
-  };
-
   const findMinIlevel = (party: Party) => {
     if (party.members.length === 0) return 0;
     return Math.min(...party.members.map((member) => member.iLevel));
@@ -99,12 +93,24 @@ const PartyTable: React.FC<PartyTableProps> = ({
       {parties.map((party, partyIndex) => (
         <div key={partyIndex} className={v0PartyCard}>
           <div className={v0PartyCardHeader}>
-            <h3 className="text-base font-semibold text-foreground">
-              {t('eventPage.partyN', { n: partyIndex + 1 })}{' '}
-              <span className="text-muted-foreground">
-                ({party.members.length}/5)
-              </span>
-            </h3>
+            <div className="flex min-w-0 flex-1 items-center gap-3">
+              <h3 className="truncate text-base font-semibold text-foreground">
+                {t('eventPage.partyN', { n: partyIndex + 1 })}{' '}
+                <span className="text-muted-foreground">
+                  ({party.members.length}/5)
+                </span>
+              </h3>
+              {party.members.length > 0 ? (
+                <div className="flex shrink-0 items-center gap-2 text-xs">
+                  <span className="rounded bg-blue-500/20 px-1.5 py-0.5 font-mono font-bold text-blue-300">
+                    {findMinIlevel(party)}-{findMaxIlevel(party)}
+                  </span>
+                  <span className="rounded bg-cyan-500/20 px-1.5 py-0.5 font-mono text-cyan-300">
+                    +{findMinKeystoneLevel(party)}-{findMaxKeystoneLevel(party)}
+                  </span>
+                </div>
+              ) : null}
+            </div>
           </div>
           <div className={v0TableWrap}>
             <table className="w-full min-w-[520px] border-collapse text-sm">
@@ -189,21 +195,6 @@ const PartyTable: React.FC<PartyTableProps> = ({
                 )}
               </tbody>
             </table>
-          </div>
-          <div className="flex flex-col gap-1 border-t border-border bg-muted/25 px-4 py-3 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:text-sm">
-            <p>
-              <span className="font-medium text-foreground">
-                {t('eventPage.avgIlvl')}
-              </span>{' '}
-              {calculateAverageIlevel(party)} ({findMinIlevel(party)} –{' '}
-              {findMaxIlevel(party)})
-            </p>
-            <p>
-              <span className="font-medium text-foreground">
-                {t('eventPage.keyRange')}
-              </span>{' '}
-              {findMinKeystoneLevel(party)} – {findMaxKeystoneLevel(party)}
-            </p>
           </div>
         </div>
       ))}

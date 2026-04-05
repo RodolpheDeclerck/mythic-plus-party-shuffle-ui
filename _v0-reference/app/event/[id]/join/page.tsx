@@ -25,7 +25,6 @@ const classSpecs: Record<string, { name: string; role: "tank" | "healer" | "mele
   ],
   "Demon Hunter": [
     { name: "Havoc", role: "meleeDps" },
-    { name: "Devourer", role: "rangedDps" },
     { name: "Vengeance", role: "tank" },
   ],
   "Druid": [
