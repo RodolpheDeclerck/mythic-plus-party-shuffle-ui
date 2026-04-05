@@ -7,7 +7,8 @@ import type { Character } from '@/types/Character';
 type UseEventViewBootstrapParams = {
   eventCode: string | null;
   isAuthChecked: boolean;
-  isAuthenticated: boolean;
+  /** From `AuthContext` — `null` until the session check finishes. */
+  isAuthenticated: boolean | null;
   router: { push: (href: string) => void };
   checkEventExistence: () => Promise<boolean>;
   setCreatedCharacter: (character: Character | null) => void;
@@ -38,7 +39,11 @@ export function useEventViewBootstrap({
       const characterData = localStorage.getItem('createdCharacter');
       if (characterData) {
         setCreatedCharacter(JSON.parse(characterData) as Character);
-      } else if (isAuthChecked && !isAuthenticated && eventCode) {
+      } else if (
+        isAuthChecked &&
+        isAuthenticated === false &&
+        eventCode
+      ) {
         router.push('/event/register?code=' + eventCode);
       }
 
