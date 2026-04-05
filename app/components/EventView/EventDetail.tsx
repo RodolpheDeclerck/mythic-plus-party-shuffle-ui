@@ -1,13 +1,11 @@
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
+import { useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Character } from '@/types/Character';
 import type { Party } from '@/types/Party';
 import {
-  type EventParticipant,
   characterToEventParticipant,
-  eventParticipantToCharacterForUpsert,
 } from './eventPartyModel';
 import { wowClassTextColors } from './eventClassColors';
 import { EditParticipantDialog } from './EditParticipantDialog';
@@ -24,6 +22,7 @@ import {
 import { RoleRosterGrid } from './event-detail/RoleRosterGrid';
 import { LeaveEventDialog } from './event-detail/LeaveEventDialog';
 import { buildEventDetailRoleCategories } from './event-detail/eventDetailRoleCategories';
+import { useEventDetailDialogsAndActions } from './event-detail/useEventDetailDialogsAndActions';
 
 export type EventDetailProps = {
   eventCode: string;
@@ -103,50 +102,15 @@ export function EventDetail({
 
   const drag = usePartyDragDrop(setShuffledGroups, participants);
 
-  const [codeCopied, setCodeCopied] = useState(false);
-  const [editingParticipant, setEditingParticipant] =
-    useState<EventParticipant | null>(null);
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [dialogMode, setDialogMode] = useState<'edit' | 'add'>('edit');
-  const [leaveConfirmOpen, setLeaveConfirmOpen] = useState(false);
-  const [clearParticipantsOpen, setClearParticipantsOpen] = useState(false);
-  const [clearGroupsOpen, setClearGroupsOpen] = useState(false);
-
-  const handleShuffle = () => {
-    void onShuffle();
-  };
-
-  const copyCode = () => {
-    void navigator.clipboard.writeText(eventCode);
-    setCodeCopied(true);
-    setTimeout(() => setCodeCopied(false), 2000);
-  };
-
-  const handleEditParticipant = (participant: EventParticipant) => {
-    setEditingParticipant(participant);
-    setDialogMode('edit');
-    setEditDialogOpen(true);
-  };
-
-  const handleAddParticipant = () => {
-    setEditingParticipant(null);
-    setDialogMode('add');
-    setEditDialogOpen(true);
-  };
-
-  const handleSaveParticipant = async (
-    updatedParticipant: EventParticipant,
-  ) => {
-    await onSaveParticipant(
-      eventParticipantToCharacterForUpsert(updatedParticipant, eventCode),
-    );
-  };
-
-  const handleDeleteParticipantFromDialog = async (participantId: string) => {
-    const id = Number.parseInt(participantId, 10);
-    if (!Number.isFinite(id)) return;
-    await onDeleteParticipant(id);
-  };
+  const dialogs = useEventDetailDialogsAndActions({
+    eventCode,
+    onShuffle,
+    onSaveParticipant,
+    onDeleteParticipant,
+    onClearAllCharacters,
+    onClearParties,
+    onViewerLeaveEvent,
+  });
 
   const roleCategories = useMemo(
     () =>
@@ -184,15 +148,15 @@ export function EventDetail({
         eventCode={eventCode}
         eventCreatedAt={eventCreatedAt}
         participantsCount={participants.length}
-        codeCopied={codeCopied}
-        onCopyCode={copyCode}
+        codeCopied={dialogs.codeCopied}
+        onCopyCode={dialogs.copyCode}
         shufflePending={shufflePending}
-        onAddParticipant={handleAddParticipant}
-        onClearParticipantsOpen={() => setClearParticipantsOpen(true)}
-        onShuffle={handleShuffle}
+        onAddParticipant={dialogs.handleAddParticipant}
+        onClearParticipantsOpen={() => dialogs.setClearParticipantsOpen(true)}
+        onShuffle={dialogs.handleShuffle}
         viewerParticipant={viewerParticipant}
-        onEditParticipant={handleEditParticipant}
-        onLeaveOpen={() => setLeaveConfirmOpen(true)}
+        onEditParticipant={dialogs.handleEditParticipant}
+        onLeaveOpen={() => dialogs.setLeaveConfirmOpen(true)}
         tEv={tEv}
       />
 
@@ -211,8 +175,8 @@ export function EventDetail({
           arePartiesVisible={arePartiesVisible}
           unassignedParticipants={unassignedParticipants}
           onToggleVisibility={onToggleVisibility}
-          onClearGroupsOpen={() => setClearGroupsOpen(true)}
-          onShuffle={handleShuffle}
+          onClearGroupsOpen={() => dialogs.setClearGroupsOpen(true)}
+          onShuffle={dialogs.handleShuffle}
           drag={drag}
         />
       ) : null}
@@ -235,36 +199,38 @@ export function EventDetail({
         roleCategories={roleCategories}
         classColors={wowClassTextColors}
         viewerSid={viewerSid}
-        onEditParticipant={handleEditParticipant}
-        onDeleteParticipant={(id) => void handleDeleteParticipantFromDialog(id)}
+        onEditParticipant={dialogs.handleEditParticipant}
+        onDeleteParticipant={(id) =>
+          void dialogs.handleDeleteParticipantFromDialog(id)
+        }
       />
 
       <ClearConfirmDialog
-        open={clearParticipantsOpen}
-        onOpenChange={setClearParticipantsOpen}
+        open={dialogs.clearParticipantsOpen}
+        onOpenChange={dialogs.setClearParticipantsOpen}
         type="participants"
-        onConfirm={() => void onClearAllCharacters()}
+        onConfirm={() => void dialogs.onClearAllCharacters()}
       />
       <ClearConfirmDialog
-        open={clearGroupsOpen}
-        onOpenChange={setClearGroupsOpen}
+        open={dialogs.clearGroupsOpen}
+        onOpenChange={dialogs.setClearGroupsOpen}
         type="groups"
-        onConfirm={() => void onClearParties()}
+        onConfirm={() => void dialogs.onClearParties()}
       />
 
       <EditParticipantDialog
-        participant={editingParticipant}
-        open={editDialogOpen}
-        onOpenChange={setEditDialogOpen}
-        onSave={(p) => void handleSaveParticipant(p)}
-        onDelete={(id) => void handleDeleteParticipantFromDialog(id)}
-        mode={dialogMode}
+        participant={dialogs.editingParticipant}
+        open={dialogs.editDialogOpen}
+        onOpenChange={dialogs.setEditDialogOpen}
+        onSave={(p) => void dialogs.handleSaveParticipant(p)}
+        onDelete={(id) => void dialogs.handleDeleteParticipantFromDialog(id)}
+        mode={dialogs.dialogMode}
       />
 
       <LeaveEventDialog
-        open={leaveConfirmOpen}
-        onOpenChange={setLeaveConfirmOpen}
-        onConfirmLeave={() => void onViewerLeaveEvent?.()}
+        open={dialogs.leaveConfirmOpen}
+        onOpenChange={dialogs.setLeaveConfirmOpen}
+        onConfirmLeave={() => void dialogs.onViewerLeaveEvent?.()}
       />
     </div>
   );

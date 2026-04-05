@@ -1,29 +1,24 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import Loading from '@/components/Loading';
 import useFetchCharacters from '@/hooks/useFetchCharacters';
 import useWebSocket from '@/hooks/useWebSocket';
-import {
-  fetchCharacters as fetchCharactersApi,
-  upsertCharacter,
-} from '@/services/api';
 import useAuthCheck from '@/hooks/useAuthCheck';
 import { useEventData } from '@/hooks/useEventData';
 import { useCharacterManagement } from '@/hooks/useCharacterManagement';
 import { usePartyManagement } from '@/hooks/usePartyManagement';
+import { useEventCharactersRefresh } from '@/hooks/useEventCharactersRefresh';
+import { useEventViewBootstrap } from '@/hooks/useEventViewBootstrap';
+import { useEventViewReRegister } from '@/hooks/useEventViewReRegister';
+import { useEventViewPartyActions } from '@/hooks/useEventViewPartyActions';
 import { EventDetail } from './EventDetail';
 import { ReRegisterEventDialog } from './ReRegisterEventDialog';
 import { eventCard, eventCardPadding } from './eventUi';
 import { cn } from '@/lib/utils';
-import type { Character } from '@/types/Character';
-import type { Party } from '@/types/Party';
-import {
-  CHARACTERS_FETCH_FAILED,
-  resolveEventViewErrorMessage,
-} from '@/lib/event/eventViewErrors';
+import { resolveEventViewErrorMessage } from '@/lib/event/eventViewErrors';
 
 const EventView: React.FC = () => {
   const { t } = useTranslation();
@@ -56,23 +51,10 @@ const EventView: React.FC = () => {
     eventInfo,
   } = useEventData(eventCode || '');
 
-  const [errorState, setErrorState] = useState<string | null>(null);
-  const [shufflePending, setShufflePending] = useState(false);
-  const [reRegisterOpen, setReRegisterOpen] = useState(false);
-  const [reRegisterFormKey, setReRegisterFormKey] = useState(0);
-  const reRegisterDismissedRef = useRef(false);
-  const reRegisterPrevInListRef = useRef<boolean | null>(null);
-
-  const fetchCharacters = useCallback(async () => {
-    if (eventCode) {
-      try {
-        const updatedCharacters = await fetchCharactersApi(eventCode);
-        setCharacters(updatedCharacters);
-      } catch {
-        setErrorState(CHARACTERS_FETCH_FAILED);
-      }
-    }
-  }, [eventCode, setCharacters]);
+  const { fetchCharacters, errorState } = useEventCharactersRefresh(
+    eventCode,
+    setCharacters,
+  );
 
   const {
     createdCharacter,
@@ -82,24 +64,27 @@ const EventView: React.FC = () => {
     handleClear,
   } = useCharacterManagement(eventCode || '', fetchCharacters);
 
-  useEffect(() => {
-    const verifyAndRedirect = async () => {
-      const eventExists = await checkEventExistence();
-      if (!eventExists) {
-        router.push('/');
-      } else {
-        const characterData = localStorage.getItem('createdCharacter');
-        if (characterData) {
-          setCreatedCharacter(JSON.parse(characterData) as Character);
-        } else if (isAuthChecked && !isAuthenticated) {
-          router.push('/event/register?code=' + eventCode);
-        }
-      }
-      setIsVerifying(false);
-    };
+  const {
+    shufflePending,
+    handleShuffleWrapper,
+    handlePartiesUpdate,
+    handleSaveParticipant,
+    handleViewerLeave,
+    handleClearAllCharacters,
+  } = useEventViewPartyActions({
+    characters,
+    createdCharacter,
+    setCreatedCharacter,
+    setParties,
+    updatePartiesInBackend,
+    handleShuffle,
+    handleDelete,
+    handleClear,
+    fetchCharacters,
+    router,
+  });
 
-    void verifyAndRedirect();
-  }, [
+  useEventViewBootstrap({
     eventCode,
     isAuthChecked,
     isAuthenticated,
@@ -107,7 +92,7 @@ const EventView: React.FC = () => {
     checkEventExistence,
     setCreatedCharacter,
     setIsVerifying,
-  ]);
+  });
 
   const fetchPartiesWrapper = useCallback(async () => {
     fetchParties();
@@ -123,83 +108,20 @@ const EventView: React.FC = () => {
     void fetchPartiesWrapper();
   }, [fetchPartiesWrapper]);
 
-  /** Player: local character dropped from roster (e.g. admin cleared list) → re-register modal. */
-  useEffect(() => {
-    if (loading || !eventCode || !createdCharacter) return;
-    const inList = characters.some((c) => c.id === createdCharacter.id);
-    if (inList) {
-      reRegisterDismissedRef.current = false;
-      setReRegisterOpen(false);
-      reRegisterPrevInListRef.current = true;
-      return;
-    }
-    if (reRegisterDismissedRef.current) {
-      reRegisterPrevInListRef.current = false;
-      return;
-    }
-    const wasInList = reRegisterPrevInListRef.current;
-    reRegisterPrevInListRef.current = false;
-    setReRegisterOpen(true);
-    if (wasInList === true || wasInList === null) {
-      setReRegisterFormKey((k) => k + 1);
-    }
-  }, [loading, eventCode, createdCharacter, characters]);
-
-  const handleShuffleWrapper = useCallback(async () => {
-    setShufflePending(true);
-    try {
-      await handleShuffle(createdCharacter, setCreatedCharacter);
-    } finally {
-      setShufflePending(false);
-    }
-  }, [handleShuffle, createdCharacter, setCreatedCharacter]);
-
-  const handlePartiesUpdate = useCallback(
-    async (next: Party[]) => {
-      setParties(next);
-      await updatePartiesInBackend(next);
-    },
-    [setParties, updatePartiesInBackend],
-  );
-
-  const handleSaveParticipant = useCallback(
-    async (payload: Character & { eventCode: string }) => {
-      await upsertCharacter(payload);
-      await fetchCharacters();
-    },
-    [fetchCharacters],
-  );
-
-  const handleViewerLeave = useCallback(async () => {
-    const id = createdCharacter?.id;
-    if (id != null) {
-      await handleDelete(id);
-    }
-    localStorage.removeItem('createdCharacter');
-    setCreatedCharacter(null);
-    router.push('/');
-  }, [createdCharacter?.id, handleDelete, router, setCreatedCharacter]);
-
-  const handleReRegisterSuccess = useCallback(
-    (data: Character) => {
-      localStorage.setItem('createdCharacter', JSON.stringify(data));
-      setCreatedCharacter(data);
-      setReRegisterOpen(false);
-      reRegisterDismissedRef.current = false;
-      void fetchCharacters();
-    },
-    [fetchCharacters, setCreatedCharacter],
-  );
-
-  const handleReRegisterCancel = useCallback(() => {
-    reRegisterDismissedRef.current = true;
-    setReRegisterOpen(false);
-    localStorage.removeItem('createdCharacter');
-    setCreatedCharacter(null);
-    if (eventCode) {
-      router.push(`/event/register?code=${encodeURIComponent(eventCode)}`);
-    }
-  }, [eventCode, router, setCreatedCharacter]);
+  const {
+    reRegisterOpen,
+    reRegisterFormKey,
+    handleReRegisterSuccess,
+    handleReRegisterCancel,
+  } = useEventViewReRegister({
+    loading,
+    eventCode,
+    createdCharacter,
+    characters,
+    fetchCharacters,
+    setCreatedCharacter,
+    router,
+  });
 
   if (isVerifying || loading || !isAuthChecked) return <Loading />;
 
@@ -246,7 +168,7 @@ const EventView: React.FC = () => {
           onClearParties={() => void handleClearEvent()}
           onToggleVisibility={() => void togglePartiesVisibility()}
           onPartiesUpdate={handlePartiesUpdate}
-          onClearAllCharacters={() => void handleClear(characters)}
+          onClearAllCharacters={handleClearAllCharacters}
           onSaveParticipant={handleSaveParticipant}
           onDeleteParticipant={handleDelete}
           viewerCharacterId={createdCharacter?.id ?? null}
