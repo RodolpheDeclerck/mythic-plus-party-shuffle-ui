@@ -10,6 +10,7 @@ import axios from 'axios';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
+import type { Character } from '@/types/Character';
 import { useClasses } from '../../context/ClassesContext';
 import { useSpecializations } from '../../context/SpecializationsContext';
 import apiUrl from '../../config/apiConfig';
@@ -31,13 +32,42 @@ const inputV0Class =
 const selectV0Class =
   'event-register-select h-11 w-full cursor-pointer rounded-md border border-purple-500/30 bg-[#1a0a2e] px-3 text-sm text-zinc-100 shadow-none outline-none [color-scheme:dark] focus-visible:border-cyan-400/50 focus-visible:ring-2 focus-visible:ring-cyan-400 disabled:cursor-not-allowed disabled:opacity-60';
 
-const EventRegisterForm: React.FC = () => {
-  const [name, setName] = useState<string>('');
-  const [selectCharacterClass, setSelectCharacterClass] = useState<string>('');
-  const [selectSpecialization, setSelectSpecialization] = useState<string>('');
-  const [iLevel, setILevel] = useState(ITEM_LEVEL_MIN.toString());
-  const [kStoneMin, setKStoneMin] = useState(KEYSTONE_MIN_LEVEL.toString());
-  const [kStoneMax, setKStoneMax] = useState('15');
+export type EventRegisterFormProps = {
+  variant?: 'page' | 'embedded';
+  /** Sur la page événement (modale), le code ne vient pas du query string */
+  eventCodeOverride?: string | null;
+  formIdPrefix?: string;
+  initialCharacter?: Character | null;
+  onRegisterSuccess?: (data: unknown) => void;
+  onCancel?: () => void;
+  hideSignInLink?: boolean;
+};
+
+const EventRegisterForm: React.FC<EventRegisterFormProps> = ({
+  variant = 'page',
+  eventCodeOverride = null,
+  formIdPrefix = 'event-reg',
+  initialCharacter = null,
+  onRegisterSuccess,
+  onCancel,
+  hideSignInLink = false,
+}) => {
+  const [name, setName] = useState(() => initialCharacter?.name ?? '');
+  const [selectCharacterClass, setSelectCharacterClass] = useState(
+    () => initialCharacter?.characterClass ?? '',
+  );
+  const [selectSpecialization, setSelectSpecialization] = useState(
+    () => initialCharacter?.specialization ?? '',
+  );
+  const [iLevel, setILevel] = useState(() =>
+    String(initialCharacter?.iLevel ?? ITEM_LEVEL_MIN),
+  );
+  const [kStoneMin, setKStoneMin] = useState(() =>
+    String(initialCharacter?.keystoneMinLevel ?? KEYSTONE_MIN_LEVEL),
+  );
+  const [kStoneMax, setKStoneMax] = useState(() =>
+    String(initialCharacter?.keystoneMaxLevel ?? 15),
+  );
   const [isFirstInputAfterFocus, setIsFirstInputAfterFocus] = useState(false);
   const [isFirstInputAfterFocusKeyMin, setIsFirstInputAfterFocusKeyMin] =
     useState(false);
@@ -53,7 +83,7 @@ const EventRegisterForm: React.FC = () => {
   const { classes } = useClasses();
   const { specializations, fetchSpecializations } = useSpecializations();
 
-  const eventCode = searchParams.get('code');
+  const eventCode = eventCodeOverride ?? searchParams.get('code');
 
   const previewRole = useMemo(() => {
     if (!selectCharacterClass || !selectSpecialization) return null;
@@ -69,11 +99,17 @@ const EventRegisterForm: React.FC = () => {
     !!selectCharacterClass && battleRezClasses.includes(selectCharacterClass);
 
   useEffect(() => {
+    if (variant !== 'page') return;
     const storedCharacter = localStorage.getItem('createdCharacter');
     if (storedCharacter && eventCode) {
       router.push('/event?code=' + eventCode);
     }
-  }, [router, eventCode]);
+  }, [router, eventCode, variant]);
+
+  useEffect(() => {
+    if (!selectCharacterClass) return;
+    fetchSpecializations(selectCharacterClass);
+  }, [selectCharacterClass, fetchSpecializations]);
 
   const handleClassChange = (selectedClass: string) => {
     setSelectCharacterClass(selectedClass);
@@ -257,6 +293,11 @@ const EventRegisterForm: React.FC = () => {
         characterData,
       );
       localStorage.setItem('createdCharacter', JSON.stringify(response.data));
+      if (onRegisterSuccess) {
+        onRegisterSuccess(response.data);
+        setIsSaving(false);
+        return;
+      }
       router.push('/event?code=' + eventCode);
     } catch {
       setSaveError(t('eventRegister.saveError'));
@@ -270,7 +311,10 @@ const EventRegisterForm: React.FC = () => {
     !!selectCharacterClass &&
     !!selectSpecialization;
 
+  const fid = (suffix: string) => `${formIdPrefix}-${suffix}`;
+
   if (!eventCode) {
+    if (variant === 'embedded') return null;
     return (
       <div className="flex flex-col gap-4 text-center">
         <Link
@@ -301,14 +345,11 @@ const EventRegisterForm: React.FC = () => {
       ) : null}
 
       <div className="space-y-2">
-        <label
-          htmlFor="event-reg-name"
-          className="text-sm text-muted-foreground"
-        >
+        <label htmlFor={fid('name')} className="text-sm text-muted-foreground">
           {t('eventRegister.nameLabel')}
         </label>
         <Input
-          id="event-reg-name"
+          id={fid('name')}
           value={name}
           onChange={handleNameChange}
           placeholder={t('eventRegister.namePlaceholder')}
@@ -320,14 +361,11 @@ const EventRegisterForm: React.FC = () => {
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <label
-            htmlFor="event-reg-class"
-            className="text-sm text-muted-foreground"
-          >
+          <label htmlFor={fid('class')} className="text-sm text-muted-foreground">
             {t('eventRegister.classLabel')}
           </label>
           <select
-            id="event-reg-class"
+            id={fid('class')}
             value={selectCharacterClass}
             onChange={(e) => handleClassChange(e.target.value)}
             disabled={isSaving}
@@ -354,14 +392,11 @@ const EventRegisterForm: React.FC = () => {
         </div>
 
         <div className="space-y-2">
-          <label
-            htmlFor="event-reg-spec"
-            className="text-sm text-muted-foreground"
-          >
+          <label htmlFor={fid('spec')} className="text-sm text-muted-foreground">
             {t('eventRegister.specLabel')}
           </label>
           <select
-            id="event-reg-spec"
+            id={fid('spec')}
             value={selectCharacterClass ? selectSpecialization : ''}
             onChange={(e) => handleSpecializationChange(e.target.value)}
             disabled={isSaving || !selectCharacterClass}
@@ -391,14 +426,11 @@ const EventRegisterForm: React.FC = () => {
       </div>
 
       <div className="space-y-2">
-        <label
-          htmlFor="event-reg-ilvl"
-          className="text-sm text-muted-foreground"
-        >
+        <label htmlFor={fid('ilvl')} className="text-sm text-muted-foreground">
           {t('eventRegister.ilvlLabel')}
         </label>
         <Input
-          id="event-reg-ilvl"
+          id={fid('ilvl')}
           type="number"
           value={iLevel}
           onChange={handleILevelChange}
@@ -415,13 +447,13 @@ const EventRegisterForm: React.FC = () => {
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <label
-            htmlFor="event-reg-key-min"
+            htmlFor={fid('key-min')}
             className="text-sm text-muted-foreground"
           >
             {t('eventRegister.keyMinLabel')}
           </label>
           <Input
-            id="event-reg-key-min"
+            id={fid('key-min')}
             type="number"
             value={kStoneMin}
             onChange={handleKeystoneMinChange}
@@ -436,13 +468,13 @@ const EventRegisterForm: React.FC = () => {
         </div>
         <div className="space-y-2">
           <label
-            htmlFor="event-reg-key-max"
+            htmlFor={fid('key-max')}
             className="text-sm text-muted-foreground"
           >
             {t('eventRegister.keyMaxLabel')}
           </label>
           <Input
-            id="event-reg-key-max"
+            id={fid('key-max')}
             type="number"
             value={kStoneMax}
             onChange={handleKeystoneMaxChange}
@@ -492,30 +524,53 @@ const EventRegisterForm: React.FC = () => {
         </div>
       ) : null}
 
-      <Button
-        type="submit"
-        disabled={!canSubmit || isSaving}
-        className="h-12 w-full border border-cyan-400/50 bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-700 font-semibold text-white shadow-lg shadow-cyan-500/25 hover:from-cyan-400 hover:via-blue-500 hover:to-purple-600 disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        {isSaving ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            {t('eventRegister.joining')}
-          </>
-        ) : (
-          t('eventRegister.joinEvent')
+      <div
+        className={cn(
+          'flex flex-col gap-2 sm:flex-row',
+          onCancel ? 'sm:items-stretch' : '',
         )}
-      </Button>
-
-      <p className="mt-4 text-center text-sm text-gray-400">
-        {t('eventRegister.signInPrompt')}{' '}
-        <Link
-          href="/login"
-          className="font-medium text-cyan-400 underline-offset-4 hover:text-cyan-300 hover:underline"
+      >
+        {onCancel ? (
+          <Button
+            type="button"
+            variant="outline"
+            disabled={isSaving}
+            onClick={() => onCancel()}
+            className="border-purple-500/40 text-muted-foreground hover:bg-purple-500/10 sm:flex-initial"
+          >
+            {t('eventRegister.later')}
+          </Button>
+        ) : null}
+        <Button
+          type="submit"
+          disabled={!canSubmit || isSaving}
+          className={cn(
+            'h-12 border border-cyan-400/50 bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-700 font-semibold text-white shadow-lg shadow-cyan-500/25 hover:from-cyan-400 hover:via-blue-500 hover:to-purple-600 disabled:cursor-not-allowed disabled:opacity-50',
+            onCancel ? 'sm:flex-1' : 'w-full',
+          )}
         >
-          {t('eventRegister.signInLink')}
-        </Link>
-      </p>
+          {isSaving ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              {t('eventRegister.joining')}
+            </>
+          ) : (
+            t('eventRegister.joinEvent')
+          )}
+        </Button>
+      </div>
+
+      {!hideSignInLink ? (
+        <p className="mt-4 text-center text-sm text-gray-400">
+          {t('eventRegister.signInPrompt')}{' '}
+          <Link
+            href="/login"
+            className="font-medium text-cyan-400 underline-offset-4 hover:text-cyan-300 hover:underline"
+          >
+            {t('eventRegister.signInLink')}
+          </Link>
+        </p>
+      ) : null}
     </form>
   );
 };

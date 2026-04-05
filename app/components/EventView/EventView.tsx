@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import Loading from '../Loading';
@@ -15,6 +15,7 @@ import { useEventData } from '../../hooks/useEventData';
 import { useCharacterManagement } from '../../hooks/useCharacterManagement';
 import { usePartyManagement } from '../../hooks/usePartyManagement';
 import { EventDetailV0 } from './EventDetailV0';
+import { ReRegisterEventDialogV0 } from './ReRegisterEventDialogV0';
 import { v0Card, v0CardPadding } from './eventUi';
 import { cn } from '@/lib/utils';
 import type { Character } from '@/types/Character';
@@ -54,6 +55,10 @@ const EventView: React.FC = () => {
 
   const [errorState, setErrorState] = useState<string | null>(null);
   const [shufflePending, setShufflePending] = useState(false);
+  const [reRegisterOpen, setReRegisterOpen] = useState(false);
+  const [reRegisterFormKey, setReRegisterFormKey] = useState(0);
+  const reRegisterDismissedRef = useRef(false);
+  const reRegisterPrevInListRef = useRef<boolean | null>(null);
 
   const fetchCharacters = useCallback(async () => {
     if (eventCode) {
@@ -115,6 +120,28 @@ const EventView: React.FC = () => {
     void fetchPartiesWrapper();
   }, [fetchPartiesWrapper]);
 
+  /** Joueur : la liste ne contient plus son perso (ex. admin « Clear list ») → modale de réinscription. */
+  useEffect(() => {
+    if (loading || !eventCode || !createdCharacter) return;
+    const inList = characters.some((c) => c.id === createdCharacter.id);
+    if (inList) {
+      reRegisterDismissedRef.current = false;
+      setReRegisterOpen(false);
+      reRegisterPrevInListRef.current = true;
+      return;
+    }
+    if (reRegisterDismissedRef.current) {
+      reRegisterPrevInListRef.current = false;
+      return;
+    }
+    const wasInList = reRegisterPrevInListRef.current;
+    reRegisterPrevInListRef.current = false;
+    setReRegisterOpen(true);
+    if (wasInList === true || wasInList === null) {
+      setReRegisterFormKey((k) => k + 1);
+    }
+  }, [loading, eventCode, createdCharacter, characters]);
+
   const handleShuffleWrapper = useCallback(async () => {
     setShufflePending(true);
     try {
@@ -149,6 +176,29 @@ const EventView: React.FC = () => {
     setCreatedCharacter(null);
     router.push('/');
   }, [createdCharacter?.id, handleDelete, router, setCreatedCharacter]);
+
+  const handleReRegisterSuccess = useCallback(
+    (data: unknown) => {
+      localStorage.setItem('createdCharacter', JSON.stringify(data));
+      setCreatedCharacter(data);
+      setReRegisterOpen(false);
+      reRegisterDismissedRef.current = false;
+      void fetchCharacters();
+    },
+    [fetchCharacters, setCreatedCharacter],
+  );
+
+  const handleReRegisterCancel = useCallback(() => {
+    reRegisterDismissedRef.current = true;
+    setReRegisterOpen(false);
+    localStorage.removeItem('createdCharacter');
+    setCreatedCharacter(null);
+    if (eventCode) {
+      router.push(
+        `/event/register?code=${encodeURIComponent(eventCode)}`,
+      );
+    }
+  }, [eventCode, router, setCreatedCharacter]);
 
   if (isVerifying || loading || !isAuthChecked) return <Loading />;
 
@@ -194,6 +244,17 @@ const EventView: React.FC = () => {
           onDeleteParticipant={handleDelete}
           viewerCharacterId={createdCharacter?.id ?? null}
           onViewerLeaveEvent={handleViewerLeave}
+        />
+      ) : null}
+
+      {reRegisterOpen && eventCode && createdCharacter ? (
+        <ReRegisterEventDialogV0
+          open
+          eventCode={eventCode}
+          formInstanceKey={reRegisterFormKey}
+          initialCharacter={createdCharacter}
+          onRegisterSuccess={handleReRegisterSuccess}
+          onCancel={handleReRegisterCancel}
         />
       ) : null}
     </div>
